@@ -69,13 +69,15 @@ public class ManageDB {
 	 * @throws Exception
 	 */
 	public String[] addRows(String tableName, String[] columnNames,
-			String[][] columnValues) throws Exception {
+			String[][] columnValues, String[] doubleColumnNames,
+			Double[][] doubleValues) throws Exception {
 		// Validate table name
 		validateTable(tableName);
 		// Validate column names
 		validateColumnNames(columnNames);
 		int rowCount = columnValues.length;
-		int columnCount = columnNames.length;
+		int columnCount = columnValues[0].length;
+		Double[] currentDoubleValues = null;
 		String[] keyList = new String[rowCount];
 		// Find key indexes to check if empty and to construct update query
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
@@ -98,14 +100,17 @@ public class ManageDB {
 			}
 			// Check if keys are empty and if they exist in database
 			if (keysExist(keyIndexes, tableName, columnNames, columnValues[i])) {
+				if (!isEmpty(doubleColumnNames))
+					currentDoubleValues = doubleValues[i];
 				setUpdateStatementValues(keyIndexes, updateStmt, columnNames,
-						columnValues[i]);
+						columnValues[i], doubleValues[i]);
 				updateStmt.addBatch();
 			} else {
-				// Generate keys for row
 				columnValues[i] = generateKeys(keyIndexes, columnValues[i]);
+				if (!isEmpty(doubleColumnNames))
+					currentDoubleValues = doubleValues[i];
 				setInsertStatementValues(insertStmt, columnNames,
-						columnValues[i]);
+						columnValues[i], currentDoubleValues);
 				insertStmt.addBatch();
 			}
 			// Get keys from row
@@ -114,6 +119,7 @@ public class ManageDB {
 		// execute batches
 		insertStmt.executeBatch();
 		updateStmt.executeBatch();
+		System.out.println(insertStmt);
 		return keyList;
 	}
 
@@ -257,6 +263,24 @@ public class ManageDB {
 	 */
 	public String getDefaultValue(String columnName) {
 		return defaultValues.get(columnName);
+	}
+
+	/**
+	 * Gets the columns that are double precision
+	 * 
+	 * @param tableName
+	 * @return
+	 */
+	public String[] getDoubleColumns(String tableName) {
+		ArrayList<String> al = new ArrayList<String>();
+		String[] columns = columnMap.get(tableName);
+		int numColumns = columns.length;
+		for (int i = 0; i < numColumns; i++) {
+			if (typeMap.get(columns[i]).equalsIgnoreCase("double precision"))
+				al.add(columns[i]);
+		}
+		String[] doubleColumns = al.toArray(new String[al.size()]);
+		return doubleColumns;
 	}
 
 	/**
@@ -817,10 +841,20 @@ public class ManageDB {
 	 * @throws SQLException
 	 */
 	private void setInsertStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues) throws SQLException {
-		for (int i = 0; i < columnValues.length; i++) {
-			int targetType = lookupTargetType(columnNames[i]);
-			pstmt.setObject(i + 1, columnValues[i], targetType);
+			String[] columnNames, String[] columnValues, Double[] doubleValues)
+			throws SQLException {
+		int numColumns = columnNames.length;
+		int i = 0;
+		int j = 0;
+		for (int k = 0; k < numColumns; k++) {
+			int targetType = lookupTargetType(columnNames[k]);
+			if (doubleValues != null && targetType == Types.DOUBLE) {
+				pstmt.setDouble(k + 1, doubleValues[i]);
+				i++;
+			} else {
+				pstmt.setObject(k + 1, columnValues[j], targetType);
+				j++;
+			}
 		}
 	}
 
@@ -929,15 +963,20 @@ public class ManageDB {
 	 * @throws SQLException
 	 */
 	private void setUpdateStatementValues(ArrayList<Integer> keyIndexes,
-			PreparedStatement pstmt, String[] columnNames, String[] columnValues)
-			throws SQLException {
+			PreparedStatement pstmt, String[] columnNames,
+			String[] columnValues, Double[] doubleValues) throws SQLException {
 		String[] keyColumns = addByIndex(keyIndexes, columnNames);
 		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
 		String[] keyValues = addByIndex(keyIndexes, columnValues);
 		String[] nonKeyValues = removeByIndex(keyIndexes, columnValues);
 		int i;
+		int k = 0;
 		for (i = 0; i < nonKeyColumns.length; i++) {
 			int targetType = lookupTargetType(nonKeyColumns[i]);
+			if (doubleValues != null && targetType == Types.DOUBLE) {
+				pstmt.setDouble(i + 1, doubleValues[k]);
+				k++;
+			}
 			pstmt.setObject(i + 1, nonKeyValues[i], targetType);
 		}
 		for (int j = 0; j < keyColumns.length; j++) {
@@ -981,8 +1020,6 @@ public class ManageDB {
 				Integer.parseInt(columnValue);
 			} else if (type.equalsIgnoreCase("bigint")) {
 				Long.parseLong(columnValue);
-			} else if (type.equalsIgnoreCase("double precision")) {
-				Double.parseDouble(columnValue);
 			} else if (type.equalsIgnoreCase("timestamp without time zone")) {
 				Timestamp.valueOf(columnValue);
 			}
@@ -1243,6 +1280,21 @@ public class ManageDB {
 		boolean empty = true;
 		if (s != null) {
 			if (s.length() > 0)
+				empty = false;
+		}
+		return empty;
+	}
+
+	/**
+	 * Checks if a string array is empty
+	 * 
+	 * @param s
+	 * @return
+	 */
+	private static boolean isEmpty(String[] s) {
+		boolean empty = true;
+		if (s != null) {
+			if (s.length > 0)
 				empty = false;
 		}
 		return empty;

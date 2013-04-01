@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,14 +20,13 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.MobbedException;
 import edu.utsa.testmobbed.helpers.Datasets;
 
-
 /**
  * @author JCockfield
  * 
  */
 public class TestManageDB {
-	private String tablePath = Class.class
-			.getResource("/testmobbed/mobbed.sql").getPath();
+	private String tablePath = Class.class.getResource(
+			"/edu/utsa/testmobbed/mobbed.sql").getPath();
 	private String name = "testdb";
 	private String hostname = "localhost";
 	private String user = "postgres";
@@ -146,6 +144,24 @@ public class TestManageDB {
 	}
 
 	@Test
+	public void testGetDoubleColumns() throws Exception {
+		System.out
+				.println("TEST: testing getDoubleColumns() method. The columns that are type double should be returned.");
+		String tableName = "attributes";
+		String columnQuery = "SELECT column_name from information_schema.columns where table_name = ? AND table_schema = 'public' AND data_type = 'double precision' ";
+		PreparedStatement pstmt = md.getConnection().prepareStatement(
+				columnQuery);
+		pstmt.setString(1, tableName);
+		ResultSet rs = pstmt.executeQuery();
+		ArrayList<String> al = new ArrayList<String>();
+		while (rs.next())
+			al.add(rs.getString(1));
+		String[] expected = al.toArray(new String[al.size()]);
+		String[] actual = md.getDoubleColumns(tableName);
+		assertArrayEquals(expected, actual);
+	}
+
+	@Test
 	public void testGetColumnType() throws Exception {
 		System.out
 				.println("TEST: testing getColumnType() method. The column type should be retrieved when a given column name is specified");
@@ -191,6 +207,26 @@ public class TestManageDB {
 	}
 
 	@Test
+	public void testAddRowsDoubleValues() throws Exception {
+		String tableName = "attributes";
+		String[] columnNames = md.getColumnNames(tableName);
+		String[] doubleColumnName = md.getDoubleColumns(tableName);
+		String[][] columnValues = {
+				{ null, UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(), "1", "1.25" },
+				{ null, UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(), "2", "2.85" },
+				{ null, UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(),
+						UUID.randomUUID().toString(), "3", "5.67" } };
+		Double[][] doubleColumnValues = { { 1.25 }, { 2.85 }, { 5.67 } };
+		md.addRows(tableName, columnNames, columnValues, doubleColumnName,
+				doubleColumnValues);
+	}
+
+	@Test
 	public void testAddRowsCompositeKey() throws Exception {
 		System.out
 				.println("TEST: testing addRows() method. The addRows method should return a comma separated key when the key is composite");
@@ -198,7 +234,8 @@ public class TestManageDB {
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
 				"datasets" } };
-		String[] actual = md.addRows(tableName, columnNames, columnValues);
+		String[] actual = md.addRows(tableName, columnNames, columnValues,
+				null, null);
 		assertNotNull(actual);
 		String[] expected = { columnValues[0][0] + "," + columnValues[0][1] };
 		assertArrayEquals(
@@ -216,7 +253,8 @@ public class TestManageDB {
 		String[][] columnValues = { { null, "John", "Doe", "J",
 				"123 Doe Drive", "456 Doe Drive", "Doeville", "Florida", "USA",
 				"45353", "124-412-4574", "jdoe@email.com" } };
-		String[] actual = md.addRows(tableName, columnNames, columnValues);
+		String[] actual = md.addRows(tableName, columnNames, columnValues,
+				null, null);
 		assertNotNull(actual);
 		String[] expected = { columnValues[0][0] };
 		assertArrayEquals(
@@ -238,7 +276,8 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		String[] actual = md.addRows(tableName, columnNames, columnValues);
+		String[] actual = md.addRows(tableName, columnNames, columnValues,
+				null, null);
 		assertNotNull(actual);
 		String[] expected = { columnValues[0][0], columnValues[1][0] };
 		assertArrayEquals(
@@ -297,7 +336,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[][] rows = md.retrieveRows(tableName, 1, "off", null, null,
 				null, null);
@@ -322,7 +361,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[][] rows = md.retrieveRows(tableName, -1, "off", null, null,
 				null, null);
@@ -354,7 +393,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[] columnNames2 = { "contact_first_name" };
 		String[][] columnValues2 = { { "john" } };
@@ -388,7 +427,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[] columnNames2 = { "contact_first_name" };
 		String[][] columnValues2 = { { "jo*" } };
@@ -422,7 +461,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[] columnNames2 = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues2 = { { "John", "Jane" }, { "Doe" } };
@@ -457,7 +496,7 @@ public class TestManageDB {
 				{ null, "Jane", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
 						"jdoe@email.com" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		md.commit();
 		String[] columnNames2 = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues2 = { { "JO*", "JA*" }, { "Doe" } };
@@ -496,7 +535,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
@@ -535,7 +574,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] tagValues = { { "Eye*" } };
@@ -575,7 +614,7 @@ public class TestManageDB {
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" },
 				{ "AudioLeft", dataset.getDatasetUuid().toString(), "datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" },
@@ -616,7 +655,7 @@ public class TestManageDB {
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" },
 				{ "AudioLeft", dataset.getDatasetUuid().toString(), "datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] tagValues = { { "Eye*", "Visual*" }, { "Audio*" } };
@@ -659,7 +698,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "2", null, "Beta" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] attributeValues = { { "ALPHA", "BETA" } };
@@ -702,7 +741,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "2", null, "Beta" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] attributeValues = { { "A*", "B*" } };
@@ -749,7 +788,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] attributeValues = { { "ALPHA", "BETA" }, { "Omega" } };
@@ -797,7 +836,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
@@ -844,7 +883,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -893,7 +932,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -936,7 +975,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -977,7 +1016,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -1019,7 +1058,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		tableName = "attributes";
 		columnNames = md.getColumnNames(tableName);
 		String[][] columnValues2 = {
@@ -1032,7 +1071,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -1077,7 +1116,7 @@ public class TestManageDB {
 				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
 				{ "VisualTarget", dataset.getDatasetUuid().toString(),
 						"datasets" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 		tableName = "attributes";
 		columnNames = md.getColumnNames(tableName);
 		String[][] columnValues2 = {
@@ -1090,7 +1129,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
 						UUID.randomUUID().toString(), "3", null, "Omega" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
 		String[] columnNames3 = { "dataset_name" };
@@ -1123,7 +1162,8 @@ public class TestManageDB {
 		String[][] columnValues = { { null, "light flash", "description" },
 				{ null, "audio stimulus", "description" },
 				{ null, "button press", "description" } };
-		String[] keys = md.addRows(tableName, columnNames, columnValues);
+		String[] keys = md.addRows(tableName, columnNames, columnValues, null,
+				null);
 		tableName = "events";
 		columnNames = md.getColumnNames(tableName);
 		String entityUuid = UUID.randomUUID().toString();
@@ -1131,7 +1171,7 @@ public class TestManageDB {
 				{ null, entityUuid, keys[0], "1", "1", "1", "1.0" },
 				{ null, entityUuid, keys[1], "2", "2", "2", "1.0" },
 				{ null, entityUuid, keys[2], "3", "3", "3", "1.0" } };
-		md.addRows(tableName, columnNames, columnValues2);
+		md.addRows(tableName, columnNames, columnValues2, null, null);
 		String[][] rows = md.extractRows("events", null, null, "events", null,
 				null, -1, "off", 0, 1);
 		int actual = rows.length;
@@ -1156,7 +1196,7 @@ public class TestManageDB {
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
 				"datasets" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 
 	@Test(expected = MobbedException.class)
@@ -1168,7 +1208,7 @@ public class TestManageDB {
 				"invalid_column3" };
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
 				"datasets" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 
 	@Test(expected = MobbedException.class)
@@ -1179,7 +1219,7 @@ public class TestManageDB {
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "invalid_value1", "invalid_value2",
 				"invalid_value3" } };
-		md.addRows(tableName, columnNames, columnValues);
+		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 
 	@After
