@@ -1,10 +1,8 @@
-package edu.utsa.testmobbed.helpers;
+package edu.utsa.mobbed;
 
 import java.sql.*;
 import java.util.UUID;
 
-import edu.utsa.mobbed.MobbedConstants;
-import edu.utsa.mobbed.MobbedException;
 
 
 

@@ -9,17 +9,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import edu.utsa.mobbed.EventTypeMaps;
 import edu.utsa.mobbed.ManageDB;
-import edu.utsa.testmobbed.helpers.EventTypeMaps;
-
 
 /**
  * @author JCockfield
  * 
  */
 public class TestEventTypeMaps {
-	private String tablePath = Class.class
-			.getResource("/testmobbed/mobbed.sql").getPath();
+	private String tablePath = Class.class.getResource(
+			"/edu/utsa/testmobbed/mobbed.sql").getPath();
 	private String name = "testdb";
 	private String hostname = "localhost";
 	private String user = "postgres";
@@ -34,8 +33,8 @@ public class TestEventTypeMaps {
 		try {
 			md = new ManageDB(name, hostname, user, password);
 		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password,
-					tablePath, verbose);
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
 			md = new ManageDB(name, hostname, user, password);
 		}
 	}

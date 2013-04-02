@@ -1,4 +1,4 @@
-package edu.utsa.testmobbed.helpers;
+package edu.utsa.mobbed;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -7,7 +7,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.UUID;
 
-import edu.utsa.mobbed.MobbedException;
 
 
 public class EventTypes {

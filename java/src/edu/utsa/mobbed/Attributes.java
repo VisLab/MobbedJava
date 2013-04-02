@@ -1,11 +1,7 @@
-package edu.utsa.testmobbed.helpers;
+package edu.utsa.mobbed;
 
 import java.util.UUID;
 import java.sql.*;
-
-import edu.utsa.mobbed.MobbedException;
-
-
 
 /**
  * Handler class for ATTRIBUTES table. Any entity (dataset, event, element)
@@ -89,9 +85,10 @@ public class Attributes {
 	 * @param entityUuid
 	 *            UUID of the entity
 	 * @param organizationalUuid
-	 *            UUID of the dataset ({@link edu.utsa.testmobbed.helpers.Datasets})
+	 *            UUID of the dataset (
+	 *            {@link edu.utsa.testmobbed.helpers.Datasets})
 	 * @param structureUuid
-	 *            UUID of the structure ({@link edu.utsa.testmobbed.helpers.Structures})
+	 *            UUID of the structure ({@link edu.utsa.mobbed.Structures})
 	 * @param position
 	 *            Position of the attribute's owner
 	 * @param attributeValue

@@ -18,8 +18,8 @@ import edu.utsa.mobbed.NumericStreams;
  * 
  */
 public class TestNumericStreams {
-	private String tablePath = Class.class
-			.getResource("/testmobbed/mobbed.sql").getPath();
+	private String tablePath = Class.class.getResource(
+			"/edu/utsa/testmobbed/mobbed.sql").getPath();
 	private String name = "testdb";
 	private String hostname = "localhost";
 	private String user = "postgres";
@@ -36,8 +36,8 @@ public class TestNumericStreams {
 		try {
 			md = new ManageDB(name, hostname, user, password);
 		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password,
-					tablePath, verbose);
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
 			md = new ManageDB(name, hostname, user, password);
 		} finally {
 			datadefUuid = UUID.randomUUID();

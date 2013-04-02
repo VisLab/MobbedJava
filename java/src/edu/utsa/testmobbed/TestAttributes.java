@@ -10,20 +10,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import edu.utsa.mobbed.Attributes;
 import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.MobbedConstants;
-import edu.utsa.testmobbed.helpers.Attributes;
+import edu.utsa.mobbed.Structures;
 import edu.utsa.testmobbed.helpers.Datasets;
-import edu.utsa.testmobbed.helpers.Structures;
-
 
 /**
  * @author JCockfield
  * 
  */
 public class TestAttributes {
-	private String tablePath = Class.class
-			.getResource("/testmobbed/mobbed.sql").getPath();
+	private String tablePath = Class.class.getResource(
+			"/edu/utsa/testmobbed/mobbed.sql").getPath();
 	private String name = "testdb";
 	private String hostname = "localhost";
 	private String user = "postgres";
