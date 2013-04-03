@@ -70,13 +70,13 @@ public class ManageDB {
 	 */
 	public String[] addRows(String tableName, String[] columnNames,
 			String[][] columnValues, String[] doubleColumnNames,
-			double[][] doubleValues) throws Exception {
+			Double[][] doubleValues) throws Exception {
 		validateTableName(tableName);
 		validateColumnNames(columnNames);
 		int numRows = columnValues.length;
 		int numValues = columnValues[0].length;
 		int doubleIndex = 0;
-		double[] currentDoubleValues;
+		Double[] currentDoubleValues;
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
 		String insertQry = constructInsertQuery(tableName, columnNames);
@@ -828,7 +828,7 @@ public class ManageDB {
 	 * @throws SQLException
 	 */
 	private void setInsertStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues, double[] doubleValues)
+			String[] columnNames, String[] columnValues, Double[] doubleValues)
 			throws SQLException {
 		int numColumns = columnNames.length;
 		int i = 0;
@@ -951,7 +951,7 @@ public class ManageDB {
 	 */
 	private void setUpdateStatementValues(ArrayList<Integer> keyIndexes,
 			PreparedStatement pstmt, String[] columnNames,
-			String[] columnValues, double[] doubleValues) throws SQLException {
+			String[] columnValues, Double[] doubleValues) throws SQLException {
 		String[] keyColumns = addByIndex(keyIndexes, columnNames);
 		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
 		String[] keyValues = addByIndex(keyIndexes, columnValues);

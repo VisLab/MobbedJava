@@ -221,7 +221,7 @@ public class TestManageDB {
 				{ null, UUID.randomUUID().toString(),
 						UUID.randomUUID().toString(),
 						UUID.randomUUID().toString(), "3", "5.67" } };
-		double[][] doubleColumnValues = { { 1.25 }, { 2.85 }, { 5.67 } };
+		Double[][] doubleColumnValues = { { 1.25 }, { 2.85 }, { 5.67 } };
 		md.addRows(tableName, columnNames, columnValues, doubleColumnName,
 				doubleColumnValues);
 	}
