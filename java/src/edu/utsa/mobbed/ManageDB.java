@@ -71,12 +71,12 @@ public class ManageDB {
 	public String[] addRows(String tableName, String[] columnNames,
 			String[][] columnValues, String[] doubleColumnNames,
 			double[][] doubleValues) throws Exception {
-		validateTable(tableName);
+		validateTableName(tableName);
 		validateColumnNames(columnNames);
 		int numRows = columnValues.length;
 		int numValues = columnValues[0].length;
 		int doubleIndex = 0;
-		double[] currentDoubleValues = null;
+		double[] currentDoubleValues;
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
 		String insertQry = constructInsertQuery(tableName, columnNames);
@@ -93,6 +93,8 @@ public class ManageDB {
 			}
 			if (!isEmpty(doubleColumnNames))
 				currentDoubleValues = doubleValues[doubleIndex++];
+			else
+				currentDoubleValues = null;
 			if (keysExist(keyIndexes, tableName, columnNames, columnValues[i])) {
 				setUpdateStatementValues(keyIndexes, updateStmt, columnNames,
 						columnValues[i], doubleValues[i]);
@@ -308,10 +310,9 @@ public class ManageDB {
 	public String[][] retrieveRows(String tableName, int limit, String regExp,
 			String[][] tags, String[][] attributes, String[] columnNames,
 			String[][] columnValues) throws Exception {
-		validateTable(tableName);
+		validateTableName(tableName);
 		ResultSet rs = null;
 		String qry = "SELECT * FROM " + tableName;
-		// Qualifications provided
 		if (tags != null || attributes != null || columnNames != null) {
 			qry += constructQualificationQuery(tableName, regExp, tags,
 					attributes, columnNames, columnValues);
@@ -323,9 +324,7 @@ public class ManageDB {
 			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 					columnValues);
 			rs = pstmt.executeQuery();
-		}
-		// Qualifications not provided
-		else {
+		} else {
 			if (limit > 0)
 				qry += " LIMIT " + limit;
 			Statement stmt = connection.createStatement(
@@ -1025,7 +1024,7 @@ public class ManageDB {
 	 * @return
 	 * @throws Exception
 	 */
-	private boolean validateTable(String tableName) throws Exception {
+	private boolean validateTableName(String tableName) throws Exception {
 		if (getColumnNames(tableName) == null)
 			throw new MobbedException("table " + tableName
 					+ " is an invalid table");
@@ -1274,15 +1273,15 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if a string array is empty
+	 * Checks if a array is empty
 	 * 
 	 * @param s
 	 * @return
 	 */
-	private static boolean isEmpty(String[] s) {
+	private static boolean isEmpty(Object[] o) {
 		boolean empty = true;
-		if (s != null) {
-			if (s.length > 0)
+		if (o != null) {
+			if (o.length > 0)
 				empty = false;
 		}
 		return empty;
