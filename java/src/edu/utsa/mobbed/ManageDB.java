@@ -70,53 +70,41 @@ public class ManageDB {
 	 */
 	public String[] addRows(String tableName, String[] columnNames,
 			String[][] columnValues, String[] doubleColumnNames,
-			Double[][] doubleValues) throws Exception {
-		// Validate table name
+			double[][] doubleValues) throws Exception {
 		validateTable(tableName);
-		// Validate column names
 		validateColumnNames(columnNames);
-		int rowCount = columnValues.length;
-		int columnCount = columnValues[0].length;
-		Double[] currentDoubleValues = null;
-		String[] keyList = new String[rowCount];
-		// Find key indexes to check if empty and to construct update query
+		int numRows = columnValues.length;
+		int numValues = columnValues[0].length;
+		int doubleIndex = 0;
+		double[] currentDoubleValues = null;
+		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
-		// Construct queries and prepared statements for insert/update
 		String insertQry = constructInsertQuery(tableName, columnNames);
 		String updateQry = constructUpdateQuery(keyIndexes, tableName,
 				columnNames);
 		PreparedStatement insertStmt = connection.prepareStatement(insertQry);
 		PreparedStatement updateStmt = connection.prepareStatement(updateQry);
-		// Loop through each row
-		for (int i = 0; i < rowCount; i++) {
-			// Loop through each column
-			for (int j = 0; j < columnCount; j++) {
+		for (int i = 0; i < numRows; i++) {
+			for (int j = 0; j < numValues; j++) {
 				if (!isEmpty(columnValues[i][j]))
-					// Validate columns
 					validateColumnValue(columnNames[j], columnValues[i][j]);
 				else
-					// Set defaults
 					columnValues[i][j] = getDefaultValue(columnNames[j]);
 			}
-			// Check if keys are empty and if they exist in database
+			if (!isEmpty(doubleColumnNames))
+				currentDoubleValues = doubleValues[doubleIndex++];
 			if (keysExist(keyIndexes, tableName, columnNames, columnValues[i])) {
-				if (!isEmpty(doubleColumnNames))
-					currentDoubleValues = doubleValues[i];
 				setUpdateStatementValues(keyIndexes, updateStmt, columnNames,
 						columnValues[i], doubleValues[i]);
 				updateStmt.addBatch();
 			} else {
 				columnValues[i] = generateKeys(keyIndexes, columnValues[i]);
-				if (!isEmpty(doubleColumnNames))
-					currentDoubleValues = doubleValues[i];
 				setInsertStatementValues(insertStmt, columnNames,
 						columnValues[i], currentDoubleValues);
 				insertStmt.addBatch();
 			}
-			// Get keys from row
 			keyList[i] = addKeyValue(keyIndexes, columnValues[i]);
 		}
-		// execute batches
 		insertStmt.executeBatch();
 		updateStmt.executeBatch();
 		System.out.println(insertStmt);
@@ -841,7 +829,7 @@ public class ManageDB {
 	 * @throws SQLException
 	 */
 	private void setInsertStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues, Double[] doubleValues)
+			String[] columnNames, String[] columnValues, double[] doubleValues)
 			throws SQLException {
 		int numColumns = columnNames.length;
 		int i = 0;
@@ -964,7 +952,7 @@ public class ManageDB {
 	 */
 	private void setUpdateStatementValues(ArrayList<Integer> keyIndexes,
 			PreparedStatement pstmt, String[] columnNames,
-			String[] columnValues, Double[] doubleValues) throws SQLException {
+			String[] columnValues, double[] doubleValues) throws SQLException {
 		String[] keyColumns = addByIndex(keyIndexes, columnNames);
 		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
 		String[] keyValues = addByIndex(keyIndexes, columnValues);
