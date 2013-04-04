@@ -91,7 +91,7 @@ public class ManageDB {
 				else
 					columnValues[i][j] = getDefaultValue(columnNames[j]);
 			}
-			if (!isEmpty(doubleColumnNames))
+			if (!isEmpty(doubleValues))
 				currentDoubleValues = doubleValues[doubleIndex++];
 			else
 				currentDoubleValues = null;
@@ -143,14 +143,14 @@ public class ManageDB {
 
 	public String[][] extractRows(String inTableName, String[] inColumnNames,
 			String[][] inColumnValues, String outTableName,
-			String[] outColumnNames, String[][] outColumnValues, int limit,
+			String[] outColumnNames, String[][] outColumnValues, double limit,
 			String regExp, double lower, double upper) throws Exception {
 		String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
 		String[] columns = getColumnNames(inTableName);
 		for (int i = 0; i < columns.length; i++)
 			qry += columns[i] + " " + typeMap.get(columns[i]) + ",";
 		qry += "extracted uuid[]) ORDER BY EVENT_ENTITY_UUID, EVENT_START_TIME";
-		if (limit > 0)
+		if (limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + limit;
 		String inQry = "SELECT * FROM " + inTableName;
 		if (inColumnNames != null) {
@@ -307,31 +307,21 @@ public class ManageDB {
 	 * @return
 	 * @throws Exception
 	 */
-	public String[][] retrieveRows(String tableName, int limit, String regExp,
-			String[][] tags, String[][] attributes, String[] columnNames,
-			String[][] columnValues) throws Exception {
+	public String[][] retrieveRows(String tableName, double limit,
+			String regExp, String[][] tags, String[][] attributes,
+			String[] columnNames, String[][] columnValues) throws Exception {
 		validateTableName(tableName);
-		ResultSet rs = null;
 		String qry = "SELECT * FROM " + tableName;
-		if (tags != null || attributes != null || columnNames != null) {
-			qry += constructQualificationQuery(tableName, regExp, tags,
-					attributes, columnNames, columnValues);
-			if (limit > 0)
-				qry += " LIMIT " + limit;
-			PreparedStatement pstmt = connection.prepareStatement(qry,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
-					columnValues);
-			rs = pstmt.executeQuery();
-		} else {
-			if (limit > 0)
-				qry += " LIMIT " + limit;
-			Statement stmt = connection.createStatement(
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			rs = stmt.executeQuery(qry);
-		}
+		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
+				columnNames, columnValues);
+		if (limit != Double.POSITIVE_INFINITY)
+			qry += " LIMIT " + limit;
+		PreparedStatement pstmt = connection.prepareStatement(qry,
+				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
+				columnValues);
+		System.out.println(pstmt);
+		ResultSet rs = pstmt.executeQuery();
 		String[][] rows = populateArray(rs);
 		return rows;
 	}
@@ -442,22 +432,26 @@ public class ManageDB {
 	private String constructQualificationQuery(String tableName, String regExp,
 			String[][] tags, String[][] attributes, String[] columnNames,
 			String[][] columnValues) throws Exception {
-		String[] keys = keyMap.get(tableName);
-		String qry = " WHERE " + keys[0] + " IN (";
-		if (tags != null)
-			qry += constructTagAttributesQuery(regExp, "Tags", tags);
-		if (attributes != null) {
+		String qry = "";
+		if (tags != null || attributes != null || columnNames != null) {
+			String[] keys = keyMap.get(tableName);
+			qry = " WHERE " + keys[0] + " IN (";
 			if (tags != null)
-				qry += " INTERSECT ";
-			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
+				qry += constructTagAttributesQuery(regExp, "Tags", tags);
+			if (attributes != null) {
+				if (tags != null)
+					qry += " INTERSECT ";
+				qry += constructTagAttributesQuery(regExp, "Attributes",
+						attributes);
+			}
+			if (columnNames != null) {
+				if (tags != null || attributes != null)
+					qry += " INTERSECT ";
+				qry += constructStructQuery(regExp, tableName, columnNames,
+						columnValues);
+			}
+			qry += ")";
 		}
-		if (columnNames != null) {
-			if (tags != null || attributes != null)
-				qry += " INTERSECT ";
-			qry += constructStructQuery(regExp, tableName, columnNames,
-					columnValues);
-		}
-		qry += ")";
 		return qry;
 	}
 
@@ -836,7 +830,10 @@ public class ManageDB {
 		for (int k = 0; k < numColumns; k++) {
 			int targetType = lookupTargetType(columnNames[k]);
 			if (doubleValues != null && targetType == Types.DOUBLE) {
-				pstmt.setDouble(k + 1, doubleValues[i]);
+				if (doubleValues[i] != null)
+					pstmt.setDouble(k + 1, doubleValues[i]);
+				else
+					pstmt.setObject(k + 1, doubleValues[i]);
 				i++;
 			} else {
 				pstmt.setObject(k + 1, columnValues[j], targetType);
