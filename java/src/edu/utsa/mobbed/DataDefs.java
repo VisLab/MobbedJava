@@ -28,6 +28,15 @@ import org.xml.sax.InputSource;
 
 public class DataDefs {
 
+	/**
+	 * Creates a oid for a data defs row
+	 * 
+	 * @param dbCon
+	 * @param datadefUuid
+	 * @param oid
+	 * @return
+	 * @throws Exception
+	 */
 	private static int createDataDefOid(Connection dbCon, String datadefUuid,
 			long oid) throws Exception {
 		int updateCount = 0;
@@ -43,6 +52,15 @@ public class DataDefs {
 		return updateCount;
 	}
 
+	/**
+	 * Creates a oid for a datasets row
+	 * 
+	 * @param dbCon
+	 * @param datasetUuid
+	 * @param oid
+	 * @return
+	 * @throws Exception
+	 */
 	private static int createDatasetOid(Connection dbCon, String datasetUuid,
 			long oid) throws Exception {
 		int updateCount = 0;
@@ -58,6 +76,15 @@ public class DataDefs {
 		return updateCount;
 	}
 
+	/**
+	 * Retireves a blob
+	 * 
+	 * @param dbCon
+	 * @param pathName
+	 * @param entityUuid
+	 * @param additional
+	 * @throws Exception
+	 */
 	public static void retrieveBlob(Connection dbCon, String pathName,
 			String entityUuid, boolean additional) throws Exception {
 		String query = "";
@@ -95,6 +122,14 @@ public class DataDefs {
 		}
 	}
 
+	/**
+	 * Retrieves a numeric value array
+	 * 
+	 * @param dbCon
+	 * @param dataDefUuid
+	 * @return
+	 * @throws Exception
+	 */
 	public static Object retrieveNumericValue(Connection dbCon,
 			String dataDefUuid) throws Exception {
 		Object numericData = null;
@@ -111,6 +146,14 @@ public class DataDefs {
 		return numericData;
 	}
 
+	/**
+	 * Retrieves xml
+	 * 
+	 * @param dbCon
+	 * @param dataDefUuid
+	 * @return
+	 * @throws Exception
+	 */
 	public static String retrieveXMLValue(Connection dbCon, String dataDefUuid)
 			throws Exception {
 		String xmlData = null;
@@ -128,13 +171,13 @@ public class DataDefs {
 	}
 
 	/**
-	 * stores the given file as a LargeObject in the database. This
-	 * implementation will work for any file format. The file is stored in the
-	 * database as blocks of 64KB.
+	 * Stores a blob
 	 * 
-	 * @param filePath
-	 *            absolute path of the file to be stored
-	 * @return boolean - true if successfully stored, false otherwise
+	 * @param dbCon
+	 * @param pathName
+	 * @param entityUuid
+	 * @param additional
+	 * @return
 	 * @throws Exception
 	 */
 	public static long storeBlob(Connection dbCon, String pathName,
@@ -168,6 +211,14 @@ public class DataDefs {
 		return oid;
 	}
 
+	/**
+	 * Stores numeric value array
+	 * 
+	 * @param dbCon
+	 * @param dataDefUuid
+	 * @param numericValue
+	 * @throws Exception
+	 */
 	public static void storeNumericValue(Connection dbCon, String dataDefUuid,
 			Object[] numericValue) throws Exception {
 		String insertQry = "INSERT INTO NUMERIC_VALUES (DATA_DEF_UUID, NUMERIC_VALUE) VALUES (?,?)";
@@ -182,6 +233,14 @@ public class DataDefs {
 		}
 	}
 
+	/**
+	 * Stores xml
+	 * 
+	 * @param dbCon
+	 * @param dataDefUuid
+	 * @param xml
+	 * @throws Exception
+	 */
 	public static void storeXMLValue(Connection dbCon, String dataDefUuid,
 			String xml) throws Exception {
 		String insertQry = "INSERT INTO XML_VALUES (DATA_DEF_UUID, XML_VALUE) VALUES (?,?)";
@@ -196,6 +255,12 @@ public class DataDefs {
 		}
 	}
 
+	/**
+	 * Validates xml
+	 * 
+	 * @param xml
+	 * @throws Exception
+	 */
 	private static void validateXMLValue(String xml) throws Exception {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();

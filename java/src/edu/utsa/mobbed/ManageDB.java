@@ -20,8 +20,7 @@ import java.util.UUID;
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
- * Creates or deletes a mobbed database. The table definitions have to be in the
- * mobbed.xml file in the root directory of MobbedDB.
+ * Manages a mobbed database
  * 
  * @author Jeremy Cockfield
  * 
@@ -109,7 +108,6 @@ public class ManageDB {
 		}
 		insertStmt.executeBatch();
 		updateStmt.executeBatch();
-		System.out.println(insertStmt);
 		return keyList;
 	}
 
@@ -141,6 +139,22 @@ public class ManageDB {
 		}
 	}
 
+	/**
+	 * Extracts inter-related rows
+	 * 
+	 * @param inTableName
+	 * @param inColumnNames
+	 * @param inColumnValues
+	 * @param outTableName
+	 * @param outColumnNames
+	 * @param outColumnValues
+	 * @param limit
+	 * @param regExp
+	 * @param lower
+	 * @param upper
+	 * @return
+	 * @throws Exception
+	 */
 	public String[][] extractRows(String inTableName, String[] inColumnNames,
 			String[][] inColumnValues, String outTableName,
 			String[] outColumnNames, String[][] outColumnValues, double limit,
@@ -182,6 +196,14 @@ public class ManageDB {
 		return rows;
 	}
 
+	/**
+	 * Extracts unique inter-related rows
+	 * 
+	 * @param extractedRows
+	 * @param limit
+	 * @return
+	 * @throws Exception
+	 */
 	public String[][] extractUniqueRows(String[][] extractedRows, int limit)
 			throws Exception {
 		int extractedColumn = extractedRows[0].length - 1;
@@ -208,7 +230,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the column names of a given table
+	 * Gets the column names of a table
 	 * 
 	 * @param table
 	 * @return
@@ -218,7 +240,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the column type given a column name
+	 * Gets the column type of a column
 	 * 
 	 * @param columnName
 	 * @return
@@ -227,8 +249,14 @@ public class ManageDB {
 		return typeMap.get(columnName);
 	}
 
-	public String[] getColumnTypes(String table) {
-		String[] columnNames = getColumnNames(table);
+	/**
+	 * Gets all of the columns types of a given table
+	 * 
+	 * @param table
+	 * @return
+	 */
+	public String[] getColumnTypes(String tableName) {
+		String[] columnNames = getColumnNames(tableName);
 		int numColumns = columnNames.length;
 		String[] columnTypes = new String[numColumns];
 		for (int i = 0; i < numColumns; i++)
@@ -246,7 +274,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the default value given a column name
+	 * Gets the default value of a column
 	 * 
 	 * @param columnName
 	 * @return
@@ -256,7 +284,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the columns that are double precision
+	 * Gets the columns that are double precision of a table
 	 * 
 	 * @param tableName
 	 * @return
@@ -274,7 +302,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the keys of a given table
+	 * Gets the keys of a table
 	 * 
 	 * @param table
 	 * @return
@@ -284,7 +312,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the tables from a database
+	 * Gets all of the tables from a database
 	 * 
 	 * @return
 	 */
@@ -295,7 +323,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Retrieves rows from a table given search criteria
+	 * Retrieves rows from a table by search criteria
 	 * 
 	 * @param tableName
 	 * @param limit
@@ -417,7 +445,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query based on the qualifications the user provides
+	 * Constructs a query based on search criteria
 	 * 
 	 * @param tableName
 	 * @param limit
@@ -475,7 +503,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query from a structure
+	 * Constructs a query from a structure array
 	 * 
 	 * @param regExp
 	 * @param tableName
@@ -519,7 +547,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a tag or attribute query
+	 * Constructs a query from tags or attributes
 	 * 
 	 * @param regExp
 	 * @param qualification
@@ -613,7 +641,6 @@ public class ManageDB {
 	private String[] generateKeys(ArrayList<Integer> keyIndexes,
 			String[] columnValues) {
 		for (int i = 0; i < keyIndexes.size(); i++) {
-			// Check if empty because keys could be supplied but don't exist
 			if (isEmpty(columnValues[keyIndexes.get(i)]))
 				columnValues[keyIndexes.get(i)] = UUID.randomUUID().toString();
 		}
@@ -621,7 +648,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes hash maps that involve column names
+	 * Initializes hash maps that involve columns
 	 * 
 	 * @param columnStatement
 	 * @param tableName
@@ -706,7 +733,6 @@ public class ManageDB {
 			if (!isEmpty(columnValues[keyIndexes.get(i)]))
 				keyCount++;
 		}
-		// Composite key insert/update check
 		if (keyCount > 0 && keyIndexes.size() > keyCount)
 			throw new MobbedException("Composite key is missing column(s)");
 		else if (keyCount == keyIndexes.size())
@@ -772,7 +798,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Populates an array from the results of a result set
+	 * Populates an array with a result set
 	 * 
 	 * @param rs
 	 * @return
@@ -843,7 +869,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets the values of a query constructed by the qualifications
+	 * Sets the values of a query constructed by search criteria
 	 * 
 	 * @param pstmt
 	 * @param qry
@@ -885,7 +911,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets structure query values
+	 * Sets structure array query values
 	 * 
 	 * @param pstmt
 	 * @param valueCount
@@ -1028,7 +1054,13 @@ public class ManageDB {
 		return true;
 	}
 
-	public static void checkForOtherConnections(Connection dbCon)
+	/**
+	 * Checks for active connections
+	 * 
+	 * @param dbCon
+	 * @throws Exception
+	 */
+	public static void checkForActiveConnections(Connection dbCon)
 			throws Exception {
 		Statement stmt = dbCon.createStatement();
 		String qry = "SELECT count(pid) from pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()";
@@ -1043,7 +1075,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates and sets up database
+	 * Creates and sets up a database
 	 * 
 	 * @param name
 	 * @param hostname
@@ -1085,7 +1117,7 @@ public class ManageDB {
 			String user, String password, boolean verbose) throws Exception {
 		Connection databaseConnection = establishConnection(name, hostname,
 				user, password);
-		checkForOtherConnections(databaseConnection);
+		checkForActiveConnections(databaseConnection);
 		deleteDatasetOids(databaseConnection);
 		deleteDataDefOids(databaseConnection);
 		databaseConnection.close();
@@ -1136,7 +1168,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates database tables given a path to a sql file
+	 * Creates database tables from a sql file
 	 * 
 	 * @param dbCon
 	 * @param path

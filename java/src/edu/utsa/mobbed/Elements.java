@@ -3,10 +3,6 @@ package edu.utsa.mobbed;
 import java.util.UUID;
 import java.sql.*;
 
-
-
-
-
 /**
  * Handler class for ELEMENTS table. Elements are considered to be data
  * collecting entities like channels in EEG. Class contains functions to store,
@@ -42,12 +38,10 @@ public class Elements {
 			+ "VALUES (?,?,?,?,?)";
 
 	/**
-	 * create a new Elements object
+	 * Creates a new element object
 	 * 
 	 * @param dbCon
-	 *            connection to the database
-	 * @param datasetUuid
-	 *            UUID of the dataset
+	 * @throws Exception
 	 */
 	public Elements(Connection dbCon) throws Exception {
 		this.dbCon = dbCon;
@@ -63,9 +57,11 @@ public class Elements {
 	}
 
 	/**
+	 * Adds the attribute
 	 * 
-	 * @param fieldNames
-	 * @param fieldValues
+	 * @param fieldName
+	 * @param numericValue
+	 * @param value
 	 * @throws Exception
 	 */
 	public void addAttribute(String fieldName, Double[] numericValue,
@@ -82,7 +78,7 @@ public class Elements {
 	}
 
 	/**
-	 * Add the element statements to the batch
+	 * Adds a element to the batch
 	 * 
 	 * @throws Exception
 	 */
@@ -115,12 +111,10 @@ public class Elements {
 	}
 
 	/**
-	 * Add a new structure to the elementStruct
+	 * Adds a new structure
 	 * 
 	 * @param fieldName
-	 *            name of the structure element to be added
 	 * @param handler
-	 *            - code for the integer
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName, int handler)
@@ -135,6 +129,18 @@ public class Elements {
 		}
 	}
 
+	/**
+	 * Sets class fields
+	 * 
+	 * @param datasetUuid
+	 * @param elementField
+	 * @param defaultFields
+	 * @param groupLabel
+	 * @param elementLabels
+	 * @param elementDescriptions
+	 * @param elementPositions
+	 * @throws Exception
+	 */
 	public void reset(String datasetUuid, String elementField,
 			String[] defaultFields, String groupLabel, String[] elementLabels,
 			String[] elementDescriptions, long[] elementPositions)
@@ -151,6 +157,14 @@ public class Elements {
 		dataStruct = Structures.retrieve(dbCon, modalityName, null, false);
 	} // reset
 
+	/**
+	 * Retrieves the element count
+	 * 
+	 * @param dbCon
+	 * @param datadefUuid
+	 * @return
+	 * @throws Exception
+	 */
 	public static int getElementCount(Connection dbCon, String datadefUuid)
 			throws Exception {
 		int elementCount = 0;
@@ -165,9 +179,9 @@ public class Elements {
 	}
 
 	/**
-	 * save all the elements as a batch operation
+	 * Saves all elements as a batch
 	 * 
-	 * @return boolean - true if successfully stored, false otherwise
+	 * @throws Exception
 	 */
 	public void save() throws Exception {
 		try {
