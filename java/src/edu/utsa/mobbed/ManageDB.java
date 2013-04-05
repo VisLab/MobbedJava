@@ -525,9 +525,13 @@ public class ManageDB {
 	private String constructStructQuery(String regExp, String tableName,
 			String[] columnNames, String[][] columnValues) throws Exception {
 		String[] keys = keyMap.get(tableName);
+		int numKeys = keys.length;
 		String type = typeMap.get(columnNames[0]);
 		String columnName = null;
-		String qry = " SELECT " + keys[0] + " FROM " + tableName + " WHERE ";
+		String qry = " SELECT ";
+		for (int i = 0; i < numKeys; i++)
+			qry += keys[i] + " ";
+		qry += "FROM " + tableName + " WHERE ";
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
 			// Case insensitive fix
