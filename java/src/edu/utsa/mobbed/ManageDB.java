@@ -3,6 +3,7 @@ package edu.utsa.mobbed;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -104,7 +105,8 @@ public class ManageDB {
 					System.out.println(updateStmt);
 				updateStmt.addBatch();
 			} else {
-				columnValues[i] = generateKeys(keyIndexes, columnValues[i]);
+				columnValues[i] = generateKeys(keyIndexes, tableName,
+						columnNames, columnValues[i]);
 				setInsertStatementValues(insertStmt, columnNames,
 						columnValues[i], currentDoubleValues);
 				if (verbose)
@@ -647,12 +649,59 @@ public class ManageDB {
 	 * @return
 	 */
 	private String[] generateKeys(ArrayList<Integer> keyIndexes,
-			String[] columnValues) {
-		for (int i = 0; i < keyIndexes.size(); i++) {
-			if (isEmpty(columnValues[keyIndexes.get(i)]))
-				columnValues[keyIndexes.get(i)] = UUID.randomUUID().toString();
+			String tableName, String[] columnNames, String[] columnValues)
+			throws Exception {
+		if (tableName.equalsIgnoreCase("transforms")) {
+			int stringIndex = findIndexOfColumn(columnNames, "transform_string");
+			int hashIndex = findIndexOfColumn(columnNames, "transform_md5_hash");
+			columnValues[hashIndex] = generateMd5Hash(columnValues[stringIndex]);
+		} else {
+			int numKeys = keyIndexes.size();
+			for (int i = 0; i < numKeys; i++) {
+				if (isEmpty(columnValues[keyIndexes.get(i)]))
+					columnValues[keyIndexes.get(i)] = UUID.randomUUID()
+							.toString();
+			}
 		}
 		return columnValues;
+	}
+
+	/**
+	 * Generates a md5 hash
+	 * 
+	 * @param value
+	 * @return
+	 * @throws Exception
+	 */
+	private String generateMd5Hash(String value) throws Exception {
+		String md5hash = "";
+		byte[] dataBytes = value.getBytes();
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		md.update(dataBytes);
+		byte[] md5bytes = md.digest();
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < md5bytes.length; i++) {
+			hexString.append(Integer.toHexString(0xFF & md5bytes[i]));
+		}
+		md5hash = hexString.toString();
+		return md5hash;
+	}
+
+	/**
+	 * Finds the index of a particular column
+	 * 
+	 * @param columnNames
+	 * @param columnName
+	 * @return
+	 */
+	private int findIndexOfColumn(String[] columnNames, String columnName) {
+		int index = 0;
+		int numColumns = columnNames.length;
+		for (int i = 0; i < numColumns; i++) {
+			if (columnNames[i].equalsIgnoreCase(columnName))
+				index = i;
+		}
+		return index;
 	}
 
 	/**
