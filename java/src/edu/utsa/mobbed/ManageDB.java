@@ -32,6 +32,7 @@ public class ManageDB {
 	private HashMap<String, String> defaultValues;
 	private HashMap<String, String[]> keyMap;
 	private HashMap<String, String> typeMap;
+	private boolean verbose;
 	private static final String columnQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
 	private static final String keyQuery = "SELECT pg_attribute.attname FROM pg_index, pg_class, pg_attribute"
 			+ " WHERE pg_class.oid = ?::regclass AND"
@@ -51,9 +52,11 @@ public class ManageDB {
 	 * @param password
 	 * @throws Exception
 	 */
-	public ManageDB(String name, String hostname, String user, String password)
-			throws Exception {
-		connection = establishConnection(name, hostname, user, password);
+	public ManageDB(String databasename, String hostname, String username,
+			String password, boolean verbose) throws Exception {
+		connection = establishConnection(databasename, hostname, username,
+				password);
+		this.verbose = verbose;
 		setAutoCommit(false);
 		initializeHashMaps();
 	}
@@ -96,12 +99,16 @@ public class ManageDB {
 				currentDoubleValues = null;
 			if (keysExist(keyIndexes, tableName, columnNames, columnValues[i])) {
 				setUpdateStatementValues(keyIndexes, updateStmt, columnNames,
-						columnValues[i], doubleValues[i]);
+						columnValues[i], currentDoubleValues);
+				if (verbose)
+					System.out.println(updateStmt);
 				updateStmt.addBatch();
 			} else {
 				columnValues[i] = generateKeys(keyIndexes, columnValues[i]);
 				setInsertStatementValues(insertStmt, columnNames,
 						columnValues[i], currentDoubleValues);
+				if (verbose)
+					System.out.println(insertStmt);
 				insertStmt.addBatch();
 			}
 			keyList[i] = addKeyValue(keyIndexes, columnValues[i]);
@@ -348,7 +355,8 @@ public class ManageDB {
 				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 		setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 				columnValues);
-		System.out.println(pstmt);
+		if (verbose)
+			System.out.println(pstmt);
 		ResultSet rs = pstmt.executeQuery();
 		String[][] rows = populateArray(rs);
 		return rows;
@@ -984,7 +992,10 @@ public class ManageDB {
 		for (i = 0; i < nonKeyColumns.length; i++) {
 			int targetType = lookupTargetType(nonKeyColumns[i]);
 			if (doubleValues != null && targetType == Types.DOUBLE) {
-				pstmt.setDouble(i + 1, doubleValues[k]);
+				if (doubleValues[k] != null)
+					pstmt.setDouble(i + 1, doubleValues[k]);
+				else
+					pstmt.setObject(i + 1, doubleValues[k]);
 				k++;
 			}
 			pstmt.setObject(i + 1, nonKeyValues[i], targetType);
@@ -1271,17 +1282,17 @@ public class ManageDB {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Connection establishConnection(String name, String hostname,
-			String user, String password) throws Exception {
+	private static Connection establishConnection(String databasename,
+			String hostname, String username, String password) throws Exception {
 		Connection dbCon = null;
-		String url = "jdbc:postgresql://" + hostname + "/" + name;
+		String url = "jdbc:postgresql://" + hostname + "/" + databasename;
 		try {
 			Class.forName("org.postgresql.Driver");
-			dbCon = DriverManager.getConnection(url, user, password);
+			dbCon = DriverManager.getConnection(url, username, password);
 		} catch (Exception me) {
 			throw new MobbedException(
-					"Could not establish a connection to database " + name
-							+ "\n" + me.getMessage());
+					"Could not establish a connection to database "
+							+ databasename + "\n" + me.getMessage());
 		}
 		return dbCon;
 	}

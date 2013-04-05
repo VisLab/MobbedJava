@@ -16,7 +16,7 @@ public class TestDatasets {
 	private String hostname = "localhost";
 	private String user = "postgres";
 	private String password = "admin";
-	private boolean verbose;
+	private boolean verbose = true;
 	private ManageDB md;
 
 	@Before
@@ -24,11 +24,11 @@ public class TestDatasets {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
-			md = new ManageDB(name, hostname, user, password);
+			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,
 					verbose);
-			md = new ManageDB(name, hostname, user, password);
+			md = new ManageDB(name, hostname, user, password, verbose);
 		}
 	}
 
