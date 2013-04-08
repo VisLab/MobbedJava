@@ -53,10 +53,9 @@ public class ManageDB {
 	 * @param password
 	 * @throws Exception
 	 */
-	public ManageDB(String databasename, String hostname, String username,
+	public ManageDB(String dbname, String hostname, String username,
 			String password, boolean verbose) throws Exception {
-		connection = establishConnection(databasename, hostname, username,
-				password);
+		connection = establishConnection(dbname, hostname, username, password);
 		this.verbose = verbose;
 		setAutoCommit(false);
 		initializeHashMaps();
@@ -1335,17 +1334,17 @@ public class ManageDB {
 	 * @return
 	 * @throws Exception
 	 */
-	private static Connection establishConnection(String databasename,
+	private static Connection establishConnection(String dbname,
 			String hostname, String username, String password) throws Exception {
 		Connection dbCon = null;
-		String url = "jdbc:postgresql://" + hostname + "/" + databasename;
+		String url = "jdbc:postgresql://" + hostname + "/" + dbname;
 		try {
 			Class.forName("org.postgresql.Driver");
 			dbCon = DriverManager.getConnection(url, username, password);
 		} catch (Exception me) {
 			throw new MobbedException(
-					"Could not establish a connection to database "
-							+ databasename + "\n" + me.getMessage());
+					"Could not establish a connection to database " + dbname
+							+ "\n" + me.getMessage());
 		}
 		return dbCon;
 	}
