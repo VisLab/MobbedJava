@@ -23,14 +23,13 @@ public class Attributes {
 	private UUID entityUuid;
 	private UUID organizationalUuid;
 	private UUID structureUuid;
-	private long position;
 	private Double attributeNumericValue;
 	private String attributeValue;
 	PreparedStatement insertStmt;
 	public static String insertQry = "INSERT INTO ATTRIBUTES "
 			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ORGANIZATIONAL_UUID, "
-			+ "ATTRIBUTE_STRUCTURE_UUID, ATTRIBUTE_POSITION, ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
-			+ " VALUES (?,?,?,?,?,?,?)";
+			+ "ATTRIBUTE_STRUCTURE_UUID,  ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
+			+ " VALUES (?,?,?,?,?,?)";
 
 	/**
 	 * Create a new Attributes object
@@ -41,13 +40,12 @@ public class Attributes {
 	public Attributes(Connection dbCon) throws Exception {
 		insertStmt = dbCon.prepareStatement(insertQry);
 		batchCount = 0;
-		this.attributeUuid = null;
-		this.entityUuid = null;
-		this.organizationalUuid = null;
-		this.structureUuid = null;
-		this.position = 1;
-		this.attributeNumericValue = null;
-		this.attributeValue = null;
+		attributeUuid = null;
+		entityUuid = null;
+		organizationalUuid = null;
+		structureUuid = null;
+		attributeNumericValue = null;
+		attributeValue = null;
 	}
 
 	/**
@@ -63,9 +61,8 @@ public class Attributes {
 			insertStmt.setObject(2, entityUuid, Types.OTHER);
 			insertStmt.setObject(3, organizationalUuid, Types.OTHER);
 			insertStmt.setObject(4, structureUuid, Types.OTHER);
-			insertStmt.setObject(5, position);
-			insertStmt.setObject(6, attributeNumericValue);
-			insertStmt.setString(7, attributeValue);
+			insertStmt.setObject(5, attributeNumericValue);
+			insertStmt.setString(6, attributeValue);
 			insertStmt.addBatch();
 			batchCount++;
 		} catch (Exception ex) {
@@ -95,13 +92,12 @@ public class Attributes {
 	 *            Value of the attribute
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid,
-			UUID organizationalUuid, UUID structureUuid, long position,
+			UUID organizationalUuid, UUID structureUuid,
 			Double attributeNumericValue, String attributeValue) {
 		this.attributeUuid = attributeUuid;
 		this.entityUuid = entityUuid;
 		this.organizationalUuid = organizationalUuid;
 		this.structureUuid = structureUuid;
-		this.position = position;
 		this.attributeNumericValue = attributeNumericValue;
 		this.attributeValue = attributeValue;
 	}

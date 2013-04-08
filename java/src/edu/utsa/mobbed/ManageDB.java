@@ -1267,7 +1267,7 @@ public class ManageDB {
 		try {
 			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
 					.getLargeObjectAPI();
-			String qry = "SELECT DATA_DEF_OID FROM DATA_DEFS WHERE DATA_DEF_OID IS NOT NULL";
+			String qry = "SELECT DATADEF_OID FROM DATADEFS WHERE DATADEF_OID IS NOT NULL";
 			Statement stmt = dbCon.createStatement();
 			ResultSet rs = stmt.executeQuery(qry);
 			while (rs.next()) {
@@ -1276,7 +1276,7 @@ public class ManageDB {
 		} catch (Exception me) {
 			dbCon.close();
 			throw new MobbedException(
-					"Could not delete oids in data defs table\n"
+					"Could not delete oids in datadefs table\n"
 							+ me.getMessage());
 		}
 	}

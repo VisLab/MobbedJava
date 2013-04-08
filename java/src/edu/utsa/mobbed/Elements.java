@@ -72,7 +72,7 @@ public class Elements {
 		UUID structureUUID = elementStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
 			atb.reset(UUID.randomUUID(), elementUuids[i], datasetUuid,
-					structureUUID, i, numericValue[i], value[i]);
+					structureUUID, numericValue[i], value[i]);
 			atb.addToBatch();
 		}
 	}
@@ -168,7 +168,7 @@ public class Elements {
 	public static int getElementCount(Connection dbCon, String datadefUuid)
 			throws Exception {
 		int elementCount = 0;
-		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where data_def_uuid = ? LIMIT 1";
+		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where datadef_uuid = ? LIMIT 1";
 		PreparedStatement pstmt = dbCon.prepareStatement(countQry);
 		pstmt.setObject(1, datadefUuid, Types.OTHER);
 		ResultSet rs = pstmt.executeQuery();

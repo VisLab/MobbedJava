@@ -65,7 +65,7 @@ public class NumericStreams {
 						.getCopyAPI();
 				DataOutputStream dos = new DataOutputStream(pout);
 				String copyQry = "COPY (select NUMERIC_STREAM_DATA_VALUE from NUMERIC_STREAMS"
-						+ " WHERE DATA_DEF_UUID = '"
+						+ " WHERE DATADEF_UUID = '"
 						+ datadefUuid.toString()
 						+ "' "
 						+ " AND NUMERIC_STREAM_RECORD_POSITION>="
@@ -243,7 +243,7 @@ public class NumericStreams {
 	}
 
 	/**
-	 * get the UUID of DataDefs {@link edu.utsa.mobbed.DataDefs}
+	 * get the UUID of DataDefs {@link edu.utsa.mobbed.Datadefs}
 	 * 
 	 * @return UUID - UUID of the DataDefs
 	 */
@@ -260,7 +260,7 @@ public class NumericStreams {
 	public long getMaxPosition() throws Exception {
 		int maxPosition = 0;
 		String selectQuery = "SELECT MAX(NUMERIC_STREAM_RECORD_POSITION) FROM NUMERIC_STREAMS WHERE"
-				+ " DATA_DEF_UUID = ?";
+				+ " DATADEF_UUID = ?";
 		try {
 			PreparedStatement selectStmt = dbCon.prepareStatement(selectQuery);
 			selectStmt.setObject(1, datadefUuid, Types.OTHER);
@@ -363,7 +363,7 @@ public class NumericStreams {
 			// connect to the table
 			DataInputStream diStream = new DataInputStream(pin);
 			copyMgr.copyIn(
-					"COPY numeric_streams(data_def_uuid, "
+					"COPY numeric_streams(datadef_uuid, "
 							+ "numeric_stream_record_position, numeric_stream_record_time, numeric_stream_data_value) from STDIN WITH BINARY",
 					diStream);
 			diStream.close();

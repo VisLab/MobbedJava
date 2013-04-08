@@ -57,7 +57,7 @@ public class TestAttributes {
 			attribute1 = new Attributes(md.getConnection());
 			attribute1.reset(UUID.randomUUID(), UUID.randomUUID(),
 					dataset1.getDatasetUuid(), structure1.getStructureUuid(),
-					(long) 1, (double) 1, "1");
+					(double) 1, "1");
 		}
 
 	}

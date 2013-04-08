@@ -3,10 +3,6 @@ package edu.utsa.mobbed;
 import java.sql.Connection;
 import java.util.UUID;
 
-
-
-
-
 public class Metadata {
 
 	private Attributes atb;
@@ -30,7 +26,7 @@ public class Metadata {
 		UUID structureUUID = metadataStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
 			atb.reset(UUID.randomUUID(), null, datasetUuid, structureUUID,
-					i + 1, numericValues[i], values[i]);
+					numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
