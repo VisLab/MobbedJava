@@ -694,10 +694,10 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" } };
+						UUID.randomUUID().toString(), null, "Beta" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -737,10 +737,10 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" } };
+						UUID.randomUUID().toString(), null, "Beta" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -781,13 +781,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -829,13 +829,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -876,13 +876,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -925,13 +925,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -1064,13 +1064,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
@@ -1122,13 +1122,13 @@ public class TestManageDB {
 		String[][] columnValues2 = {
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "1", null, "Alpha" },
+						UUID.randomUUID().toString(), null, "Alpha" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "2", null, "Beta" },
+						UUID.randomUUID().toString(), null, "Beta" },
 				{ null, UUID.randomUUID().toString(),
 						dataset.getDatasetUuid().toString(),
-						UUID.randomUUID().toString(), "3", null, "Omega" } };
+						UUID.randomUUID().toString(), null, "Omega" } };
 		md.addRows(tableName, columnNames, columnValues2, null, null);
 		md.commit();
 		tableName = "datasets";
