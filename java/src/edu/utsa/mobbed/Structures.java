@@ -5,8 +5,6 @@ import java.util.UUID;
 import java.sql.*;
 import java.util.Hashtable;
 
-
-
 /**
  * Handler class for STRUCTURES table. A structure represents a property of any
  * entity. In the MoBBED structure, name of any property along with its parent
@@ -23,18 +21,16 @@ public class Structures {
 	private Connection dbCon;
 	private Hashtable<String, UUID> children;
 	private UUID parentUuid;
-	private int structureHandler;
 	private String structureName;
 	private UUID structureUuid;
 	private static final String insertQry = "INSERT INTO STRUCTURES "
-			+ " (STRUCTURE_UUID, STRUCTURE_NAME, STRUCTURE_HANDLER, STRUCTURE_PARENT_UUID)"
-			+ " VALUES (?,?,?,?)";
+			+ " (STRUCTURE_UUID, STRUCTURE_NAME,  STRUCTURE_PARENT_UUID)"
+			+ " VALUES (?,?,?)";
 
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
 		this.structureUuid = null;
 		this.structureName = null;
-		this.structureHandler = -1;
 		this.parentUuid = null;
 		children = new Hashtable<String, UUID>();
 	}
@@ -47,16 +43,14 @@ public class Structures {
 	 * @param structureName
 	 *            Name of the structure
 	 * @param structureHandler
-	 *            Handler for this structure (see {@link edu.utsa.mobbed.MobbedConstants}
-	 *            )
+	 *            Handler for this structure (see
+	 *            {@link edu.utsa.mobbed.MobbedConstants} )
 	 * @param parentUuid
 	 *            UUID of the parent structure
 	 */
-	public void reset(UUID structureUuid, String structureName,
-			int structureHandler, UUID parentUuid) {
+	public void reset(UUID structureUuid, String structureName, UUID parentUuid) {
 		this.structureUuid = structureUuid;
 		this.structureName = structureName;
-		this.structureHandler = structureHandler;
 		this.parentUuid = parentUuid;
 	}
 
@@ -107,34 +101,6 @@ public class Structures {
 	}
 
 	/**
-	 * Return UUID of the parent structure
-	 * 
-	 * @return UUID UUID of the parent structure
-	 */
-	public UUID getParentUuid() {
-		return parentUuid;
-	}
-
-	/**
-	 * Return Handler of the structure
-	 * 
-	 * @return int Handler of the structure (Look in MobbedConstants for
-	 *         details)
-	 */
-	public int getStructureHandler() {
-		return structureHandler;
-	}
-
-	/**
-	 * Return Name of the structure
-	 * 
-	 * @return String Name of the structure
-	 */
-	public String getStructureName() {
-		return structureName;
-	}
-
-	/**
 	 * Return UUID of the structure
 	 * 
 	 * @return UUID UUID of the structure
@@ -180,14 +146,12 @@ public class Structures {
 			if (rs.next()) { // structure entry found in database
 				s = new Structures(dbCon);
 				s.reset(UUID.fromString(rs.getString("STRUCTURE_UUID")),
-						structureName, rs.getInt("STRUCTURE_HANDLER"),
-						parentUuid);
+						structureName, parentUuid);
 				if (retrieveChildren)
 					s.retrieveChildren(dbCon);
 			} else { // not found in db, need to store
 				s = new Structures(dbCon);
-				s.reset(UUID.randomUUID(), structureName,
-						MobbedConstants.HANDLER_REQUIRED, parentUuid);
+				s.reset(UUID.randomUUID(), structureName, parentUuid);
 				s.save();
 			}
 		} catch (Exception ex) {
@@ -245,8 +209,7 @@ public class Structures {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
 			insertStmt.setObject(1, structureUuid, Types.OTHER);
 			insertStmt.setString(2, structureName);
-			insertStmt.setInt(3, structureHandler);
-			insertStmt.setObject(4, parentUuid, Types.OTHER);
+			insertStmt.setObject(3, parentUuid, Types.OTHER);
 			insertCount = insertStmt.executeUpdate();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save structure");

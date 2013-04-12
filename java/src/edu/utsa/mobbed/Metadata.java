@@ -22,7 +22,7 @@ public class Metadata {
 
 	public void addAttribute(String fieldName, Double[] numericValues,
 			String[] values) throws Exception {
-		addNewStructure(fieldName, MobbedConstants.HANDLER_REQUIRED);
+		addNewStructure(fieldName);
 		UUID structureUUID = metadataStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
 			atb.reset(UUID.randomUUID(), null, datasetUuid, structureUUID,
@@ -31,13 +31,12 @@ public class Metadata {
 		}
 	}
 
-	private void addNewStructure(String fieldName, int handler)
-			throws Exception {
+	private void addNewStructure(String fieldName) throws Exception {
 		metadataStruct = Structures.retrieve(dbCon, metadataField,
 				dataStruct.getStructureUuid(), true);
 		if (!metadataStruct.containsChild(fieldName)) {
 			Structures newStructure = new Structures(dbCon);
-			newStructure.reset(UUID.randomUUID(), fieldName, handler,
+			newStructure.reset(UUID.randomUUID(), fieldName,
 					metadataStruct.getStructureUuid());
 			newStructure.save();
 			metadataStruct = Structures.retrieve(dbCon, metadataField,

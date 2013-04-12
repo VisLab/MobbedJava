@@ -24,7 +24,6 @@ public class Events {
 	private Structures eventStruct;
 	private UUID[] eventUuids;
 	private EventTypes evType;
-	private EventTypeMaps evTypeMap;
 	private String[] existingUuids;
 	private PreparedStatement insertStmt;
 	private String modalityName;
@@ -60,7 +59,7 @@ public class Events {
 
 	public void addAttribute(String fieldName, Double[] numericFieldValues,
 			String[] fieldValues) throws Exception {
-		addNewStructure(fieldName, MobbedConstants.HANDLER_REQUIRED);
+		addNewStructure(fieldName);
 		UUID structureUUID = eventStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < types.length; i++) {
 			atb.reset(UUID.randomUUID(), eventUuids[i], datasetUuid,
@@ -78,7 +77,6 @@ public class Events {
 
 		insertStmt = dbCon.prepareStatement(insertQry);
 		addNewTypes();
-		addTypeMaps();
 		eventUuids = new UUID[types.length];
 		for (int i = 0; i < types.length; i++) {
 			// event uuid that attributes use
@@ -106,13 +104,12 @@ public class Events {
 	 *            - code for the integer
 	 * @throws Exception
 	 */
-	private void addNewStructure(String fieldName, int handler)
-			throws Exception {
+	private void addNewStructure(String fieldName) throws Exception {
 		eventStruct = Structures.retrieve(dbCon, eventField,
 				dataStruct.getStructureUuid(), true);
 		if (!eventStruct.containsChild(fieldName)) {
 			Structures newStructure = new Structures(dbCon);
-			newStructure.reset(UUID.randomUUID(), fieldName, handler,
+			newStructure.reset(UUID.randomUUID(), fieldName,
 					eventStruct.getStructureUuid());
 			newStructure.save();
 			eventStruct = Structures.retrieve(dbCon, "event",
@@ -129,15 +126,6 @@ public class Events {
 				evType.save();
 				evType.addToHashMap();
 			}
-		}
-	}
-
-	private void addTypeMaps() throws Exception {
-		UUID[] eventTypeUuids = evType.getUUIDValues();
-		int eventUuidsSize = eventTypeUuids.length;
-		for (int i = 0; i < eventUuidsSize; i++) {
-			evTypeMap.reset(eventTypeUuids[i], datasetUuid, "dataset");
-			evTypeMap.save();
 		}
 	}
 
@@ -168,7 +156,6 @@ public class Events {
 		this.existingUuids = existingUuids;
 		atb = new Attributes(dbCon);
 		evType = new EventTypes(dbCon);
-		evTypeMap = new EventTypeMaps(dbCon);
 		modalityName = Structures.retrieveModalityName(dbCon,
 				UUID.fromString(datasetUuid));
 		dataStruct = Structures.retrieve(dbCon, modalityName, null, false);

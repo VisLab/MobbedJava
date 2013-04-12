@@ -11,19 +11,6 @@ package edu.utsa.mobbed;
 public class MobbedConstants {
 
 	/**
-	 * Handler for required structure field
-	 */
-	public static final int HANDLER_REQUIRED = 2001;
-	/**
-	 * Handler for optional structure field
-	 */
-	public static final int HANDLER_OPTIONAL = 2002;
-	/**
-	 * Handler for manual structure field
-	 */
-	public static final int HANDLER_MANUAL = 2003;
-
-	/**
 	 * Size of an integer in bytes
 	 */
 	public static final int INT_BYTES = 4;

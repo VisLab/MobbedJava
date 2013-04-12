@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import edu.utsa.mobbed.Attributes;
 import edu.utsa.mobbed.ManageDB;
-import edu.utsa.mobbed.MobbedConstants;
 import edu.utsa.mobbed.Structures;
 import edu.utsa.testmobbed.helpers.Datasets;
 
@@ -51,8 +50,7 @@ public class TestAttributes {
 					"791df7dd-ce3e-47f8-bea5-6a632c6fcccb", null);
 			dataset1.save();
 			structure1 = new Structures(md.getConnection());
-			structure1.reset(UUID.randomUUID(), "attributeStructure",
-					MobbedConstants.HANDLER_REQUIRED, null);
+			structure1.reset(UUID.randomUUID(), "attributeStructure", null);
 			structure1.save();
 			attribute1 = new Attributes(md.getConnection());
 			attribute1.reset(UUID.randomUUID(), UUID.randomUUID(),

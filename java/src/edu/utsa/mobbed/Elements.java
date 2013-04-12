@@ -68,7 +68,7 @@ public class Elements {
 			String[] value) throws Exception {
 		elementStruct = Structures.retrieve(dbCon, elementField,
 				dataStruct.getStructureUuid(), true);
-		addNewStructure(fieldName, MobbedConstants.HANDLER_REQUIRED);
+		addNewStructure(fieldName);
 		UUID structureUUID = elementStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
 			atb.reset(UUID.randomUUID(), elementUuids[i], datasetUuid,
@@ -117,11 +117,10 @@ public class Elements {
 	 * @param handler
 	 * @throws Exception
 	 */
-	private void addNewStructure(String fieldName, int handler)
-			throws Exception {
+	private void addNewStructure(String fieldName) throws Exception {
 		if (!elementStruct.containsChild(fieldName)) {
 			Structures newStruct = new Structures(dbCon);
-			newStruct.reset(UUID.randomUUID(), fieldName, handler,
+			newStruct.reset(UUID.randomUUID(), fieldName,
 					elementStruct.getStructureUuid());
 			newStruct.save();
 			elementStruct = Structures.retrieve(dbCon, elementField,
