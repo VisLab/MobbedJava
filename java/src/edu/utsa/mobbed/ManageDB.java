@@ -470,25 +470,29 @@ public class ManageDB {
 			String[][] tags, String[][] attributes, String[] columnNames,
 			String[][] columnValues) throws Exception {
 		String qry = "";
-		if (tags != null || attributes != null || columnNames != null) {
-			String[] keys = keyMap.get(tableName);
+		String closer = "";
+		String[] keys = keyMap.get(tableName);
+		if (tags != null || attributes != null) {
 			qry = " WHERE " + keys[0] + " IN (";
-			if (tags != null)
-				qry += constructTagAttributesQuery(regExp, "Tags", tags);
-			if (attributes != null) {
-				if (tags != null)
-					qry += " INTERSECT ";
-				qry += constructTagAttributesQuery(regExp, "Attributes",
-						attributes);
-			}
-			if (columnNames != null) {
-				if (tags != null || attributes != null)
-					qry += " INTERSECT ";
-				qry += constructStructQuery(regExp, tableName, columnNames,
-						columnValues);
-			}
-			qry += ")";
+			closer = ")";
 		}
+		if (tags != null)
+			qry += constructTagAttributesQuery(regExp, "Tags", tags);
+		if (attributes != null) {
+			if (tags != null)
+				qry += " INTERSECT ";
+			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
+		}
+		if (columnNames != null) {
+			if (tags != null || attributes != null)
+				qry += " INTERSECT SELECT " + keys[0] + " FROM " + tableName
+						+ " WHERE ";
+			else
+				qry += " WHERE ";
+			qry += constructStructQuery(regExp, tableName, columnNames,
+					columnValues);
+		}
+		qry += closer;
 		return qry;
 	}
 
@@ -523,19 +527,14 @@ public class ManageDB {
 	 */
 	private String constructStructQuery(String regExp, String tableName,
 			String[] columnNames, String[][] columnValues) throws Exception {
-		String[] keys = keyMap.get(tableName);
-		int numKeys = keys.length;
 		String type = typeMap.get(columnNames[0]);
 		String columnName = null;
-		String qry = " SELECT ";
-		for (int i = 0; i < numKeys; i++)
-			qry += keys[i] + " ";
-		qry += "FROM " + tableName + " WHERE ";
+		String qry = "";
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
 			// Case insensitive fix
 			if (type.equalsIgnoreCase("character varying"))
-				columnName = "UPPER(" + columnNames[i] + ")";
+				columnName = " UPPER(" + columnNames[i] + ")";
 			else
 				columnName = columnNames[i];
 			int numValues = columnValues[i].length;
