@@ -200,7 +200,6 @@ public class ManageDB {
 		pstmt.setString(2, outQry);
 		pstmt.setDouble(3, lower);
 		pstmt.setDouble(4, upper);
-		System.out.println(pstmt);
 		ResultSet rs = pstmt.executeQuery();
 		String[][] rows = populateArray(rs);
 		return rows;
