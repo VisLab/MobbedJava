@@ -3,6 +3,7 @@ package edu.utsa.mobbed;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,6 +16,7 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -1137,6 +1139,31 @@ public class ManageDB {
 	}
 
 	/**
+	 * Creates credentials that are stored in a property file
+	 * 
+	 * @param filename
+	 * @param dbname
+	 * @param hostname
+	 * @param username
+	 * @param password
+	 * @throws Exception
+	 */
+	public static void createCredentials(String filename, String dbname,
+			String hostname, String username, String password) throws Exception {
+		Properties prop = new Properties();
+		try {
+			prop.setProperty("dbname", dbname);
+			prop.setProperty("hostname", hostname);
+			prop.setProperty("username", username);
+			prop.setProperty("password", password);
+			prop.store(new FileOutputStream(filename), null);
+		} catch (Exception me) {
+			throw new MobbedException("Could not create credentials");
+		}
+
+	}
+
+	/**
 	 * Creates and sets up a database
 	 * 
 	 * @param name
@@ -1208,6 +1235,29 @@ public class ManageDB {
 			throw new MobbedException("Could not execute sql statement\n"
 					+ me.getMessage());
 		}
+	}
+
+	/**
+	 * Loads credentials from a property file
+	 * 
+	 * @param filename
+	 * @return
+	 * @throws Exception
+	 */
+	public static String[] loadCredentials(String filename) throws Exception {
+		Properties prop = new Properties();
+		String[] credentials = {};
+		try {
+			prop.load(new FileInputStream(filename));
+			credentials = new String[prop.size()];
+			credentials[0] = prop.getProperty("dbname");
+			credentials[1] = prop.getProperty("hostname");
+			credentials[2] = prop.getProperty("username");
+			credentials[3] = prop.getProperty("password");
+		} catch (Exception me) {
+			throw new MobbedException("Could not load credentials");
+		}
+		return credentials;
 	}
 
 	/**
