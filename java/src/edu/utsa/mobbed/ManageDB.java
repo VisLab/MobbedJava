@@ -83,41 +83,50 @@ public class ManageDB {
 		Double[] currentDoubleValues;
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
-		String insertQry = constructInsertQuery(tableName, columnNames);
-		String updateQry = constructUpdateQuery(keyIndexes, tableName,
-				columnNames);
-		PreparedStatement insertStmt = connection.prepareStatement(insertQry);
-		PreparedStatement updateStmt = connection.prepareStatement(updateQry);
-		for (int i = 0; i < numRows; i++) {
-			for (int j = 0; j < numValues; j++) {
-				if (!isEmpty(columnValues[i][j]))
-					validateColumnValue(columnNames[j], columnValues[i][j]);
+		try {
+
+			String insertQry = constructInsertQuery(tableName, columnNames);
+			String updateQry = constructUpdateQuery(keyIndexes, tableName,
+					columnNames);
+			PreparedStatement insertStmt = connection
+					.prepareStatement(insertQry);
+			PreparedStatement updateStmt = connection
+					.prepareStatement(updateQry);
+			for (int i = 0; i < numRows; i++) {
+				for (int j = 0; j < numValues; j++) {
+					if (!isEmpty(columnValues[i][j]))
+						validateColumnValue(columnNames[j], columnValues[i][j]);
+					else
+						columnValues[i][j] = getDefaultValue(columnNames[j]);
+				}
+				if (!isEmpty(doubleValues))
+					currentDoubleValues = doubleValues[doubleIndex++];
 				else
-					columnValues[i][j] = getDefaultValue(columnNames[j]);
+					currentDoubleValues = null;
+				if (keysExist(keyIndexes, tableName, columnNames,
+						columnValues[i])) {
+					setUpdateStatementValues(keyIndexes, updateStmt,
+							columnNames, columnValues[i], currentDoubleValues);
+					if (verbose)
+						System.out.println(updateStmt);
+					updateStmt.addBatch();
+				} else {
+					columnValues[i] = generateKeys(keyIndexes, tableName,
+							columnNames, columnValues[i]);
+					setInsertStatementValues(insertStmt, columnNames,
+							columnValues[i], currentDoubleValues);
+					if (verbose)
+						System.out.println(insertStmt);
+					insertStmt.addBatch();
+				}
+				keyList[i] = addKeyValue(keyIndexes, columnValues[i]);
 			}
-			if (!isEmpty(doubleValues))
-				currentDoubleValues = doubleValues[doubleIndex++];
-			else
-				currentDoubleValues = null;
-			if (keysExist(keyIndexes, tableName, columnNames, columnValues[i])) {
-				setUpdateStatementValues(keyIndexes, updateStmt, columnNames,
-						columnValues[i], currentDoubleValues);
-				if (verbose)
-					System.out.println(updateStmt);
-				updateStmt.addBatch();
-			} else {
-				columnValues[i] = generateKeys(keyIndexes, tableName,
-						columnNames, columnValues[i]);
-				setInsertStatementValues(insertStmt, columnNames,
-						columnValues[i], currentDoubleValues);
-				if (verbose)
-					System.out.println(insertStmt);
-				insertStmt.addBatch();
-			}
-			keyList[i] = addKeyValue(keyIndexes, columnValues[i]);
+			insertStmt.executeBatch();
+			updateStmt.executeBatch();
+		} catch (SQLException me) {
+			throw new MobbedException("Could not add row(s)\n"
+					+ me.getNextException().getMessage());
 		}
-		insertStmt.executeBatch();
-		updateStmt.executeBatch();
 		return keyList;
 	}
 
