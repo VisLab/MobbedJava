@@ -50,7 +50,7 @@ public class TestElements {
 	}
 
 	@After
-	public void closeConnection() throws Exception {
+	public void tearDown() throws Exception {
 		md.close();
 	}
 
@@ -70,27 +70,4 @@ public class TestElements {
 		element1.save();
 	}
 
-	@Test
-	public void testgetElementCount() throws Exception {
-		element1.addElements();
-		element1.save();
-	}
-
-	@Test
-	public void testAddFields() throws Exception {
-		element1.addElements();
-
-		String fieldName1 = "X";
-		Double[] numAttrValues1 = { 0.123, 0.456 };
-		String[] attrValues1 = { "0.123", "0.456" };
-
-		element1.addAttribute(fieldName1, numAttrValues1, attrValues1);
-
-		String fieldName2 = "Y";
-		Double[] numAttrValues2 = { 0.123, 0.456 };
-		String[] attrValues2 = { "0.123", "0.456" };
-		element1.addAttribute(fieldName2, numAttrValues2, attrValues2);
-		element1.save();
-
-	}
 }

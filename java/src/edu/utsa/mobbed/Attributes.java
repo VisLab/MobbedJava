@@ -19,17 +19,18 @@ import java.sql.*;
 public class Attributes {
 
 	private UUID attributeUuid;
-	private int batchCount;
 	private UUID entityUuid;
+	private String entityClass;
 	private UUID organizationalUuid;
+	private String organizationalClass;
 	private UUID structureUuid;
 	private Double attributeNumericValue;
 	private String attributeValue;
-	PreparedStatement insertStmt;
+	private PreparedStatement insertStmt;
 	public static String insertQry = "INSERT INTO ATTRIBUTES "
-			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ORGANIZATIONAL_UUID, "
-			+ "ATTRIBUTE_STRUCTURE_UUID,  ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
-			+ " VALUES (?,?,?,?,?,?)";
+			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_ORGANIZATIONAL_UUID, "
+			+ "ATTRIBUTE_ORGANIZATIONAL_CLASS, ATTRIBUTE_STRUCTURE_UUID,  ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
+			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Create a new Attributes object
@@ -39,10 +40,11 @@ public class Attributes {
 	 */
 	public Attributes(Connection dbCon) throws Exception {
 		insertStmt = dbCon.prepareStatement(insertQry);
-		batchCount = 0;
 		attributeUuid = null;
 		entityUuid = null;
+		entityClass = null;
 		organizationalUuid = null;
+		organizationalClass = null;
 		structureUuid = null;
 		attributeNumericValue = null;
 		attributeValue = null;
@@ -59,58 +61,50 @@ public class Attributes {
 		try {
 			insertStmt.setObject(1, attributeUuid, Types.OTHER);
 			insertStmt.setObject(2, entityUuid, Types.OTHER);
-			insertStmt.setObject(3, organizationalUuid, Types.OTHER);
-			insertStmt.setObject(4, structureUuid, Types.OTHER);
-			insertStmt.setObject(5, attributeNumericValue);
-			insertStmt.setString(6, attributeValue);
+			insertStmt.setString(3, entityClass);
+			insertStmt.setObject(4, organizationalUuid, Types.OTHER);
+			insertStmt.setString(5, organizationalClass);
+			insertStmt.setObject(6, structureUuid, Types.OTHER);
+			insertStmt.setObject(7, attributeNumericValue);
+			insertStmt.setString(8, attributeValue);
 			insertStmt.addBatch();
-			batchCount++;
 		} catch (Exception ex) {
 			throw new MobbedException("Could not add attribute to batch");
 		}
 	}
 
-	public int getBatchCount() {
-		return batchCount;
-	}
-
 	/**
-	 * Set the properties of a Attribute
+	 * Sets the properties of an Attribute
 	 * 
 	 * @param attributeUuid
-	 *            UUID for ATTRIBUTE table
 	 * @param entityUuid
-	 *            UUID of the entity
+	 * @param entityClass
 	 * @param organizationalUuid
-	 *            UUID of the dataset (
-	 *            {@link edu.utsa.testmobbed.helpers.Datasets})
+	 * @param organizationalClass
 	 * @param structureUuid
-	 *            UUID of the structure ({@link edu.utsa.mobbed.Structures})
-	 * @param position
-	 *            Position of the attribute's owner
+	 * @param attributeNumericValue
 	 * @param attributeValue
-	 *            Value of the attribute
 	 */
-	public void reset(UUID attributeUuid, UUID entityUuid,
-			UUID organizationalUuid, UUID structureUuid,
-			Double attributeNumericValue, String attributeValue) {
+	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
+			UUID organizationalUuid, String organizationalClass,
+			UUID structureUuid, Double attributeNumericValue,
+			String attributeValue) {
 		this.attributeUuid = attributeUuid;
 		this.entityUuid = entityUuid;
+		this.entityClass = entityClass;
 		this.organizationalUuid = organizationalUuid;
+		this.organizationalClass = organizationalClass;
 		this.structureUuid = structureUuid;
 		this.attributeNumericValue = attributeNumericValue;
 		this.attributeValue = attributeValue;
 	}
 
 	/**
-	 * Save Attributes by executing the batch insert queries
+	 * Saves a batch of Attributes
 	 * 
-	 * @param dbCon
-	 *            connection to the database
-	 * @return boolean - true for successful store, false otherwise
 	 * @throws Exception
 	 */
-	public void save() throws Exception {
+	public void save() throws MobbedException {
 		try {
 			insertStmt.executeBatch();
 		} catch (Exception ex) {

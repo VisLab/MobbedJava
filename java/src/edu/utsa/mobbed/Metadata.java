@@ -22,11 +22,15 @@ public class Metadata {
 
 	public void addAttribute(String fieldName, Double[] numericValues,
 			String[] values) throws Exception {
+		UUID entityUuid = null;
+		String entityClass = null;
+		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
 		UUID structureUUID = metadataStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
-			atb.reset(UUID.randomUUID(), null, datasetUuid, structureUUID,
-					numericValues[i], values[i]);
+			atb.reset(UUID.randomUUID(), entityUuid, entityClass, datasetUuid,
+					organizationalClass, structureUUID, numericValues[i],
+					values[i]);
 			atb.addToBatch();
 		}
 	}
@@ -56,8 +60,7 @@ public class Metadata {
 
 	public void save() throws Exception {
 		try {
-			if (atb.getBatchCount() > 0)
-				atb.save();
+			atb.save();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save metadata");
 		}

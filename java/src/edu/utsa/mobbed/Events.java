@@ -59,11 +59,14 @@ public class Events {
 
 	public void addAttribute(String fieldName, Double[] numericFieldValues,
 			String[] fieldValues) throws Exception {
+		String entityClass = "events";
+		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
 		UUID structureUUID = eventStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < types.length; i++) {
-			atb.reset(UUID.randomUUID(), eventUuids[i], datasetUuid,
-					structureUUID, numericFieldValues[i], fieldValues[i]);
+			atb.reset(UUID.randomUUID(), eventUuids[i], entityClass,
+					datasetUuid, organizationalClass, structureUUID,
+					numericFieldValues[i], fieldValues[i]);
 			atb.addToBatch();
 		}
 	}
@@ -161,15 +164,14 @@ public class Events {
 	}
 
 	/**
-	 * save all the elements as a batch operation
+	 * Saves events in batch
 	 * 
-	 * @return boolean - true if successfully stored, false otherwise
+	 * @throws Exception
 	 */
 	public void save() throws Exception {
 		try {
 			insertStmt.executeBatch();
-			if (atb.getBatchCount() > 0)
-				atb.save();
+			atb.save();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save events");
 		}

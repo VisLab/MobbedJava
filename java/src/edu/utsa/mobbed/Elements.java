@@ -66,13 +66,16 @@ public class Elements {
 	 */
 	public void addAttribute(String fieldName, Double[] numericValue,
 			String[] value) throws Exception {
+		String entityClass = "elements";
+		String organizationalClass = "datasets";
 		elementStruct = Structures.retrieve(dbCon, elementField,
 				dataStruct.getStructureUuid(), true);
 		addNewStructure(fieldName);
 		UUID structureUUID = elementStruct.getChildrenByName(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
-			atb.reset(UUID.randomUUID(), elementUuids[i], datasetUuid,
-					structureUUID, numericValue[i], value[i]);
+			atb.reset(UUID.randomUUID(), elementUuids[i], entityClass,
+					datasetUuid, organizationalClass, structureUUID,
+					numericValue[i], value[i]);
 			atb.addToBatch();
 		}
 	}
@@ -186,8 +189,7 @@ public class Elements {
 	public void save() throws Exception {
 		try {
 			insertStmt.executeBatch();
-			if (atb.getBatchCount() > 0)
-				atb.save();
+			atb.save();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save elements");
 		}
