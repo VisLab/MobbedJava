@@ -34,8 +34,8 @@ public class Elements {
 	private PreparedStatement insertStmt;
 	private String modalityName;
 	private static final String insertElementQry = "INSERT INTO ELEMENTS "
-			+ "(ELEMENT_UUID, ELEMENT_LABEL, ELEMENT_PARENT_UUID, ELEMENT_POSITION, ELEMENT_DESCRIPTION) "
-			+ "VALUES (?,?,?,?,?)";
+			+ "(ELEMENT_UUID, ELEMENT_LABEL, ELEMENT_ORGANIZATIONAL_UUID, ELEMENT_ORGANIZATIONAL_CLASS, ELEMENT_PARENT_UUID, ELEMENT_POSITION, ELEMENT_DESCRIPTION) "
+			+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Creates a new element object
@@ -84,28 +84,29 @@ public class Elements {
 	 */
 	public void addElements() throws Exception {
 		insertStmt = dbCon.prepareStatement(insertElementQry);
-		UUID parentUuid = datasetUuid;
+		String organizationalClass = "datasets";
 		if (groupLabel != null) {
 			// set query parameters for element a group parent
 			groupUuid = UUID.randomUUID();
 			insertStmt.setObject(1, groupUuid, Types.OTHER);
 			insertStmt.setObject(2, groupLabel);
-			insertStmt.setObject(3, datasetUuid, Types.OTHER);
-			insertStmt.setInt(4, (-1));
-			insertStmt.setObject(5, groupLabel);
+			insertStmt.setObject(3, datasetUuid);
+			insertStmt.setString(4, organizationalClass);
+			insertStmt.setObject(5, groupUuid, Types.OTHER);
+			insertStmt.setInt(6, -1);
+			insertStmt.setObject(7, groupLabel);
 			insertStmt.addBatch();
-			parentUuid = groupUuid;
 		}
 		elementUuids = new UUID[elementLabels.length];
 		for (int i = 0; i < elementLabels.length; i++) {
-			elementUuids[i] = UUID.randomUUID(); // element uuid that attributes
-			// use
-			// set query parameters for element
+			elementUuids[i] = UUID.randomUUID();
 			insertStmt.setObject(1, elementUuids[i], Types.OTHER);
 			insertStmt.setObject(2, elementLabels[i]);
-			insertStmt.setObject(3, parentUuid, Types.OTHER);
-			insertStmt.setLong(4, elementPositions[i]);
-			insertStmt.setObject(5, elementDescriptions[i]);
+			insertStmt.setObject(3, datasetUuid);
+			insertStmt.setString(4, organizationalClass);
+			insertStmt.setObject(5, groupUuid, Types.OTHER);
+			insertStmt.setLong(6, elementPositions[i]);
+			insertStmt.setObject(7, elementDescriptions[i]);
 			insertStmt.addBatch();
 		}
 	}

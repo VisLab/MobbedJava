@@ -33,8 +33,8 @@ public class Events {
 	private String[] types;
 	private String[] uniqueTypes;
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_ENTITY_UUID, "
-			+ "EVENT_TYPE_UUID, EVENT_POSITION, EVENT_START_TIME,"
-			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			+ "EVENT_ENTITY_CLASS, EVENT_TYPE_UUID, EVENT_POSITION, EVENT_START_TIME,"
+			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * create an Events object
@@ -74,22 +74,21 @@ public class Events {
 	 * @throws Exception
 	 */
 	public String[] addEvents() throws Exception {
-
 		insertStmt = dbCon.prepareStatement(insertQry);
 		addNewTypes();
+		String entityClass = "datasets";
 		eventUuids = new UUID[types.length];
 		for (int i = 0; i < types.length; i++) {
-			// event uuid that attributes use
 			eventUuids[i] = UUID.randomUUID();
-			// set query parameters for event
 			insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 			insertStmt.setObject(2, datasetUuid, Types.OTHER);
-			insertStmt.setObject(3, evType.getTypeUuid(types[i].toUpperCase()),
+			insertStmt.setString(3, entityClass);
+			insertStmt.setObject(4, evType.getTypeUuid(types[i].toUpperCase()),
 					Types.OTHER);
-			insertStmt.setLong(4, positions[i]);
-			insertStmt.setDouble(5, startTimes[i]);
-			insertStmt.setDouble(6, endTimes[i]);
-			insertStmt.setDouble(7, certainties[i]);
+			insertStmt.setLong(5, positions[i]);
+			insertStmt.setDouble(6, startTimes[i]);
+			insertStmt.setDouble(7, endTimes[i]);
+			insertStmt.setDouble(8, certainties[i]);
 			insertStmt.addBatch();
 		}
 		return evType.getStringValues();
