@@ -79,7 +79,7 @@ public class TestEventTypes {
 		Events event1 = new Events(md.getConnection());
 		event1.reset(dataset1.getDatasetUuid().toString(), "event",
 				defaultFields, eventTypes, eventTypes, positions,
-				eventLatencies, eventLatencies, eventCertainties, null);
+				eventLatencies, eventLatencies, eventCertainties, null, null);
 		event1.addEvents();
 		event1.save();
 		eventtype1.retrieveUuid2NameMap(dataset1.getDatasetUuid());

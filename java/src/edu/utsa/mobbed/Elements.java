@@ -95,7 +95,7 @@ public class Elements {
 			insertStmt.setObject(2, groupLabel);
 			insertStmt.setObject(3, datasetUuid);
 			insertStmt.setString(4, organizationalClass);
-			insertStmt.setObject(5, groupUuid, Types.OTHER);
+			insertStmt.setObject(5, ManageDB.noParentUuid, Types.OTHER);
 			insertStmt.setInt(6, -1);
 			insertStmt.setObject(7, groupLabel);
 			insertStmt.addBatch();

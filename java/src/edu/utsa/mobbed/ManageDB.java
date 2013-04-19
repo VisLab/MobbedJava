@@ -45,6 +45,7 @@ public class ManageDB {
 			+ " AND indisprimary";
 	private static final String tableQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
 	private static final String templateName = "template1";
+	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
 	 * Creates a ManageDB object to interact with database

@@ -32,9 +32,10 @@ public class Events {
 	private double[] endTimes;
 	private String[] types;
 	private String[] uniqueTypes;
+	private String[] parentUuids;
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_ENTITY_UUID, "
-			+ "EVENT_ENTITY_CLASS, EVENT_TYPE_UUID, EVENT_POSITION, EVENT_START_TIME,"
-			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			+ "EVENT_ENTITY_CLASS, EVENT_TYPE_UUID, EVENT_PARENT_UUID, EVENT_POSITION, EVENT_START_TIME,"
+			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * create an Events object
@@ -81,20 +82,23 @@ public class Events {
 		addNewTypes();
 		String entityClass = "datasets";
 		eventUuids = new UUID[types.length];
+		String[] stringEventUuids = new String[types.length];
 		for (int i = 0; i < types.length; i++) {
 			eventUuids[i] = UUID.randomUUID();
+			stringEventUuids[i] = eventUuids[i].toString();
 			insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 			insertStmt.setObject(2, datasetUuid, Types.OTHER);
 			insertStmt.setString(3, entityClass);
 			insertStmt.setObject(4, evType.getTypeUuid(types[i].toUpperCase()),
 					Types.OTHER);
-			insertStmt.setLong(5, positions[i]);
-			insertStmt.setDouble(6, startTimes[i]);
-			insertStmt.setDouble(7, endTimes[i]);
-			insertStmt.setDouble(8, certainties[i]);
+			insertStmt.setObject(5, parentUuids[i], Types.OTHER);
+			insertStmt.setLong(6, positions[i]);
+			insertStmt.setDouble(7, startTimes[i]);
+			insertStmt.setDouble(8, endTimes[i]);
+			insertStmt.setDouble(9, certainties[i]);
 			insertStmt.addBatch();
 		}
-		return evType.getStringValues();
+		return stringEventUuids;
 	}
 
 	/**
@@ -119,7 +123,7 @@ public class Events {
 		}
 	}
 
-	private void addNewTypes() throws Exception {
+	public String[] addNewTypes() throws Exception {
 		if (existingUuids != null)
 			evType.retrieveName2UuidMap(existingUuids);
 		for (int i = 0; i < uniqueTypes.length; i++) {
@@ -129,6 +133,7 @@ public class Events {
 				evType.addToHashMap();
 			}
 		}
+		return evType.getStringValues();
 	}
 
 	/**
@@ -146,7 +151,8 @@ public class Events {
 	public void reset(String datasetUuid, String eventField,
 			String[] defaultFields, String uniqueTypes[], String[] types,
 			long[] positions, double[] startTimes, double[] endTimes,
-			double[] certainties, String[] existingUuids) throws Exception {
+			double[] certainties, String[] existingUuids, String[] parentUuids)
+			throws Exception {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.eventField = eventField;
 		this.types = types;
@@ -156,6 +162,7 @@ public class Events {
 		this.certainties = certainties;
 		this.uniqueTypes = uniqueTypes;
 		this.existingUuids = existingUuids;
+		this.parentUuids = parentUuids;
 		atb = new Attributes(dbCon);
 		evType = new EventTypes(dbCon);
 		modalityName = Structures.retrieveModalityName(dbCon,
