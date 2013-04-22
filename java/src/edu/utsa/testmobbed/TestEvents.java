@@ -40,12 +40,10 @@ public class TestEvents {
 			String[] eventTypes = { "evType1", "evType2" };
 			double[] eventLatencies = { 111, 222 };
 			double[] eventCertainties = { 1.0, 1.0 };
-			String[] defaultFields = {};
 			event1 = new Events(md.getConnection());
 			event1.reset(dataset1.getDatasetUuid().toString(), "event",
-					defaultFields, eventTypes, eventTypes, positions,
-					eventLatencies, eventLatencies, eventCertainties, null,
-					null);
+					eventTypes, eventTypes, positions, eventLatencies,
+					eventLatencies, eventCertainties, null, null);
 		}
 
 	}

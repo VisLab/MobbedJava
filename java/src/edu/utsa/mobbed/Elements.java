@@ -21,7 +21,7 @@ import java.sql.*;
 public class Elements {
 	private Attributes atb;
 	private UUID datasetUuid;
-	private Structures dataStruct;
+	private Structures modalityStruct;
 	private Connection dbCon;
 	private String[] elementDescriptions;
 	private String elementField;
@@ -53,7 +53,7 @@ public class Elements {
 		this.elementLabels = null;
 		this.elementDescriptions = null;
 		this.elementPositions = null;
-		this.dataStruct = null;
+		this.modalityStruct = null;
 	}
 
 	/**
@@ -68,10 +68,8 @@ public class Elements {
 			String[] value) throws Exception {
 		String entityClass = "elements";
 		String organizationalClass = "datasets";
-		elementStruct = Structures.retrieve(dbCon, elementField,
-				dataStruct.getStructureUuid(), true);
 		addNewStructure(fieldName);
-		UUID structureUUID = elementStruct.getChildrenByName(fieldName);
+		UUID structureUUID = elementStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
 			atb.reset(UUID.randomUUID(), elementUuids[i], entityClass,
 					datasetUuid, organizationalClass, structureUUID,
@@ -122,13 +120,18 @@ public class Elements {
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName) throws Exception {
+		modalityName = Structures.retrieveModalityName(dbCon, datasetUuid);
+		modalityStruct = Structures.retrieve(dbCon, modalityName,
+				UUID.fromString(ManageDB.noParentUuid), false);
+		elementStruct = Structures.retrieve(dbCon, elementField,
+				modalityStruct.getStructureUuid(), true);
 		if (!elementStruct.containsChild(fieldName)) {
 			Structures newStruct = new Structures(dbCon);
 			newStruct.reset(UUID.randomUUID(), fieldName,
 					elementStruct.getStructureUuid());
 			newStruct.save();
 			elementStruct = Structures.retrieve(dbCon, elementField,
-					dataStruct.getStructureUuid(), true);
+					modalityStruct.getStructureUuid(), true);
 		}
 	}
 
@@ -137,7 +140,6 @@ public class Elements {
 	 * 
 	 * @param datasetUuid
 	 * @param elementField
-	 * @param defaultFields
 	 * @param groupLabel
 	 * @param elementLabels
 	 * @param elementDescriptions
@@ -145,7 +147,7 @@ public class Elements {
 	 * @throws Exception
 	 */
 	public void reset(String datasetUuid, String elementField,
-			String[] defaultFields, String groupLabel, String[] elementLabels,
+			String groupLabel, String[] elementLabels,
 			String[] elementDescriptions, long[] elementPositions)
 			throws Exception {
 		this.datasetUuid = UUID.fromString(datasetUuid);
@@ -155,9 +157,6 @@ public class Elements {
 		this.elementDescriptions = elementDescriptions;
 		this.elementPositions = elementPositions;
 		atb = new Attributes(dbCon);
-		modalityName = Structures.retrieveModalityName(dbCon,
-				UUID.fromString(datasetUuid));
-		dataStruct = Structures.retrieve(dbCon, modalityName, null, false);
 	} // reset
 
 	/**

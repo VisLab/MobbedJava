@@ -1,7 +1,13 @@
 package edu.utsa.testmobbed;
 
+import static org.junit.Assert.*;
+
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.utsa.mobbed.Elements;
@@ -9,19 +15,19 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.testmobbed.helpers.Datasets;
 
 public class TestElements {
-	private String tablePath = Class.class.getResource(
+	private static String tablePath = Class.class.getResource(
 			"/edu/utsa/testmobbed/mobbed.sql").getPath();
-	private String name = "testdb";
-	private String hostname = "localhost";
-	private String user = "postgres";
-	private String password = "admin";
-	private boolean verbose = true;
-	private ManageDB md;
-	private Datasets dataset1;
-	private Elements element1;
+	private static String name = "elementdb";
+	private static String hostname = "localhost";
+	private static String user = "postgres";
+	private static String password = "admin";
+	private static boolean verbose = true;
+	private static ManageDB md;
+	private static Datasets dataset;
+	private static Elements element;
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeClass
+	public static void setup() throws Exception {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
@@ -31,43 +37,94 @@ public class TestElements {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
-			dataset1 = new Datasets(md.getConnection());
-			dataset1.reset(false, "ELEMENT_DATASET",
-					"691df7dd-ce3e-47f8-bea5-6a632c6fcccb",
-					"DATASET FOR ELEMENTS", "ELEMENT_NAMESPACE",
-					"791df7dd-ce3e-47f8-bea5-6a632c6fcccb", null);
-			dataset1.save();
-			String[] defaultFields = {};
-			String[] elementLabels = { "label1", "label2" };
+			md.setAutoCommit(true);
+			boolean isUnique = false;
+			String datasetName = "ELEMENT_TEST";
+			String datasetContactUuid = "691df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+			String datasetDescription = "Elements test";
+			String datasetModalityUuid = "791df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+			String datasetNameSpace = "ELEMENTS_TEST";
+			String datasetParentUuid = null;
+			dataset = new Datasets(md.getConnection());
+			dataset.reset(isUnique, datasetName, datasetContactUuid,
+					datasetDescription, datasetNameSpace, datasetModalityUuid,
+					datasetParentUuid);
+			dataset.save();
+			String datasetUuid = dataset.getDatasetUuid().toString();
+			String elementField = "chanlocs";
+			String groupLabel = "EEG CAP";
+			String[] elementLabels = { "channel 1", "channel 2" };
 			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
 			long[] elementPositions = { 1, 2 };
-			element1 = new Elements(md.getConnection());
-			element1.reset(dataset1.getDatasetUuid().toString(), "chanlocs",
-					defaultFields, "EEG Cap", elementLabels,
+			element = new Elements(md.getConnection());
+			element.reset(datasetUuid, elementField, groupLabel, elementLabels,
 					elementDescriptions, elementPositions);
 		}
 
 	}
 
 	@After
-	public void tearDown() throws Exception {
+	public void cleanup() throws Exception {
+		Statement stmt = md.getConnection().createStatement();
+		String query = "DELETE FROM ELEMENTS";
+		stmt.execute(query);
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
 		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 	@Test
-	public void testAddAttributes() throws Exception {
+	public void testAddAttribute() throws Exception {
+		System.out.println("TEST: testing addAttribute() method.");
+		int expected;
+		int actual;
+		Statement stmt = md.getConnection().createStatement();
+		String query = "SELECT COUNT(*) FROM ATTRIBUTES";
+		ResultSet rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be no attributes in the database.");
+		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "X";
 		Double[] numAttrValues = { 0.123, 0.456 };
 		String[] attrValues = { "0.123", "0.456" };
-		element1.addElements();
-		element1.addAttribute(fieldName, numAttrValues, attrValues);
-		element1.save();
+		element.addElements();
+		element.addAttribute(fieldName, numAttrValues, attrValues);
+		element.save();
+		rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 2;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be 2 attributes in the database.");
+		assertEquals("There are no attributes in the database", expected,
+				actual);
 	}
 
 	@Test
 	public void testAddElements() throws Exception {
-		element1.addElements();
-		element1.save();
+		System.out.println("TEST: testing addElements() method.");
+		int expected;
+		int actual;
+		Statement stmt = md.getConnection().createStatement();
+		String query = "SELECT COUNT(*) FROM ELEMENTS";
+		ResultSet rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be no elements in the database.");
+		assertEquals("There are elements in the database", expected, actual);
+		element.addElements();
+		element.save();
+		rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 3;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be 3 elements in the database.");
+		assertEquals("There are no elements in the database", expected, actual);
 	}
 
 }

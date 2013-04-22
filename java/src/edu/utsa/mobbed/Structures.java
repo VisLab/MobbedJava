@@ -1,6 +1,5 @@
 package edu.utsa.mobbed;
 
-import java.util.Enumeration;
 import java.util.UUID;
 import java.sql.*;
 import java.util.Hashtable;
@@ -23,15 +22,19 @@ public class Structures {
 	private UUID parentUuid;
 	private String structureName;
 	private UUID structureUuid;
+	private String structurePath;
 	private static final String insertQry = "INSERT INTO STRUCTURES "
-			+ " (STRUCTURE_UUID, STRUCTURE_NAME,  STRUCTURE_PARENT_UUID)"
-			+ " VALUES (?,?,?)";
+			+ " (STRUCTURE_UUID, STRUCTURE_NAME, STRUCTURE_PARENT_UUID, STRUCTURE_PATH)"
+			+ " VALUES (?, ?, ?, ?)";
+	private static final String selectQry = "SELECT STRUCTURE_NAME, STRUCTURE_PARENT_UUID FROM STRUCTURES "
+			+ "WHERE STRUCTURE_UUID = ?";
 
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
-		this.structureUuid = null;
-		this.structureName = null;
-		this.parentUuid = null;
+		structureUuid = null;
+		structureName = null;
+		parentUuid = null;
+		structurePath = null;
 		children = new Hashtable<String, UUID>();
 	}
 
@@ -48,10 +51,12 @@ public class Structures {
 	 * @param parentUuid
 	 *            UUID of the parent structure
 	 */
-	public void reset(UUID structureUuid, String structureName, UUID parentUuid) {
+	public void reset(UUID structureUuid, String structureName, UUID parentUuid)
+			throws MobbedException {
 		this.structureUuid = structureUuid;
 		this.structureName = structureName;
 		this.parentUuid = parentUuid;
+		structurePath = retrieveStructurePath();
 	}
 
 	/**
@@ -67,37 +72,14 @@ public class Structures {
 	}
 
 	/**
-	 * Return names of children structures
-	 * 
-	 * @return String[] 1D-array of children structure names
-	 */
-	public String[] getChildNames() {
-		String[] childNames = new String[getChildrenCount()];
-		Enumeration<String> e = children.keys();
-		int index = 0;
-		while (e.hasMoreElements())
-			childNames[index++] = e.nextElement();
-		return childNames;
-	}
-
-	/**
 	 * Returns UUID of the child structure
 	 * 
 	 * @param childName
 	 *            name of the child structure
 	 * @return UUID UUID of the child structure
 	 */
-	public UUID getChildrenByName(String childName) {
+	public UUID getChildStructUuid(String childName) {
 		return children.get(childName);
-	}
-
-	/**
-	 * Return number of children structure
-	 * 
-	 * @return int Number of children
-	 */
-	public int getChildrenCount() {
-		return children.size();
 	}
 
 	/**
@@ -125,35 +107,24 @@ public class Structures {
 	public static Structures retrieve(Connection dbCon, String structureName,
 			UUID parentUuid, boolean retrieveChildren) throws Exception {
 		Structures s = null;
-		String selectByNameAndParent = "SELECT * FROM STRUCTURES"
+		String query = "SELECT STRUCTURE_UUID FROM STRUCTURES"
 				+ " WHERE STRUCTURE_NAME = ? AND STRUCTURE_PARENT_UUID = ?";
-		String selectByNameAndParentNull = "SELECT * FROM STRUCTURES"
-				+ " WHERE STRUCTURE_NAME = ? AND STRUCTURE_PARENT_UUID IS NULL";
 		try {
 			ResultSet rs = null;
-			if (parentUuid != null) {
-				PreparedStatement select = dbCon
-						.prepareStatement(selectByNameAndParent);
-				select.setString(1, structureName);
-				select.setObject(2, parentUuid, Types.OTHER);
-				rs = select.executeQuery();
-			} else {
-				PreparedStatement select = dbCon
-						.prepareStatement(selectByNameAndParentNull);
-				select.setString(1, structureName);
-				rs = select.executeQuery();
-			}
-			if (rs.next()) { // structure entry found in database
-				s = new Structures(dbCon);
-				s.reset(UUID.fromString(rs.getString("STRUCTURE_UUID")),
-						structureName, parentUuid);
-				if (retrieveChildren)
-					s.retrieveChildren(dbCon);
-			} else { // not found in db, need to store
-				s = new Structures(dbCon);
+			PreparedStatement pstmt = dbCon.prepareStatement(query);
+			pstmt.setString(1, structureName);
+			pstmt.setObject(2, parentUuid, Types.OTHER);
+			rs = pstmt.executeQuery();
+			s = new Structures(dbCon);
+			if (rs.next())
+				s.reset(UUID.fromString(rs.getString(1)), structureName,
+						parentUuid);
+			else {
 				s.reset(UUID.randomUUID(), structureName, parentUuid);
 				s.save();
 			}
+			if (retrieveChildren)
+				s.retrieveChildren(dbCon);
 		} catch (Exception ex) {
 			throw new MobbedException("Could not retrieve structure");
 		}
@@ -167,13 +138,12 @@ public class Structures {
 	 */
 	private void retrieveChildren(Connection dbCon) throws Exception {
 		try {
-			PreparedStatement childrenQry = dbCon
-					.prepareStatement("SELECT STRUCTURE_NAME, STRUCTURE_UUID FROM STRUCTURES WHERE STRUCTURE_PARENT_UUID = ?");
-			childrenQry.setObject(1, structureUuid, Types.OTHER);
-			ResultSet rs = childrenQry.executeQuery();
+			String query = "SELECT STRUCTURE_NAME, STRUCTURE_UUID FROM STRUCTURES WHERE STRUCTURE_PARENT_UUID = ?";
+			PreparedStatement pstmt = dbCon.prepareStatement(query);
+			pstmt.setObject(1, structureUuid, Types.OTHER);
+			ResultSet rs = pstmt.executeQuery();
 			while (rs.next())
-				children.put(rs.getString("STRUCTURE_NAME"),
-						UUID.fromString(rs.getString("STRUCTURE_UUID")));
+				children.put(rs.getString(1), UUID.fromString(rs.getString(2)));
 		} catch (Exception ex) {
 			throw new MobbedException("Could not retrieve structure's children");
 		}
@@ -196,25 +166,43 @@ public class Structures {
 		return parentName;
 	}
 
+	public String retrieveStructurePath() throws MobbedException {
+		String structurePath = "/" + structureName;
+		UUID currentParentUuid = parentUuid;
+		try {
+			PreparedStatement pstmt = dbCon.prepareStatement(selectQry);
+			ResultSet rs = null;
+			while (!UUID.fromString(ManageDB.noParentUuid).equals(
+					currentParentUuid)) {
+				pstmt.setObject(1, currentParentUuid);
+				rs = pstmt.executeQuery();
+				if (rs.next()) {
+					structurePath = "/" + rs.getString(1) + structurePath;
+					currentParentUuid = UUID.fromString(rs.getString(2));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return structurePath;
+	}
+
 	/**
-	 * Save the structure in the database
+	 * Saves a structure to the database
 	 * 
-	 * @return int - number of rows inserted
 	 * @throws Exception
 	 */
-	public int save() throws Exception {
-		int insertCount = 0;
-
+	public void save() throws Exception {
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
 			insertStmt.setObject(1, structureUuid, Types.OTHER);
 			insertStmt.setString(2, structureName);
 			insertStmt.setObject(3, parentUuid, Types.OTHER);
-			insertCount = insertStmt.executeUpdate();
+			insertStmt.setString(4, structurePath);
+			insertStmt.execute();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save structure");
 		}
-		return insertCount;
 	}
 
 }

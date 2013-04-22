@@ -26,7 +26,7 @@ public class Metadata {
 		String entityClass = null;
 		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
-		UUID structureUUID = metadataStruct.getChildrenByName(fieldName);
+		UUID structureUUID = metadataStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
 			atb.reset(UUID.randomUUID(), entityUuid, entityClass, datasetUuid,
 					organizationalClass, structureUUID, numericValues[i],
