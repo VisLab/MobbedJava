@@ -7,10 +7,10 @@ public class Metadata {
 
 	private Attributes atb;
 	private UUID datasetUuid;
-	private Structures dataStruct;
+	private Structures modalityStruct;
 	private Connection dbCon;
 	private String metadataField;
-	private Structures metadataStruct;
+	private Structures metamodalityStruct;
 	private String modalityName;
 
 	public Metadata(Connection dbCon) throws Exception {
@@ -26,7 +26,7 @@ public class Metadata {
 		String entityClass = null;
 		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
-		UUID structureUUID = metadataStruct.getChildStructUuid(fieldName);
+		UUID structureUUID = metamodalityStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
 			atb.reset(UUID.randomUUID(), entityUuid, entityClass, datasetUuid,
 					organizationalClass, structureUUID, numericValues[i],
@@ -36,15 +36,18 @@ public class Metadata {
 	}
 
 	private void addNewStructure(String fieldName) throws Exception {
-		metadataStruct = Structures.retrieve(dbCon, metadataField,
-				dataStruct.getStructureUuid(), true);
-		if (!metadataStruct.containsChild(fieldName)) {
+		modalityName = Structures.retrieveModalityName(dbCon, datasetUuid);
+		modalityStruct = Structures.retrieve(dbCon, modalityName,
+				UUID.fromString(ManageDB.noParentUuid), true);
+		metamodalityStruct = Structures.retrieve(dbCon, metadataField,
+				modalityStruct.getStructureUuid(), true);
+		if (!metamodalityStruct.containsChild(fieldName)) {
 			Structures newStructure = new Structures(dbCon);
 			newStructure.reset(UUID.randomUUID(), fieldName,
-					metadataStruct.getStructureUuid());
+					metamodalityStruct.getStructureUuid());
 			newStructure.save();
-			metadataStruct = Structures.retrieve(dbCon, metadataField,
-					dataStruct.getStructureUuid(), true);
+			metamodalityStruct = Structures.retrieve(dbCon, metadataField,
+					modalityStruct.getStructureUuid(), true);
 		}
 	}
 
@@ -53,9 +56,6 @@ public class Metadata {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.metadataField = metadataField;
 		atb = new Attributes(dbCon);
-		modalityName = Structures.retrieveModalityName(dbCon,
-				UUID.fromString(datasetUuid));
-		dataStruct = Structures.retrieve(dbCon, modalityName, null, true);
 	}
 
 	public void save() throws Exception {

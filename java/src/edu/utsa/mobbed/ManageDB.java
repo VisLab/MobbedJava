@@ -1184,18 +1184,17 @@ public class ManageDB {
 	 * @throws Exception
 	 */
 	public static void createDatabase(String name, String hostname,
-			String user, String password, String tablePath, boolean verbose)
+			String user, String password, String filename, boolean verbose)
 			throws Exception {
-		if (isEmpty(tablePath))
-			throw new MobbedException("SQL file does not exist");
+		if (isEmpty(filename))
+			throw new MobbedException("SQL script does not exist");
 		Connection templateConnection = establishConnection(templateName,
 				hostname, user, password);
 		createDatabase(templateConnection, name);
 		templateConnection.close();
 		Connection databaseConnection = establishConnection(name, hostname,
 				user, password);
-		createTables(databaseConnection, tablePath);
-		executeSQL(databaseConnection, MobbedConstants.USER_DEFINED_FUNCTIONS);
+		createTables(databaseConnection, filename);
 		databaseConnection.close();
 		if (verbose)
 			System.out.println("Database " + name + " created");
@@ -1295,18 +1294,18 @@ public class ManageDB {
 	 * @param path
 	 * @throws Exception
 	 */
-	private static void createTables(Connection dbCon, String path)
+	private static void createTables(Connection dbCon, String filename)
 			throws Exception {
 		DataInputStream in = null;
 		Statement stmt = dbCon.createStatement();
 		try {
-			File file = new File(path);
+			File file = new File(filename);
 			byte[] buffer = new byte[(int) file.length()];
 			in = new DataInputStream(new FileInputStream(file));
 			in.readFully(buffer);
 			in.close();
 			String result = new String(buffer);
-			String[] tables = result.split(";");
+			String[] tables = result.split("-- execute");
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
 		} catch (Exception me) {

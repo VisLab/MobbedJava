@@ -167,6 +167,10 @@ public class NumericStreams {
 	private CopyManager copyMgr;
 	private UUID datadefUuid;
 	private Connection dbCon;
+	private static final int INT_BYTES = 4;
+	private static final int DOUBLE_BYTES = 8;
+	private static final int LONG_BYTES = 8;
+	private static final int SHORT_BYTES = 2;
 
 	/**
 	 * Creates a NumericData object
@@ -200,31 +204,21 @@ public class NumericStreams {
 			throws Exception {
 		ByteBuffer template = null;
 		try {
-			int totalSize = MobbedConstants.SHORT_BYTES
-					+ MobbedConstants.INT_BYTES
-					+ 2
-					* MobbedConstants.LONG_BYTES
-					+ MobbedConstants.INT_BYTES
-					+ MobbedConstants.LONG_BYTES
-					+ MobbedConstants.INT_BYTES
-					+ MobbedConstants.LONG_BYTES
-					+ 6
-					* MobbedConstants.INT_BYTES
-					+ valueCount
-					* (MobbedConstants.INT_BYTES + MobbedConstants.DOUBLE_BYTES);
+			int totalSize = SHORT_BYTES + INT_BYTES + 2 * LONG_BYTES
+					+ INT_BYTES + LONG_BYTES + INT_BYTES + LONG_BYTES + 6
+					* INT_BYTES + valueCount * (INT_BYTES + DOUBLE_BYTES);
 			template = ByteBuffer.allocate(totalSize);
 			/********* For every Row **********/
 			template.putShort((short) 4); // # of fields
-			template.putInt(2, MobbedConstants.LONG_BYTES * 2);
+			template.putInt(2, LONG_BYTES * 2);
 			template.putLong(6, datadefUuid.getMostSignificantBits());
 			template.putLong(14, datadefUuid.getLeastSignificantBits());
-			template.putInt(22, MobbedConstants.LONG_BYTES);
+			template.putInt(22, LONG_BYTES);
 			// HERE:: RECORD_POSITION :: 8 bytes
-			template.putInt(34, MobbedConstants.LONG_BYTES);
+			template.putInt(34, LONG_BYTES);
 			// HERE:: RECORD_TIME :: 8 bytes
-			int sizeOfData = valueCount * MobbedConstants.INT_BYTES
-					+ valueCount * MobbedConstants.DOUBLE_BYTES + 5
-					* MobbedConstants.INT_BYTES;
+			int sizeOfData = valueCount * INT_BYTES + valueCount * DOUBLE_BYTES
+					+ 5 * INT_BYTES;
 			template.putInt(46, sizeOfData); // size of data in bytes per row
 			template.putInt(50, 1); // dimension
 			template.putInt(54, 0); // flag
@@ -310,11 +304,11 @@ public class NumericStreams {
 			short noOfFields = dis.readShort(); // No. of fields (should be =1)
 			int index = 0;
 			while (noOfFields == 1) { // if noOfFields=-1, end of data reached
-				dis.skipBytes(MobbedConstants.INT_BYTES * 4);
+				dis.skipBytes(INT_BYTES * 4);
 				int dimension = dis.readInt(); // should be num of channels
-				dis.skipBytes(MobbedConstants.INT_BYTES);
+				dis.skipBytes(INT_BYTES);
 				for (int i = 0; i < dimension; i++) {
-					dis.skipBytes(MobbedConstants.INT_BYTES);
+					dis.skipBytes(INT_BYTES);
 					signal_data[index][i] = dis.readDouble();
 				}
 				index++;

@@ -60,7 +60,7 @@ public class TestMetadata {
 	}
 
 	@Test
-	public void testAddAttributes() throws Exception {
+	public void testAddAttribute() throws Exception {
 		String fieldName = "MetadataField1";
 		Double[] numAttrValues1 = { 0.123 };
 		String[] attrValues1 = { "0.123" };
@@ -72,16 +72,4 @@ public class TestMetadata {
 		metadata1.save();
 	}
 
-	@Test
-	public void testAddFields() throws Exception {
-		String fieldName1 = "MetadataField1";
-		Double[] numAttrValues1 = { 0.123 };
-		String[] attrValues1 = { "0.123" };
-		metadata1.addAttribute(fieldName1, numAttrValues1, attrValues1);
-		String fieldName2 = "MetadataField2";
-		Double[] numAttrValues2 = { 0.123 };
-		String[] attrValues2 = { "0.123" };
-		metadata1.addAttribute(fieldName2, numAttrValues2, attrValues2);
-		metadata1.save();
-	}
 }
