@@ -3,9 +3,12 @@
  */
 package edu.utsa.testmobbed;
 
-import java.util.UUID;
-import org.junit.After;
-import org.junit.Before;
+import static org.junit.Assert.assertEquals;
+
+import java.sql.ResultSet;
+import java.sql.Statement;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.utsa.mobbed.ManageDB;
@@ -17,20 +20,19 @@ import edu.utsa.testmobbed.helpers.Datasets;
  * 
  */
 public class TestMetadata {
-	private String tablePath = Class.class.getResource(
+	private static String tablePath = Class.class.getResource(
 			"/edu/utsa/testmobbed/mobbed.sql").getPath();
-	private String name = "testdb";
-	private String hostname = "localhost";
-	private String user = "postgres";
-	private String password = "admin";
-	private boolean verbose = true;
-	private ManageDB md;
-	private Datasets dataset1;
-	private Metadata metadata1;
-	private UUID datadefUuid;
+	private static String name = "attributedb";
+	private static String hostname = "localhost";
+	private static String user = "postgres";
+	private static String password = "admin";
+	private static boolean verbose = true;
+	private static ManageDB md;
+	private static Datasets dataset;
+	private static Metadata metadata;
 
-	@Before
-	public void setUp() throws Exception {
+	@BeforeClass
+	public static void setUp() throws Exception {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
@@ -40,36 +42,58 @@ public class TestMetadata {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
-			dataset1 = new Datasets(md.getConnection());
-			dataset1.reset(false, "ELEMENT_DATASET",
-					"691df7dd-ce3e-47f8-bea5-6a632c6fcccb",
-					"DATASET FOR ELEMENTS", "ELEMENT_NAMESPACE",
-					"791df7dd-ce3e-47f8-bea5-6a632c6fcccb", null);
-			dataset1.save();
-			datadefUuid = UUID.randomUUID();
-			metadata1 = new Metadata(md.getConnection());
-			metadata1.reset(dataset1.getDatasetUuid().toString(),
-					datadefUuid.toString());
+			md.setAutoCommit(true);
+			boolean isUnique = false;
+			String datasetName = "ELEMENT_TEST";
+			String datasetContactUuid = "691df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+			String datasetDescription = "Elements test";
+			String datasetModalityUuid = "791df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+			String datasetNameSpace = "ELEMENTS_TEST";
+			String datasetParentUuid = null;
+			dataset = new Datasets(md.getConnection());
+			dataset.reset(isUnique, datasetName, datasetContactUuid,
+					datasetDescription, datasetNameSpace, datasetModalityUuid,
+					datasetParentUuid);
+			dataset.save();
+			String datasetUuid = dataset.getDatasetUuid().toString();
+			String metadatafield = "metadata";
+			metadata = new Metadata(md.getConnection());
+			metadata.reset(datasetUuid, metadatafield);
 		}
 
 	}
 
-	@After
-	public void closeConnection() throws Exception {
+	@AfterClass
+	public static void closeConnection() throws Exception {
 		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 	@Test
 	public void testAddAttribute() throws Exception {
-		String fieldName = "MetadataField1";
-		Double[] numAttrValues1 = { 0.123 };
-		String[] attrValues1 = { "0.123" };
-		metadata1.addAttribute(fieldName, numAttrValues1, attrValues1);
-		fieldName = "MetadataField2";
-		Double[] numAttrValues2 = { 0.456 };
-		String[] attrValues2 = { "0.456" };
-		metadata1.addAttribute(fieldName, numAttrValues2, attrValues2);
-		metadata1.save();
+		System.out.println("TEST: testing addAttribute() method.");
+		int expected;
+		int actual;
+		Statement stmt = md.getConnection().createStatement();
+		String query = "SELECT COUNT(*) FROM ATTRIBUTES";
+		ResultSet rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be no attributes in the database.");
+		assertEquals("There are attributes in the database", expected, actual);
+		String fieldName = "metadatafield";
+		Double[] numAttrValues = { 0.123 };
+		String[] attrValues = { "0.123" };
+		metadata.addAttribute(fieldName, numAttrValues, attrValues);
+		metadata.save();
+		rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 1;
+		actual = rs.getInt(1);
+		System.out.println("-- There should be 1 attributes in the database.");
+		assertEquals("There are no attributes in the database", expected,
+				actual);
 	}
 
 }
