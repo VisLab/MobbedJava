@@ -97,7 +97,9 @@ public class ManageDB {
 					if (!isEmpty(columnValues[i][j]))
 						validateColumnValue(columnNames[j], columnValues[i][j]);
 					else {
-						if (!keyIndexes.contains(j))
+						if (!keyIndexes.contains(j)
+								&& !columnNames[j]
+										.equals("dataset_session_uuid"))
 							columnValues[i][j] = getDefaultValue(columnNames[j]);
 					}
 				}
@@ -666,16 +668,15 @@ public class ManageDB {
 	private String[] generateKeys(ArrayList<Integer> keyIndexes,
 			String tableName, String[] columnNames, String[] columnValues)
 			throws Exception {
-		// if (tableName.equalsIgnoreCase("transforms")) {
-		// int stringIndex = findIndexOfColumn(columnNames, "transform_string");
-		// int hashIndex = findIndexOfColumn(columnNames, "transform_md5_hash");
-		// columnValues[hashIndex] = generateMd5Hash(columnValues[stringIndex]);
-		// } else {
+		if (tableName.equalsIgnoreCase("datasets")) {
+			int sessionIndex = findIndexOfColumn(columnNames,
+					"dataset_session_uuid");
+			columnValues[sessionIndex] = UUID.randomUUID().toString();
+		}
 		int numKeys = keyIndexes.size();
 		for (int i = 0; i < numKeys; i++) {
 			if (isEmpty(columnValues[keyIndexes.get(i)]))
 				columnValues[keyIndexes.get(i)] = UUID.randomUUID().toString();
-			// }
 		}
 		return columnValues;
 	}
@@ -701,22 +702,22 @@ public class ManageDB {
 	// return md5hash;
 	// }
 
-	// /**
-	// * Finds the index of a particular column
-	// *
-	// * @param columnNames
-	// * @param columnName
-	// * @return
-	// */
-	// private int findIndexOfColumn(String[] columnNames, String columnName) {
-	// int index = 0;
-	// int numColumns = columnNames.length;
-	// for (int i = 0; i < numColumns; i++) {
-	// if (columnNames[i].equalsIgnoreCase(columnName))
-	// index = i;
-	// }
-	// return index;
-	// }
+	/**
+	 * Finds the index of a particular column
+	 * 
+	 * @param columnNames
+	 * @param columnName
+	 * @return
+	 */
+	private int findIndexOfColumn(String[] columnNames, String columnName) {
+		int index = 0;
+		int numColumns = columnNames.length;
+		for (int i = 0; i < numColumns; i++) {
+			if (columnNames[i].equalsIgnoreCase(columnName))
+				index = i;
+		}
+		return index;
+	}
 
 	/**
 	 * Initializes hash maps that involve columns

@@ -83,7 +83,7 @@ public class Elements {
 	 * 
 	 * @throws Exception
 	 */
-	public void addElements() throws Exception {
+	public String[] addElements() throws Exception {
 		insertStmt = dbCon.prepareStatement(insertElementQry);
 		String organizationalClass = "datasets";
 		if (groupLabel != null) {
@@ -99,8 +99,10 @@ public class Elements {
 			insertStmt.addBatch();
 		}
 		elementUuids = new UUID[elementLabels.length];
+		String[] stringElementUuids = new String[elementLabels.length];
 		for (int i = 0; i < elementLabels.length; i++) {
 			elementUuids[i] = UUID.randomUUID();
+			stringElementUuids[i] = elementUuids[i].toString();
 			insertStmt.setObject(1, elementUuids[i], Types.OTHER);
 			insertStmt.setObject(2, elementLabels[i]);
 			insertStmt.setObject(3, datasetUuid);
@@ -110,6 +112,7 @@ public class Elements {
 			insertStmt.setObject(7, elementDescriptions[i]);
 			insertStmt.addBatch();
 		}
+		return stringElementUuids;
 	}
 
 	/**

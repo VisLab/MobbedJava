@@ -50,15 +50,13 @@ public class TestElements {
 					datasetDescription, datasetNameSpace, datasetModalityUuid,
 					datasetParentUuid);
 			dataset.save();
-			String datasetUuid = dataset.getDatasetUuid().toString();
-			String elementField = "chanlocs";
-			String groupLabel = "EEG CAP";
 			String[] elementLabels = { "channel 1", "channel 2" };
 			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
 			long[] elementPositions = { 1, 2 };
 			element = new Elements(md.getConnection());
-			element.reset(datasetUuid, elementField, groupLabel, elementLabels,
-					elementDescriptions, elementPositions);
+			element.reset(dataset.getDatasetUuid().toString(), "chanlocs",
+					"EEG CAP", elementLabels, elementDescriptions,
+					elementPositions);
 		}
 
 	}

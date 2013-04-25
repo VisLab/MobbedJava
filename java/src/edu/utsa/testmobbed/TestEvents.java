@@ -27,7 +27,7 @@ public class TestEvents {
 	private static Events event;
 
 	@Before
-	public static void setup() throws Exception {
+	public void setup() throws Exception {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
@@ -77,6 +77,7 @@ public class TestEvents {
 		Statement stmt = md.getConnection().createStatement();
 		String query = "DELETE FROM EVENTS";
 		stmt.execute(query);
+		md.close();
 	}
 
 	@AfterClass

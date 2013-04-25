@@ -295,6 +295,8 @@ ALTER TABLE datamaps ADD FOREIGN KEY (datamap_def_uuid) REFERENCES datadefs (dat
 -- execute
 ALTER TABLE datasets ADD FOREIGN KEY (dataset_contact_uuid) REFERENCES contacts (contact_uuid);
 -- execute
+ALTER TABLE datasets ADD FOREIGN KEY (dataset_modality_uuid) REFERENCES modalities (modality_uuid);
+-- execute
 ALTER TABLE devices ADD FOREIGN KEY (device_contact_uuid) REFERENCES contacts (contact_uuid);
 -- execute
 ALTER TABLE events ADD FOREIGN KEY (event_type_uuid) REFERENCES event_types (event_type_uuid);
