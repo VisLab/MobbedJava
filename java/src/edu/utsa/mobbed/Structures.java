@@ -56,7 +56,7 @@ public class Structures {
 		this.structureUuid = structureUuid;
 		this.structureName = structureName;
 		this.parentUuid = parentUuid;
-		structurePath = retrieveStructurePath();
+		structurePath = generateStructurePath();
 	}
 
 	/**
@@ -106,16 +106,14 @@ public class Structures {
 	 */
 	public static Structures retrieve(Connection dbCon, String structureName,
 			UUID parentUuid, boolean retrieveChildren) throws Exception {
-		Structures s = null;
 		String query = "SELECT STRUCTURE_UUID FROM STRUCTURES"
 				+ " WHERE STRUCTURE_NAME = ? AND STRUCTURE_PARENT_UUID = ?";
+		Structures s = new Structures(dbCon);
 		try {
-			ResultSet rs = null;
 			PreparedStatement pstmt = dbCon.prepareStatement(query);
 			pstmt.setString(1, structureName);
 			pstmt.setObject(2, parentUuid, Types.OTHER);
-			rs = pstmt.executeQuery();
-			s = new Structures(dbCon);
+			ResultSet rs = pstmt.executeQuery();
 			if (rs.next())
 				s.reset(UUID.fromString(rs.getString(1)), structureName,
 						parentUuid);
@@ -166,7 +164,7 @@ public class Structures {
 		return parentName;
 	}
 
-	public String retrieveStructurePath() throws MobbedException {
+	public String generateStructurePath() throws MobbedException {
 		String structurePath = "/" + structureName;
 		UUID currentParentUuid = parentUuid;
 		try {

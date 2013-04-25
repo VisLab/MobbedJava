@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
 import edu.utsa.mobbed.*;
@@ -26,7 +26,7 @@ public class TestEvents {
 	private static Events urevent;
 	private static Events event;
 
-	@BeforeClass
+	@Before
 	public static void setup() throws Exception {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
@@ -101,6 +101,7 @@ public class TestEvents {
 		String fieldName = "urevent";
 		Double[] numAttrValues = { 1.0, 2.0 };
 		String[] attrValues = { "1.0", "2.0" };
+		urevent.save();
 		event.addEvents();
 		event.addAttribute(fieldName, numAttrValues, attrValues);
 		event.save();
