@@ -7,8 +7,6 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.UUID;
 
-
-
 public class EventTypes {
 
 	private Connection dbCon;

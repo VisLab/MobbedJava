@@ -164,7 +164,7 @@ public class Structures {
 		return parentName;
 	}
 
-	public String generateStructurePath() throws MobbedException {
+	private String generateStructurePath() throws MobbedException {
 		String structurePath = "/" + structureName;
 		UUID currentParentUuid = parentUuid;
 		try {

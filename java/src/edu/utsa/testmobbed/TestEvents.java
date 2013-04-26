@@ -8,6 +8,7 @@ import java.sql.Statement;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import edu.utsa.mobbed.*;
@@ -23,9 +24,10 @@ public class TestEvents {
 	private static ManageDB md;
 	private static Events urevent;
 	private static Events event;
+	private static String[] datasetUuids;
 
-	@Before
-	public void setup() throws Exception {
+	@BeforeClass
+	public static void setup() throws Exception {
 		System.out
 				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
@@ -38,25 +40,28 @@ public class TestEvents {
 			md.setAutoCommit(true);
 			String datasetValues[][] = { { null, null, null, "EVENT_DATASET",
 					null, null, null, "EVENT DATASET", null, null, null } };
-			String[] datasetUuids = md.addRows("datasets",
+			datasetUuids = md.addRows("datasets",
 					md.getColumnNames("datasets"), datasetValues, null, null);
-			String[] eventTypes = { "et1", "et2" };
-			long[] positions = { 1, 2 };
-			double[] eventLatencies = { 111, 222 };
-			double[] eventCertainties = { 1.0, 1.0 };
-			String[] ureventParents = { ManageDB.noParentUuid,
-					ManageDB.noParentUuid };
-			urevent = new Events(md.getConnection());
-			urevent.reset(datasetUuids[0], "urevent", eventTypes, eventTypes,
-					positions, eventLatencies, eventLatencies,
-					eventCertainties, null, ureventParents);
-			String[] eventParents = urevent.addEvents();
-			event = new Events(md.getConnection());
-			event.reset(datasetUuids[0], "event", eventTypes, eventTypes,
-					positions, eventLatencies, eventLatencies,
-					eventCertainties, null, eventParents);
 		}
+	}
 
+	@Before
+	public void setupTest() throws Exception {
+		String[] eventTypes = { "et1", "et2" };
+		long[] positions = { 1, 2 };
+		double[] eventLatencies = { 111, 222 };
+		double[] eventCertainties = { 1.0, 1.0 };
+		String[] ureventParents = { ManageDB.noParentUuid,
+				ManageDB.noParentUuid };
+		urevent = new Events(md.getConnection());
+		urevent.reset(datasetUuids[0], "urevent", eventTypes, eventTypes,
+				positions, eventLatencies, eventLatencies, eventCertainties,
+				null, ureventParents);
+		String[] eventParents = urevent.addEvents();
+		event = new Events(md.getConnection());
+		event.reset(datasetUuids[0], "event", eventTypes, eventTypes,
+				positions, eventLatencies, eventLatencies, eventCertainties,
+				null, eventParents);
 	}
 
 	@After
@@ -64,7 +69,6 @@ public class TestEvents {
 		Statement stmt = md.getConnection().createStatement();
 		String query = "DELETE FROM EVENTS";
 		stmt.execute(query);
-		md.close();
 	}
 
 	@AfterClass
