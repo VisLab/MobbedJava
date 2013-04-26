@@ -12,7 +12,6 @@ import org.junit.Test;
 
 import edu.utsa.mobbed.Elements;
 import edu.utsa.mobbed.ManageDB;
-import edu.utsa.testmobbed.helpers.Datasets;
 
 public class TestElements {
 	private static String tablePath = Class.class.getResource(
@@ -21,9 +20,8 @@ public class TestElements {
 	private static String hostname = "localhost";
 	private static String user = "postgres";
 	private static String password = "admin";
-	private static boolean verbose = true;
+	private static boolean verbose = false;
 	private static ManageDB md;
-	private static Datasets dataset;
 	private static Elements element;
 
 	@BeforeClass
@@ -38,25 +36,16 @@ public class TestElements {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
 			md.setAutoCommit(true);
-			boolean isUnique = false;
-			String datasetName = "ELEMENT_TEST";
-			String datasetContactUuid = "691df7dd-ce3e-47f8-bea5-6a632c6fcccb";
-			String datasetDescription = "Elements test";
-			String datasetModalityUuid = "791df7dd-ce3e-47f8-bea5-6a632c6fcccb";
-			String datasetNameSpace = "ELEMENTS_TEST";
-			String datasetParentUuid = null;
-			dataset = new Datasets(md.getConnection());
-			dataset.reset(isUnique, datasetName, datasetContactUuid,
-					datasetDescription, datasetNameSpace, datasetModalityUuid,
-					datasetParentUuid);
-			dataset.save();
+			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+					null, null, null, "ELEMENT DATASET", null, null, null } };
+			String[] datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
 			String[] elementLabels = { "channel 1", "channel 2" };
 			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
 			long[] elementPositions = { 1, 2 };
 			element = new Elements(md.getConnection());
-			element.reset(dataset.getDatasetUuid().toString(), "chanlocs",
-					"EEG CAP", elementLabels, elementDescriptions,
-					elementPositions);
+			element.reset(datasetUuids[0], "chanlocs", "EEG CAP",
+					elementLabels, elementDescriptions, elementPositions);
 		}
 
 	}

@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import edu.utsa.mobbed.*;
-import edu.utsa.testmobbed.helpers.Datasets;
 
 public class TestEvents {
 	private static String tablePath = Class.class.getResource(
@@ -20,9 +19,8 @@ public class TestEvents {
 	private static String hostname = "localhost";
 	private static String user = "postgres";
 	private static String password = "admin";
-	private static boolean verbose = true;
+	private static boolean verbose = false;
 	private static ManageDB md;
-	private static Datasets dataset;
 	private static Events urevent;
 	private static Events event;
 
@@ -38,21 +36,10 @@ public class TestEvents {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
 			md.setAutoCommit(true);
-			boolean isUnique = false;
-			String datasetName = "ELEMENT_TEST";
-			String datasetContactUuid = "691df7dd-ce3e-47f8-bea5-6a632c6fcccb";
-			String datasetDescription = "Elements test";
-			String datasetModalityUuid = "791df7dd-ce3e-47f8-bea5-6a632c6fcccb";
-			String datasetNameSpace = "ELEMENTS_TEST";
-			String datasetParentUuid = null;
-			dataset = new Datasets(md.getConnection());
-			dataset.reset(isUnique, datasetName, datasetContactUuid,
-					datasetDescription, datasetNameSpace, datasetModalityUuid,
-					datasetParentUuid);
-			dataset.save();
-			String datasetUuid = dataset.getDatasetUuid().toString();
-			String urelementField = "urevent";
-			String elementField = "event";
+			String datasetValues[][] = { { null, null, null, "EVENT_DATASET",
+					null, null, null, "EVENT DATASET", null, null, null } };
+			String[] datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
 			String[] eventTypes = { "et1", "et2" };
 			long[] positions = { 1, 2 };
 			double[] eventLatencies = { 111, 222 };
@@ -60,12 +47,12 @@ public class TestEvents {
 			String[] ureventParents = { ManageDB.noParentUuid,
 					ManageDB.noParentUuid };
 			urevent = new Events(md.getConnection());
-			urevent.reset(datasetUuid, urelementField, eventTypes, eventTypes,
+			urevent.reset(datasetUuids[0], "urevent", eventTypes, eventTypes,
 					positions, eventLatencies, eventLatencies,
 					eventCertainties, null, ureventParents);
 			String[] eventParents = urevent.addEvents();
 			event = new Events(md.getConnection());
-			event.reset(datasetUuid, elementField, eventTypes, eventTypes,
+			event.reset(datasetUuids[0], "event", eventTypes, eventTypes,
 					positions, eventLatencies, eventLatencies,
 					eventCertainties, null, eventParents);
 		}

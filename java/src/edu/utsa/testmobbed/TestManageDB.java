@@ -19,7 +19,6 @@ import org.junit.Test;
 import edu.utsa.mobbed.Elements;
 import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.MobbedException;
-import edu.utsa.testmobbed.helpers.Datasets;
 
 /**
  * @author JCockfield
@@ -46,7 +45,7 @@ public class TestManageDB {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		}
-		md.setAutoCommit(false);
+		md.setAutoCommit(true);
 		String[][] contactValues = {
 				{ null, "John", "Doe", "J", "123 Doe Drive", "456 Doe Drive",
 						"Doeville", "Florida", "USA", "45353", "124-412-4574",
@@ -56,36 +55,29 @@ public class TestManageDB {
 						"jdoe@email.com" } };
 		md.addRows("contacts", md.getColumnNames("contacts"), contactValues,
 				null, null);
-		Datasets dataset = new Datasets(md.getConnection());
-		dataset.reset(false, "MANAGEDB_TEST",
-				"691df7dd-ce3e-47f8-bea5-6a632c6fcccb", "ManageDB test",
-				"MANAGEDB_TEST", "791df7dd-ce3e-47f8-bea5-6a632c6fcccb", null);
-		dataset.save();
+		String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+				null, null, null, "MANAGEDB_DATASET", null, null, null } };
+		String[] datasetUuids = md.addRows("datasets",
+				md.getColumnNames("datasets"), datasetValues, null, null);
 		String[] elementLabels = { "channel 1" };
 		String[] elementDescriptions = { "EEG channel: 1" };
 		long[] elementPositions = { 1 };
 		Elements element = new Elements(md.getConnection());
-		element.reset(dataset.getDatasetUuid().toString(), "chanlocs",
-				"EEG CAP", elementLabels, elementDescriptions, elementPositions);
+		element.reset(datasetUuids[0], "chanlocs", "EEG CAP", elementLabels,
+				elementDescriptions, elementPositions);
 		String[] elementUuids = element.addElements();
 		String[][] attributeValues = {
-				{ null, elementUuids[0], "elements",
-						dataset.getDatasetUuid().toString(), "datasets", null,
-						null, "Alpha" },
-				{ null, elementUuids[0], "elements",
-						dataset.getDatasetUuid().toString(), "datasets", null,
-						null, "Beta" },
-				{ null, elementUuids[0], "elements",
-						dataset.getDatasetUuid().toString(), "datasets", null,
-						null, "Omega" } };
+				{ null, elementUuids[0], "elements", datasetUuids[0],
+						"datasets", null, null, "Alpha" },
+				{ null, elementUuids[0], "elements", datasetUuids[0],
+						"datasets", null, null, "Beta" },
+				{ null, elementUuids[0], "elements", datasetUuids[0],
+						"datasets", null, null, "Omega" } };
 		md.addRows("attributes", md.getColumnNames("attributes"),
 				attributeValues, null, null);
-		String[][] tagValues = {
-				{ "EyeTrack", dataset.getDatasetUuid().toString(), "datasets" },
-				{ "VisualTarget", dataset.getDatasetUuid().toString(),
-						"datasets" } };
+		String[][] tagValues = { { "EyeTrack", datasetUuids[0], "datasets" },
+				{ "VisualTarget", datasetUuids[0], "datasets" } };
 		md.addRows("tags", md.getColumnNames("tags"), tagValues, null, null);
-		md.commit();
 	}
 
 	@AfterClass
@@ -219,7 +211,6 @@ public class TestManageDB {
 		assertArrayEquals(
 				"The keys returned are not equal to the expected keys",
 				expected, actual);
-		md.commit();
 	}
 
 	@Test
@@ -690,7 +681,7 @@ public class TestManageDB {
 		System.out
 				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure, tag, and attribute fields passed in");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "tag*" } };
+		String[][] columnValues = { { "MANAGEDB_DATASET*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,

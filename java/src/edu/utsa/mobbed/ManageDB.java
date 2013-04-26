@@ -136,6 +136,30 @@ public class ManageDB {
 	}
 
 	/**
+	 * Checks the dataset's namespace and name to determine it's version number
+	 * 
+	 * @param IsUnique
+	 * @param datasetName
+	 * @param datasetNamespace
+	 * @return
+	 * @throws Exception
+	 */
+	public int checkDatasetVersion(boolean IsUnique, String datasetNamespace,
+			String datasetName) throws Exception {
+		String query = "SELECT MAX(DATASET_VERSION) AS LATESTVERSION"
+				+ " FROM DATASETS WHERE DATASET_NAMESPACE = ? AND DATASET_NAME = ?";
+		PreparedStatement selStmt = connection.prepareStatement(query);
+		selStmt.setString(1, datasetNamespace);
+		selStmt.setString(2, datasetName);
+		ResultSet rs = selStmt.executeQuery();
+		rs.next();
+		int version = rs.getInt(1);
+		if (IsUnique && version > 0)
+			throw new MobbedException("dataset version is not unique");
+		return version + 1;
+	}
+
+	/**
 	 * Closes a database connection
 	 * 
 	 * @throws Exception
