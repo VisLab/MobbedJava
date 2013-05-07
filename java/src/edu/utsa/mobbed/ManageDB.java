@@ -1077,6 +1077,7 @@ public class ManageDB {
 		String[] nonKeyValues = removeByIndex(keyIndexes, columnValues);
 		int i;
 		int k = 0;
+		int l = 0;
 		for (i = 0; i < nonKeyColumns.length; i++) {
 			int targetType = lookupTargetType(nonKeyColumns[i]);
 			if (doubleValues != null && targetType == Types.DOUBLE) {
@@ -1085,8 +1086,10 @@ public class ManageDB {
 				else
 					pstmt.setObject(i + 1, doubleValues[k]);
 				k++;
+			} else {
+				pstmt.setObject(i + 1, nonKeyValues[l], targetType);
+				l++;
 			}
-			pstmt.setObject(i + 1, nonKeyValues[i], targetType);
 		}
 		for (int j = 0; j < keyColumns.length; j++) {
 			int targetType = lookupTargetType(keyColumns[j]);
