@@ -566,11 +566,12 @@ public class ManageDB {
 	 */
 	private String constructStructQuery(String regExp, String tableName,
 			String[] columnNames, String[][] columnValues) throws Exception {
-		String type = typeMap.get(columnNames[0]);
-		String columnName = null;
+		String type;
+		String columnName;
 		String qry = "";
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
+			type = typeMap.get(columnNames[i]);
 			// Case insensitive fix
 			if (type.equalsIgnoreCase("character varying"))
 				columnName = " UPPER(" + columnNames[i] + ")";
