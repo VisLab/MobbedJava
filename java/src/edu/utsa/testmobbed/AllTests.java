@@ -5,8 +5,8 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ TestElements.class, TestEvents.class, TestManageDB.class,
-		TestMetadata.class })
+@SuiteClasses({ TestAttributes.class, TestElements.class, TestEvents.class,
+		TestManageDB.class, TestMetadata.class })
 public class AllTests {
 
 }
