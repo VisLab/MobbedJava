@@ -88,6 +88,8 @@ public class TestManageDB {
 	@Test
 	public void testGetColumnNames() throws Exception {
 		System.out.println("Unit test for getColumnNames:");
+		System.out
+				.println("It should get the column names of the datasets table");
 		String tableName = "datasets";
 		String[] actual = md.getColumnNames(tableName);
 		assertNotNull("Columns names are null", actual);
@@ -109,6 +111,8 @@ public class TestManageDB {
 	@Test
 	public void testGetDefaultValue() throws Exception {
 		System.out.println("Unit test for getDefaultValue:");
+		System.out
+				.println("It should get the default value of the dataset_namespace column");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getDefaultValue(columnName);
@@ -136,6 +140,8 @@ public class TestManageDB {
 	@Test
 	public void testGetDoubleColumns() throws Exception {
 		System.out.println("Unit test for getDoubleColumns:");
+		System.out
+				.println("It should get the double columns of the attributes table");
 		String tableName = "attributes";
 		String columnQuery = "SELECT column_name from information_schema.columns where table_name = ? AND table_schema = 'public' AND data_type = 'double precision' ";
 		PreparedStatement pstmt = md.getConnection().prepareStatement(
@@ -157,6 +163,8 @@ public class TestManageDB {
 	@Test
 	public void testGetColumnType() throws Exception {
 		System.out.println("Unit test for getColumnType:");
+		System.out
+				.println("It should get the type of the dataset_namespace column");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getColumnType(columnName);
@@ -178,6 +186,7 @@ public class TestManageDB {
 	@Test
 	public void testGetKeys() throws Exception {
 		System.out.println("Unit test for getKeys:");
+		System.out.println("It should get the keys of the datasets table");
 		String tableName = "datasets";
 		String[] actual = md.getKeys(tableName);
 		assertNotNull(actual);
@@ -205,6 +214,7 @@ public class TestManageDB {
 	public void testAddRowsCompositeKey() throws Exception {
 		System.out
 				.println("Unit test for addRows with table with a composite primary key:");
+		System.out.println("It should store a tag into the database");
 		String tableName = "tags";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
@@ -223,6 +233,7 @@ public class TestManageDB {
 	@Test
 	public void testgetTables() throws Exception {
 		System.out.println("Unit test for getTables:");
+		System.out.println("It should retrieve all of the database tables");
 		String[] actual = md.getTables();
 		java.util.Arrays.sort(actual);
 		assertNotNull(actual);
@@ -242,6 +253,8 @@ public class TestManageDB {
 	@Test
 	public void testgetColumnTypes() throws Exception {
 		System.out.println("Unit test for getColumnTypes:");
+		System.out
+				.println("It should return all of the column types in the datasets table");
 		String tableName = "datasets";
 		String[] actual = md.getColumnTypes(tableName);
 		assertNotNull(actual);
@@ -262,6 +275,8 @@ public class TestManageDB {
 	@Test
 	public void testRetrieveRowsLimit() throws Exception {
 		System.out.println("Unit test for retrieveRows with a limit:");
+		System.out
+				.println("It should retrieve at most 1 contact from the database");
 		String[][] rows = md.retrieveRows("contacts", 1, "off", null, null,
 				null, null);
 		assertNotNull(rows);
@@ -277,6 +292,8 @@ public class TestManageDB {
 	@Test
 	public void testRetrieveRowsNoLimit() throws Exception {
 		System.out.println("Unit test for retrieveRows with a no limit:");
+		System.out
+				.println("It should retrieve all the contacts in the database");
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
 				"off", null, null, null, null);
 		assertNotNull(rows);
@@ -298,6 +315,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureNoRegExp() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure search specifications:");
+		System.out
+				.println("It should retrieve all contacts with first name john");
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "john" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -322,6 +341,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureRegExp() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure search specifications passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all contacts whose name begin with jo");
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "jo*" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -345,6 +366,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureMultipleValues() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with multiple structure search specifications for a given column:");
+		System.out
+				.println("It should retrieve all contacts whose first name is either John or Jane and last name is Doe");
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues = { { "John", "Jane" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -370,8 +393,10 @@ public class TestManageDB {
 			throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with multiple structure search specifications for a given column that is passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all contacts whose first name begin with either Jo or Ja and last name is Doe");
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
-		String[][] columnValues = { { "JO*", "JA*" }, { "Doe" } };
+		String[][] columnValues = { { "Jo*", "Ja*" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
 				"on", null, null, columnNames, columnValues);
 		assertNotNull(rows);
@@ -394,6 +419,8 @@ public class TestManageDB {
 	public void testRetrieveRowsTagsORCondition() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with tags using the OR condition:");
+		System.out
+				.println("It should retrieve all datasets that have the tag EyeTrack or VisualTarget");
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", tagValues, null, null, null);
@@ -417,6 +444,8 @@ public class TestManageDB {
 	public void testRetrieveRowsTagsRegExp() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with tags passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all datasets that have a tag that begins with Eye");
 		String[][] tagValues = { { "Eye*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", tagValues, null, null, null);
@@ -440,6 +469,8 @@ public class TestManageDB {
 	public void testRetrieveRowsTagsANDORCondition() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with tags using the AND and OR condition:");
+		System.out
+				.println("It should retrieve all datasets that have the tag EyeTrack or VisualTarget and AudioLeft");
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" },
 				{ "AudioLeft" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
@@ -465,6 +496,8 @@ public class TestManageDB {
 		System.out
 				.println("Unit test for retrieveRows with attributes passed in as regular expressions:");
 		String[][] attributeValues = { { "A*", "B*" } };
+		System.out
+				.println("It should retrieve all datasets that have attributes that begin with A and B");
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", null, attributeValues, null, null);
 		assertNotNull(rows);
@@ -488,6 +521,8 @@ public class TestManageDB {
 	public void testRetrieveRowsAttributesANDORCondition() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with attributes using the AND and OR condition:");
+		System.out
+				.println("It should retrieve all datasets that have atrritubes ALPHA or BETA and Omega");
 		String[][] attributeValues = { { "ALPHA", "BETA" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", null, attributeValues, null, null);
@@ -513,6 +548,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureAttributes() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure and attribute search specifications:");
+		System.out
+				.println("It should retrieve all datasets that have the name MANAGEDB_DATASET and atrritubes ALPHA or BETA and Omega");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] attributeValues = { { "Alpha", "Beta" }, { "Omega" } };
@@ -540,6 +577,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureAttributesRegExp() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure and attribute search specifications passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all datasets that have the name that begin with MANAGEDB and atrritubes that begin with A or B and O");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
@@ -567,6 +606,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureTags() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure and tag search specifications:");
+		System.out
+				.println("It should retrieve all datasets that have the name MANAGEDB_DATASET and tags EyeTrack or VisualTarget");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
@@ -592,6 +633,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureTagsRegExp() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure and tag search specifications passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all datasets that have the name that begin with MANAGEDB and tags that begin with Eye or Visual");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
@@ -617,6 +660,8 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureTagsAttributes() throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure, tag, and attribute search specifications:");
+		System.out
+				.println("It should retrieve all datasets that have the name MANAGEDB_DATASET and tags EyeTrack or VisualTarget and attributes ALPHA or BETA and OMEGA");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
@@ -646,6 +691,8 @@ public class TestManageDB {
 			throws Exception {
 		System.out
 				.println("Unit test for retrieveRows with structure, tag, and attribute search specifications passed in as regular expressions:");
+		System.out
+				.println("It should retrieve all datasets that have the name that begin with MANAGEDB and tags that begin with Eye or Visual and attributes that begin with A or B and O");
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
@@ -673,6 +720,8 @@ public class TestManageDB {
 	@Test(expected = MobbedException.class)
 	public void testAddRowsInvalidTableName() throws Exception {
 		System.out.println("Unit test for addRows with invalid table:");
+		System.out
+				.println("It should throw an exception when passing in the table invalid_table");
 		String tableName = "invalid_table";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
@@ -685,6 +734,8 @@ public class TestManageDB {
 	@Test(expected = MobbedException.class)
 	public void testAddRowsInvalidColumnNames() throws Exception {
 		System.out.println("Unit test for addRows with invalid columns names:");
+		System.out
+				.println("It should throw an exception when passing in the invalid column names invalid_column1 and invalid_column2 into the tags table");
 		String tableName = "tags";
 		String[] columnNames = { "invalid_column1", "invalid_column2",
 				"invalid_column3" };
@@ -699,6 +750,8 @@ public class TestManageDB {
 	public void testAddRowsInvalidColumnValues() throws Exception {
 		System.out
 				.println("Unit test for addRows with invalid columns values:");
+		System.out
+				.println("It should throw an exception when passing in the invalid column values invalid_value1, invalid_value2, and invalid_value3 into the datasets table");
 		String tableName = "datasets";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "invalid_value1", "invalid_value2",

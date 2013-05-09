@@ -64,6 +64,7 @@ public class TestElements {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAttribute");
+		System.out.println("It should store 2 element attributes");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -92,6 +93,8 @@ public class TestElements {
 	@Test
 	public void testAddElements() throws Exception {
 		System.out.println("Unit test for addElements");
+		System.out
+				.println("It should store 3 elements. 1 group element, 2 children.");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();

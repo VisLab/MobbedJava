@@ -78,6 +78,7 @@ public class TestEvents {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAttribute");
+		System.out.println("It should store 2 event attributes");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -108,6 +109,7 @@ public class TestEvents {
 	@Test
 	public void testAddEvents() throws Exception {
 		System.out.println("Unit test for addEvents");
+		System.out.println("It should store 4 events. 2 urevents, 2 events");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();

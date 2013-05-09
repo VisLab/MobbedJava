@@ -58,6 +58,7 @@ public class TestMetadata {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAtrribute");
+		System.out.println("It should store a metadata attribute");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
