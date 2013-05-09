@@ -55,7 +55,7 @@ public class TestManageDB {
 						"jdoe@email.com" } };
 		md.addRows("contacts", md.getColumnNames("contacts"), contactValues,
 				null, null);
-		String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+		String datasetValues[][] = { { null, null, null, "MANAGEDB_DATASET",
 				null, null, null, "MANAGEDB_DATASET", null, null, null } };
 		String[] datasetUuids = md.addRows("datasets",
 				md.getColumnNames("datasets"), datasetValues, null, null);
@@ -89,8 +89,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetColumnNames() throws Exception {
-		System.out
-				.println("TEST: testing getColumnName() method. The column names should be retrieved when a given table name is specified");
+		System.out.println("Unit test for getColumnNames:");
 		String tableName = "datasets";
 		String[] actual = md.getColumnNames(tableName);
 		assertNotNull("Columns names are null", actual);
@@ -102,6 +101,8 @@ public class TestManageDB {
 		while (rs.next())
 			columns.add(rs.getString(1));
 		String[] expected = columns.toArray(new String[columns.size()]);
+		System.out
+				.println("--It should return the expected column names for the given table datasets");
 		assertArrayEquals(
 				"Column names are not equal to the expected column names",
 				expected, actual);
@@ -109,8 +110,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetDefaultValue() throws Exception {
-		System.out
-				.println("TEST: testing getDefaultValue() method. The default value should be retrieved when a given column name is specified");
+		System.out.println("Unit test for getDefaultValue");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getDefaultValue(columnName);
@@ -128,6 +128,8 @@ public class TestManageDB {
 			defaults.put(rs.getString(1), defaultValue);
 		}
 		String expected = defaults.get(columnName);
+		System.out
+				.println("--It should return the expected default value for the given column dataset_namespace");
 		assertEquals(
 				"Default column name is not equal to the expected default column name",
 				expected, actual);
@@ -135,8 +137,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetDoubleColumns() throws Exception {
-		System.out
-				.println("TEST: testing getDoubleColumns() method. The columns that are type double should be returned.");
+		System.out.println("Unit test for getDoubleColumns");
 		String tableName = "attributes";
 		String columnQuery = "SELECT column_name from information_schema.columns where table_name = ? AND table_schema = 'public' AND data_type = 'double precision' ";
 		PreparedStatement pstmt = md.getConnection().prepareStatement(
@@ -148,13 +149,16 @@ public class TestManageDB {
 			al.add(rs.getString(1));
 		String[] expected = al.toArray(new String[al.size()]);
 		String[] actual = md.getDoubleColumns(tableName);
-		assertArrayEquals(expected, actual);
+		System.out
+				.println("--It should return the expected double columns for the given table attributes");
+		assertArrayEquals(
+				"Double columns are not equal to expected double columns",
+				expected, actual);
 	}
 
 	@Test
 	public void testGetColumnType() throws Exception {
-		System.out
-				.println("TEST: testing getColumnType() method. The column type should be retrieved when a given column name is specified");
+		System.out.println("Unit test for getColumnType");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getColumnType(columnName);
@@ -167,14 +171,15 @@ public class TestManageDB {
 		while (rs.next())
 			types.put(rs.getString(1), rs.getString(2));
 		String expected = types.get(columnName);
+		System.out
+				.println("--It should return the expected column type for the given column dataset_namespace");
 		assertEquals("Column type is not equal to expected column type",
 				expected, actual);
 	}
 
 	@Test
 	public void testGetKeys() throws Exception {
-		System.out
-				.println("TEST: testing getKeys() method. The keys should be retrieved when a given table name is specified");
+		System.out.println("Unit test for getKeys");
 		String tableName = "datasets";
 		String[] actual = md.getKeys(tableName);
 		assertNotNull(actual);
@@ -192,6 +197,8 @@ public class TestManageDB {
 		while (rs.next())
 			keys.add(rs.getString(1));
 		String[] expected = keys.toArray(new String[keys.size()]);
+		System.out
+				.println("--It should return the expected keys for the given table datasets");
 		assertArrayEquals("Keys are not equal to the expected keys", expected,
 				actual);
 	}
@@ -199,7 +206,7 @@ public class TestManageDB {
 	@Test
 	public void testAddRowsCompositeKey() throws Exception {
 		System.out
-				.println("TEST: testing addRows() method. The addRows method should return a comma separated key when the key is composite");
+				.println("Unit test for addRows with table with a composite primary key");
 		String tableName = "tags";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
@@ -208,6 +215,8 @@ public class TestManageDB {
 				null, null);
 		assertNotNull(actual);
 		String[] expected = { columnValues[0][0] + "," + columnValues[0][1] };
+		System.out
+				.println("--It should return a comma separated composite primary key for the given table tags");
 		assertArrayEquals(
 				"The keys returned are not equal to the expected keys",
 				expected, actual);
@@ -215,8 +224,7 @@ public class TestManageDB {
 
 	@Test
 	public void testgetTables() throws Exception {
-		System.out
-				.println("TEST: testing getTables() method. The getTables method should return all the tables in the database");
+		System.out.println("Unit test for getTables");
 		String[] actual = md.getTables();
 		java.util.Arrays.sort(actual);
 		assertNotNull(actual);
@@ -227,14 +235,15 @@ public class TestManageDB {
 		while (rs.next())
 			tables.add(rs.getString(1));
 		String[] expected = tables.toArray(new String[tables.size()]);
+		System.out
+				.println("--It should return all of the tables in the database");
 		assertArrayEquals("Tables are not equal to expected tables", expected,
 				actual);
 	}
 
 	@Test
 	public void testgetColumnTypes() throws Exception {
-		System.out
-				.println("TEST: testing getColumnTypes() method. The getColumnTypes method should return all the column types from a table");
+		System.out.println("Unit test for getColumnTypes");
 		String tableName = "datasets";
 		String[] actual = md.getColumnTypes(tableName);
 		assertNotNull(actual);
@@ -246,26 +255,29 @@ public class TestManageDB {
 		while (rs.next())
 			types.add(rs.getString(1));
 		String[] expected = types.toArray(new String[types.size()]);
+		System.out
+				.println("--It should return the expected column types for the given table datasets");
 		assertArrayEquals("Tables are not equal to expected tables", expected,
 				actual);
 	}
 
 	@Test
-	public void testRetrieveRowsNoCriteriaLimit() throws Exception {
-		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve at most the number of rows specified by the limit");
+	public void testRetrieveRowsLimit() throws Exception {
+		System.out.println("Unit test for retrieveRows with a limit");
 		String[][] rows = md.retrieveRows("contacts", 1, "off", null, null,
 				null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		int expected = 1;
+		System.out
+				.println("--It should return at most the limit of rows which is 1");
 		assertEquals(
 				"The number of rows returned is not equal to the exepect rows",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsNoCriteriaNoLimit() throws Exception {
+	public void testRetrieveRowsNoLimit() throws Exception {
 		System.out
 				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows when -1 is specified as the limit ");
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
