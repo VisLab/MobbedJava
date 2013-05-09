@@ -28,8 +28,6 @@ public class TestEvents {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		System.out
-				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
@@ -79,7 +77,7 @@ public class TestEvents {
 
 	@Test
 	public void testAddAttribute() throws Exception {
-		System.out.println("TEST: testing addAttribute() method.");
+		System.out.println("Unit test for addAttribute");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -88,7 +86,7 @@ public class TestEvents {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be no attributes in the database.");
+		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "urevent";
 		Double[] numAttrValues = { 1.0, 2.0 };
@@ -101,7 +99,7 @@ public class TestEvents {
 		rs.next();
 		expected = 2;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be 2 attributes in the database.");
+		System.out.println("--There should be 2 attributes in the database.");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 
@@ -109,7 +107,7 @@ public class TestEvents {
 
 	@Test
 	public void testAddEvents() throws Exception {
-		System.out.println("TEST: testing addEvents() method.");
+		System.out.println("Unit test for addEvents");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -118,7 +116,7 @@ public class TestEvents {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be no events in the database.");
+		System.out.println("--There should be no events in the database.");
 		assertEquals("There are events in the database", expected, actual);
 		urevent.save();
 		event.addEvents();
@@ -127,7 +125,7 @@ public class TestEvents {
 		rs.next();
 		expected = 4;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be 4 events in the database.");
+		System.out.println("--There should be 4 events in the database.");
 		assertEquals("There are no events in the database", expected, actual);
 	}
 

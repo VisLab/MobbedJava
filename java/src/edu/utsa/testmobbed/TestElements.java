@@ -26,8 +26,6 @@ public class TestElements {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		System.out
-				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
@@ -65,7 +63,7 @@ public class TestElements {
 
 	@Test
 	public void testAddAttribute() throws Exception {
-		System.out.println("TEST: testing addAttribute() method.");
+		System.out.println("Unit test for addAttribute");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -74,7 +72,7 @@ public class TestElements {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be no attributes in the database.");
+		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "X";
 		Double[] numAttrValues = { 0.123, 0.456 };
@@ -86,14 +84,14 @@ public class TestElements {
 		rs.next();
 		expected = 2;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be 2 attributes in the database.");
+		System.out.println("--There should be 2 attributes in the database.");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 	}
 
 	@Test
 	public void testAddElements() throws Exception {
-		System.out.println("TEST: testing addElements() method.");
+		System.out.println("Unit test for addElements");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -102,7 +100,7 @@ public class TestElements {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be no elements in the database.");
+		System.out.println("--There should be no elements in the database.");
 		assertEquals("There are elements in the database", expected, actual);
 		element.addElements();
 		element.save();
@@ -110,7 +108,7 @@ public class TestElements {
 		rs.next();
 		expected = 3;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be 3 elements in the database.");
+		System.out.println("--There should be 3 elements in the database.");
 		assertEquals("There are no elements in the database", expected, actual);
 	}
 

@@ -36,8 +36,6 @@ public class TestManageDB {
 
 	@BeforeClass
 	public static void setup() throws Exception {
-		System.out
-				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
@@ -110,7 +108,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetDefaultValue() throws Exception {
-		System.out.println("Unit test for getDefaultValue");
+		System.out.println("Unit test for getDefaultValue:");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getDefaultValue(columnName);
@@ -137,7 +135,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetDoubleColumns() throws Exception {
-		System.out.println("Unit test for getDoubleColumns");
+		System.out.println("Unit test for getDoubleColumns:");
 		String tableName = "attributes";
 		String columnQuery = "SELECT column_name from information_schema.columns where table_name = ? AND table_schema = 'public' AND data_type = 'double precision' ";
 		PreparedStatement pstmt = md.getConnection().prepareStatement(
@@ -158,7 +156,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetColumnType() throws Exception {
-		System.out.println("Unit test for getColumnType");
+		System.out.println("Unit test for getColumnType:");
 		String tableName = "datasets";
 		String columnName = "dataset_namespace";
 		String actual = md.getColumnType(columnName);
@@ -179,7 +177,7 @@ public class TestManageDB {
 
 	@Test
 	public void testGetKeys() throws Exception {
-		System.out.println("Unit test for getKeys");
+		System.out.println("Unit test for getKeys:");
 		String tableName = "datasets";
 		String[] actual = md.getKeys(tableName);
 		assertNotNull(actual);
@@ -206,7 +204,7 @@ public class TestManageDB {
 	@Test
 	public void testAddRowsCompositeKey() throws Exception {
 		System.out
-				.println("Unit test for addRows with table with a composite primary key");
+				.println("Unit test for addRows with table with a composite primary key:");
 		String tableName = "tags";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
@@ -224,7 +222,7 @@ public class TestManageDB {
 
 	@Test
 	public void testgetTables() throws Exception {
-		System.out.println("Unit test for getTables");
+		System.out.println("Unit test for getTables:");
 		String[] actual = md.getTables();
 		java.util.Arrays.sort(actual);
 		assertNotNull(actual);
@@ -243,7 +241,7 @@ public class TestManageDB {
 
 	@Test
 	public void testgetColumnTypes() throws Exception {
-		System.out.println("Unit test for getColumnTypes");
+		System.out.println("Unit test for getColumnTypes:");
 		String tableName = "datasets";
 		String[] actual = md.getColumnTypes(tableName);
 		assertNotNull(actual);
@@ -263,14 +261,14 @@ public class TestManageDB {
 
 	@Test
 	public void testRetrieveRowsLimit() throws Exception {
-		System.out.println("Unit test for retrieveRows with a limit");
+		System.out.println("Unit test for retrieveRows with a limit:");
 		String[][] rows = md.retrieveRows("contacts", 1, "off", null, null,
 				null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		int expected = 1;
 		System.out
-				.println("--It should return at most the limit of rows which is 1");
+				.println("--It should return at most the limit which is 1 of rows in the contacts table");
 		assertEquals(
 				"The number of rows returned is not equal to the exepect rows",
 				expected, actual);
@@ -278,8 +276,7 @@ public class TestManageDB {
 
 	@Test
 	public void testRetrieveRowsNoLimit() throws Exception {
-		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows when -1 is specified as the limit ");
+		System.out.println("Unit test for retrieveRows with a no limit:");
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
 				"off", null, null, null, null);
 		assertNotNull(rows);
@@ -290,16 +287,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return all of the rows in the contacts table");
 		assertEquals(
 				"The number of rows returned is not equal to the exepect rows",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsStructureSingleColumnNoRegExp()
-			throws Exception {
+	public void testRetrieveRowsStructureNoRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure fields passed in");
+				.println("Unit test for retrieveRows with structure search specifications:");
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "john" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -312,6 +310,8 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
@@ -319,9 +319,9 @@ public class TestManageDB {
 	}
 
 	@Test
-	public void testRetrieveRowsStructureSingleColumnRegExp() throws Exception {
+	public void testRetrieveRowsStructureRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure fields passed in");
+				.println("Unit test for retrieveRows with structure search specifications passed in as regular expressions:");
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "jo*" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -334,16 +334,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsStructureMultipleColumnsNoRegExp()
-			throws Exception {
+	public void testRetrieveRowsStructureMultipleValues() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure fields passed in");
+				.println("Unit test for retrieveRows with multiple structure search specifications for a given column:");
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues = { { "John", "Jane" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -357,16 +358,18 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsStructureMultipleColumnsRegExp()
+	public void testRetrieveRowsStructureMultipleValuesRegExp()
 			throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure fields passed in");
+				.println("Unit test for retrieveRows with multiple structure search specifications for a given column that is passed in as regular expressions:");
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues = { { "JO*", "JA*" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
@@ -380,15 +383,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsTagsSingleGroupNoRegExp() throws Exception {
+	public void testRetrieveRowsTagsORCondition() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the tags fields passed in");
+				.println("Unit test for retrieveRows with tags using the OR condition:");
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", tagValues, null, null, null);
@@ -401,15 +406,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsTagsSingleGroupRegExp() throws Exception {
+	public void testRetrieveRowsTagsRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the tags fields passed in");
+				.println("Unit test for retrieveRows with tags passed in as regular expressions:");
 		String[][] tagValues = { { "Eye*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", tagValues, null, null, null);
@@ -422,15 +429,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsTagsMultipleGroupsNoRegExp() throws Exception {
+	public void testRetrieveRowsTagsANDORCondition() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the tags fields passed in");
+				.println("Unit test for retrieveRows with tags using the AND and OR condition:");
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" },
 				{ "AudioLeft" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
@@ -444,60 +453,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsTagsMultipleGroupsRegExp() throws Exception {
+	public void testRetrieveRowsAttributesRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the tags fields passed in");
-		String[][] tagValues = { { "Eye*", "Visual*" }, { "Audio*" } };
-		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", tagValues, null, null, null);
-		assertNotNull(rows);
-		int actual = rows.length;
-		Statement st = md.getConnection().createStatement();
-		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT tag_entity_uuid from TAGS WHERE TAG_NAME ~* 'EYE*|VISUAL*' INTERSECT SELECT TAG_ENTITY_UUID FROM TAGS WHERE TAG_NAME ~* 'AUDIO*')";
-		ResultSet rs = st.executeQuery(qry);
-		int expected = 0;
-		while (rs.next())
-			expected++;
-		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
-				expected, actual);
-	}
-
-	@Test
-	public void testRetrieveRowsAttributesSingleGroupNoRegExp()
-			throws Exception {
-		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the attribute fields passed in");
-
-		String[][] attributeValues = { { "ALPHA", "BETA" } };
-		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", null, attributeValues, null, null);
-		assertNotNull(rows);
-		int actual = rows.length;
-		Statement st = md.getConnection().createStatement();
-		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
-				+ " FROM attributes WHERE UPPER(ATTRIBUTE_VALUE) IN ('ALPHA', 'BETA'))";
-		ResultSet rs = st.executeQuery(qry);
-		int expected = 0;
-		while (rs.next())
-			expected++;
-		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
-				expected, actual);
-	}
-
-	@Test
-	public void testRetrieveRowsAttributesSingleGroupRegExp() throws Exception {
-		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the attribute fields passed in");
+				.println("Unit test for retrieveRows with attributes passed in as regular expressions:");
 		String[][] attributeValues = { { "A*", "B*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", null, attributeValues, null, null);
@@ -511,16 +477,17 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsAttributesMultipleGroupsNoRegExp()
-			throws Exception {
+	public void testRetrieveRowsAttributesANDORCondition() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the attribute fields passed in");
+				.println("Unit test for retrieveRows with attributes using the AND and OR condition:");
 		String[][] attributeValues = { { "ALPHA", "BETA" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", null, attributeValues, null, null);
@@ -535,41 +502,19 @@ public class TestManageDB {
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsAttributesMultipleGroupsRegExp()
-			throws Exception {
+	public void testRetrieveRowsStructureAttributes() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the attribute fields passed in");
-		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
-		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", null, attributeValues, null, null);
-		assertNotNull(rows);
-		int actual = rows.length;
-		Statement st = md.getConnection().createStatement();
-		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
-				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'A*|B*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
-				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'O*')";
-		ResultSet rs = st.executeQuery(qry);
-		int expected = 0;
-		while (rs.next())
-			expected++;
-		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
-				expected, actual);
-	}
-
-	@Test
-	public void testRetrieveRowsStructureAttributesNoRegExp() throws Exception {
-		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure and attribute fields passed in");
+				.println("Unit test for retrieveRows with structure and attribute search specifications:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "attribute_dataset" } };
+		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] attributeValues = { { "Alpha", "Beta" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", null, attributeValues, columnNames, columnValues);
@@ -577,13 +522,15 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT dataset_uuid from DATASETS WHERE UPPER(DATASET_NAME) IN('ATTRIBUTE_DATASET') INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
+				+ " WHERE dataset_uuid IN (SELECT dataset_uuid from DATASETS WHERE UPPER(DATASET_NAME) IN('MANAGEDB_DATASET') INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE UPPER(ATTRIBUTE_VALUE) IN('ALPHA','BETA') INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE UPPER(ATTRIBUTE_VALUE) IN('OMEGA'))";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
@@ -592,9 +539,9 @@ public class TestManageDB {
 	@Test
 	public void testRetrieveRowsStructureAttributesRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure and attribute fields passed in");
+				.println("Unit test for retrieveRows with structure and attribute search specifications passed in as regular expressions:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "attribute*" } };
+		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", null, attributeValues, columnNames, columnValues);
@@ -602,24 +549,26 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT dataset_uuid from DATASETS WHERE DATASET_NAME ~* 'attribute*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
+				+ " WHERE dataset_uuid IN (SELECT dataset_uuid from DATASETS WHERE DATASET_NAME ~* 'MANAGEDB*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'A*|B*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'O*')";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsStructureTagsNoRegExp() throws Exception {
+	public void testRetrieveRowsStructureTags() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure and tag fields passed in");
+				.println("Unit test for retrieveRows with structure and tag search specifications:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "tag_dataset" } };
+		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", tagValues, null, columnNames, columnValues);
@@ -627,11 +576,13 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE UPPER(DATASET_NAME) IN('TAG_DATASET') INTERSECT SELECT tag_entity_uuid from TAGS WHERE UPPER(TAG_NAME) IN ('EYETRACK', 'VISUALTARGET'))";
+				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE UPPER(DATASET_NAME) IN('MANAGEDB_DATASET') INTERSECT SELECT tag_entity_uuid from TAGS WHERE UPPER(TAG_NAME) IN ('EYETRACK', 'VISUALTARGET'))";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
@@ -640,9 +591,9 @@ public class TestManageDB {
 	@Test
 	public void testRetrieveRowsStructureTagsRegExp() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the tags fields passed in");
+				.println("Unit test for retrieveRows with structure and tag search specifications passed in as regular expressions:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "tag*" } };
+		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", tagValues, null, columnNames, columnValues);
@@ -650,23 +601,24 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE DATASET_NAME ~* 'tag*' INTERSECT SELECT tag_entity_uuid from TAGS WHERE TAG_NAME ~* 'Eye*|Visual*')";
+				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE DATASET_NAME ~* 'MANAGEDB*' INTERSECT SELECT tag_entity_uuid from TAGS WHERE TAG_NAME ~* 'Eye*|Visual*')";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
 	}
 
 	@Test
-	public void testRetrieveRowsStructureTagsAttributesNoRegExp()
-			throws Exception {
+	public void testRetrieveRowsStructureTagsAttributes() throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure, tag, and attribute fields passed in");
+				.println("Unit test for retrieveRows with structure, tag, and attribute search specifications:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "tag_attribute_dataset" } };
+		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] attributeValues = { { "Alpha", "Beta" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
@@ -675,13 +627,15 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS "
-				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE UPPER(DATASET_NAME) IN('TAG_ATTRIBUTE_DATASET') INTERSECT SELECT tag_entity_uuid from TAGS WHERE UPPER(TAG_NAME) IN ('EYETRACK', 'VISUALTARGET')INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
+				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE UPPER(DATASET_NAME) IN('MANAGEDB_DATASET') INTERSECT SELECT tag_entity_uuid from TAGS WHERE UPPER(TAG_NAME) IN ('EYETRACK', 'VISUALTARGET')INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE UPPER(ATTRIBUTE_VALUE) IN('ALPHA','BETA') INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE UPPER(ATTRIBUTE_VALUE) IN('OMEGA'))";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
@@ -691,9 +645,9 @@ public class TestManageDB {
 	public void testRetrieveRowsStructureTagsAttributesRegExp()
 			throws Exception {
 		System.out
-				.println("TEST: testing retrieveRows() method. The retireveRows method should retireve all rows based on the structure, tag, and attribute fields passed in");
+				.println("Unit test for retrieveRows with structure, tag, and attribute search specifications passed in as regular expressions:");
 		String[] columnNames = { "dataset_name" };
-		String[][] columnValues = { { "MANAGEDB_DATASET*" } };
+		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
@@ -702,13 +656,15 @@ public class TestManageDB {
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
 		String qry = "SELECT * FROM DATASETS"
-				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE DATASET_NAME ~* 'tag_attribute*' INTERSECT SELECT tag_entity_uuid from TAGS WHERE TAG_NAME ~* 'Eye*|Visual*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
+				+ " WHERE dataset_uuid IN (SELECT DATASET_UUID FROM DATASETS WHERE DATASET_NAME ~* 'MANAGEDB*' INTERSECT SELECT tag_entity_uuid from TAGS WHERE TAG_NAME ~* 'Eye*|Visual*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'A*|B*' INTERSECT SELECT ATTRIBUTE_ORGANIZATIONAL_UUID"
 				+ " FROM attributes WHERE ATTRIBUTE_VALUE ~* 'O*')";
 		ResultSet rs = st.executeQuery(qry);
 		int expected = 0;
 		while (rs.next())
 			expected++;
+		System.out
+				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
 				"Number of rows returned is not equal to the excpected row",
 				expected, actual);
@@ -716,35 +672,39 @@ public class TestManageDB {
 
 	@Test(expected = MobbedException.class)
 	public void testAddRowsInvalidTableName() throws Exception {
-		System.out
-				.println("TEST: testing addRows() method. The addRows method should throw an exception when an invalid table name is passed in");
+		System.out.println("Unit test for addRows with invalid table:");
 		String tableName = "invalid_table";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
 				"datasets" } };
+		System.out
+				.println("--It should throw an exception when specifying an invalid table");
 		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 
 	@Test(expected = MobbedException.class)
 	public void testAddRowsInvalidColumnNames() throws Exception {
-		System.out
-				.println("TEST: testing addRows() method. The addRows method should throw an exception when invalid rows are passed in");
+		System.out.println("Unit test for addRows with invalid columns names:");
 		String tableName = "tags";
 		String[] columnNames = { "invalid_column1", "invalid_column2",
 				"invalid_column3" };
 		String[][] columnValues = { { "tag1", UUID.randomUUID().toString(),
 				"datasets" } };
+		System.out
+				.println("--It should throw an exception when specifying an invalid column name");
 		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 
 	@Test(expected = MobbedException.class)
 	public void testAddRowsInvalidColumnValues() throws Exception {
 		System.out
-				.println("TEST: testing addRows() method. The addRows method should throw an exception when invalid rows are passed in");
+				.println("Unit test for addRows with invalid columns values:");
 		String tableName = "datasets";
 		String[] columnNames = md.getColumnNames(tableName);
 		String[][] columnValues = { { "invalid_value1", "invalid_value2",
 				"invalid_value3" } };
+		System.out
+				.println("--It should throw an exception when specifying an invalid column value");
 		md.addRows(tableName, columnNames, columnValues, null, null);
 	}
 

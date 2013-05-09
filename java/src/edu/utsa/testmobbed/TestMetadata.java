@@ -31,8 +31,6 @@ public class TestMetadata {
 
 	@BeforeClass
 	public static void setUp() throws Exception {
-		System.out
-				.println("@Before - setUp - getting connection and generating database if it doesn't exist");
 		try {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
@@ -59,7 +57,7 @@ public class TestMetadata {
 
 	@Test
 	public void testAddAttribute() throws Exception {
-		System.out.println("TEST: testing addAttribute() method.");
+		System.out.println("Unit test for addAtrribute");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -68,7 +66,7 @@ public class TestMetadata {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be no attributes in the database.");
+		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "metadatafield";
 		Double[] numAttrValues = { 0.123 };
@@ -79,9 +77,8 @@ public class TestMetadata {
 		rs.next();
 		expected = 1;
 		actual = rs.getInt(1);
-		System.out.println("-- There should be 1 attributes in the database.");
+		System.out.println("--There should be 1 attributes in the database.");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 	}
-
 }
