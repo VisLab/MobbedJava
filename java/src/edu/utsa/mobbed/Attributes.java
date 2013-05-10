@@ -4,16 +4,11 @@ import java.util.UUID;
 import java.sql.*;
 
 /**
- * Handler class for ATTRIBUTES table. Any entity (dataset, event, element)
- * represent their properties as a set of attributes. All properties are stored
- * against and ENTITY_UUID and STRUCTURE_UUD. Class contains functions to store,
- * retrieve, delete or making any other queries on the table. A record in the
- * table is uniquely identified by ATTRIBUTE_UUID. A setProperties() function is
- * provided to set all the field values. To store more than one attribute, it is
- * recommended to use one object of this class and use setProperties()to reset
- * field values.
+ * Handler class for ATTRIBUTES table. Attributes, which do not have timestamps,
+ * may encapsulate entity metadata or other characteristics as well as time
+ * independent data.
  * 
- * @author Arif Hossain, Kay Robbins
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class Attributes {
@@ -33,7 +28,7 @@ public class Attributes {
 			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Create a new Attributes object
+	 * Create a Attributes object
 	 * 
 	 * @param dbCon
 	 *            connection to the database
@@ -51,7 +46,7 @@ public class Attributes {
 	}
 
 	/**
-	 * Add the attribute object to the batch insert queries
+	 * Add the attribute to a batch
 	 * 
 	 * @throws MobbedException
 	 * 
@@ -74,7 +69,7 @@ public class Attributes {
 	}
 
 	/**
-	 * Sets the properties of an Attribute
+	 * Sets class fields
 	 * 
 	 * @param attributeUuid
 	 * @param entityUuid
@@ -100,7 +95,7 @@ public class Attributes {
 	}
 
 	/**
-	 * Saves a batch of Attributes
+	 * Saves all attributes as a batch
 	 * 
 	 * @throws Exception
 	 */

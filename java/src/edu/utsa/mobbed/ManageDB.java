@@ -25,7 +25,7 @@ import org.postgresql.largeobject.LargeObjectManager;
 /**
  * Manages a mobbed database
  * 
- * @author Jeremy Cockfield
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 
@@ -48,7 +48,7 @@ public class ManageDB {
 	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
-	 * Creates a ManageDB object to interact with database
+	 * Creates a ManageDB object
 	 * 
 	 * @param name
 	 * @param hostname
@@ -684,6 +684,23 @@ public class ManageDB {
 	}
 
 	/**
+	 * Finds the index of a particular column
+	 * 
+	 * @param columnNames
+	 * @param columnName
+	 * @return
+	 */
+	private int findIndexOfColumn(String[] columnNames, String columnName) {
+		int index = 0;
+		int numColumns = columnNames.length;
+		for (int i = 0; i < numColumns; i++) {
+			if (columnNames[i].equalsIgnoreCase(columnName))
+				index = i;
+		}
+		return index;
+	}
+
+	/**
 	 * Generates key column values
 	 * 
 	 * @param keyIndexes
@@ -704,44 +721,6 @@ public class ManageDB {
 				columnValues[keyIndexes.get(i)] = UUID.randomUUID().toString();
 		}
 		return columnValues;
-	}
-
-	// /**
-	// * Generates a md5 hash
-	// *
-	// * @param value
-	// * @return
-	// * @throws Exception
-	// */
-	// private String generateMd5Hash(String value) throws Exception {
-	// String md5hash = "";
-	// byte[] dataBytes = value.getBytes();
-	// MessageDigest md = MessageDigest.getInstance("MD5");
-	// md.update(dataBytes);
-	// byte[] md5bytes = md.digest();
-	// StringBuffer hexString = new StringBuffer();
-	// for (int i = 0; i < md5bytes.length; i++) {
-	// hexString.append(Integer.toHexString(0xFF & md5bytes[i]));
-	// }
-	// md5hash = hexString.toString();
-	// return md5hash;
-	// }
-
-	/**
-	 * Finds the index of a particular column
-	 * 
-	 * @param columnNames
-	 * @param columnName
-	 * @return
-	 */
-	private int findIndexOfColumn(String[] columnNames, String columnName) {
-		int index = 0;
-		int numColumns = columnNames.length;
-		for (int i = 0; i < numColumns; i++) {
-			if (columnNames[i].equalsIgnoreCase(columnName))
-				index = i;
-		}
-		return index;
 	}
 
 	/**
@@ -917,7 +896,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates an array of non-index elements
+	 * Creates a array of non-index elements
 	 * 
 	 * @param keyIndexes
 	 * @param array
@@ -1345,7 +1324,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes oids in data_defs table
+	 * Deletes oids in datadefs table
 	 * 
 	 * @param dbCon
 	 * @throws Exception

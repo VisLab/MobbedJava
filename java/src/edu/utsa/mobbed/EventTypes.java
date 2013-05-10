@@ -7,6 +7,13 @@ import java.sql.Types;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Handler class for EVENT_TYPES table. Event types facilitate tagging and
+ * association of events across multiple datasets.
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
+ * 
+ */
 public class EventTypes {
 
 	private Connection dbCon;
@@ -29,7 +36,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Adds a event type to the hashmap
+	 * Add a event type to the hashmap
 	 */
 	public void addEventType(String eventType, UUID eventTypeUuid) {
 		etMap.put(eventType.toUpperCase(), eventTypeUuid);
@@ -80,7 +87,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Resets the fields of the event type object
+	 * Sets class fields
 	 * 
 	 * @param eventType
 	 * @param eventTypeDescription

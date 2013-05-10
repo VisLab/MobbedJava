@@ -17,19 +17,11 @@ import org.postgresql.copy.CopyManager;
  * InputStream provided by the previous thread. The retrieval process functions
  * in the same manner.
  * 
- * @author Arif Hossain, Kay Robbins
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class NumericStreams {
 
-	/**
-	 * This class reads data in binary from database and writes it to a
-	 * PipedOutputStream. It implements runnable interface and run on a separate
-	 * execution thread.
-	 * 
-	 * @author Arif Hossain, Kay Robbins
-	 * 
-	 */
 	class ReadBinaryData implements Runnable {
 		UUID datadefUuid;
 		int endPosition;
@@ -80,12 +72,6 @@ public class NumericStreams {
 		}
 	}
 
-	/**
-	 * This class writes the given data in binary to a given OutputStream
-	 * 
-	 * @author Arif Hossain, Kay Robbins
-	 * 
-	 */
 	class WriteBinaryData implements Runnable {
 		PipedOutputStream pout;
 		long signalPosition;
@@ -173,7 +159,7 @@ public class NumericStreams {
 	private static final int SHORT_BYTES = 2;
 
 	/**
-	 * Creates a NumericData object
+	 * Creates a NumericStreams object
 	 * 
 	 * @param dbCon
 	 *            Connection to the database
@@ -188,56 +174,7 @@ public class NumericStreams {
 	}
 
 	/**
-	 * Creates a template row for NUMERIC_DATA table. All required binary flags,
-	 * dimensions, and size of data in bytes is added to the template. Only the
-	 * data field is kept empty for insertion
-	 * 
-	 * @param valueCount
-	 *            Total number of values. Required to estimate the size of a row
-	 *            in bytes
-	 * @param datadefUuid
-	 *            UUID of the datadef
-	 * @return ByteBuffer A row template in a bytebuffer
-	 * @throws Exception
-	 */
-	private ByteBuffer createTemplate(int valueCount, UUID datadefUuid)
-			throws Exception {
-		ByteBuffer template = null;
-		try {
-			int totalSize = SHORT_BYTES + INT_BYTES + 2 * LONG_BYTES
-					+ INT_BYTES + LONG_BYTES + INT_BYTES + LONG_BYTES + 6
-					* INT_BYTES + valueCount * (INT_BYTES + DOUBLE_BYTES);
-			template = ByteBuffer.allocate(totalSize);
-			/********* For every Row **********/
-			template.putShort((short) 4); // # of fields
-			template.putInt(2, LONG_BYTES * 2);
-			template.putLong(6, datadefUuid.getMostSignificantBits());
-			template.putLong(14, datadefUuid.getLeastSignificantBits());
-			template.putInt(22, LONG_BYTES);
-			// HERE:: RECORD_POSITION :: 8 bytes
-			template.putInt(34, LONG_BYTES);
-			// HERE:: RECORD_TIME :: 8 bytes
-			int sizeOfData = valueCount * INT_BYTES + valueCount * DOUBLE_BYTES
-					+ 5 * INT_BYTES;
-			template.putInt(46, sizeOfData); // size of data in bytes per row
-			template.putInt(50, 1); // dimension
-			template.putInt(54, 0); // flag
-			template.putInt(58, 701); // element_type
-			template.putInt(62, valueCount); // columns (or size of
-												// dimension[1])
-			template.putInt(66, 1); // lower bound
-			for (int a = 0; a < valueCount; a++) { // field size of array values
-				template.putInt(70 + a * 12, 8);
-			}
-			/********* End of Rows **********/
-		} catch (Exception ex) {
-			throw ex;
-		}
-		return template;
-	}
-
-	/**
-	 * get the UUID of DataDefs {@link edu.utsa.mobbed.Datadefs}
+	 * Gets the data definition uuid
 	 * 
 	 * @return UUID - UUID of the DataDefs
 	 */
@@ -265,6 +202,16 @@ public class NumericStreams {
 			throw new MobbedException("Could not retrieve max position");
 		}
 		return maxPosition;
+	}
+
+	/**
+	 * Sets class fields
+	 * 
+	 * @param datadefUuid
+	 *            UUID of the DataDefs
+	 */
+	public void reset(String datadefUuid) {
+		this.datadefUuid = UUID.fromString(datadefUuid);
 	}
 
 	/**
@@ -370,12 +317,51 @@ public class NumericStreams {
 	}
 
 	/**
-	 * set the UUID of the DataDef
+	 * Creates a template row for NUMERIC_DATA table. All required binary flags,
+	 * dimensions, and size of data in bytes is added to the template. Only the
+	 * data field is kept empty for insertion
 	 * 
+	 * @param valueCount
+	 *            Total number of values. Required to estimate the size of a row
+	 *            in bytes
 	 * @param datadefUuid
-	 *            UUID of the DataDefs
+	 *            UUID of the datadef
+	 * @return ByteBuffer A row template in a bytebuffer
+	 * @throws Exception
 	 */
-	public void reset(String datadefUuid) {
-		this.datadefUuid = UUID.fromString(datadefUuid);
+	private ByteBuffer createTemplate(int valueCount, UUID datadefUuid)
+			throws Exception {
+		ByteBuffer template = null;
+		try {
+			int totalSize = SHORT_BYTES + INT_BYTES + 2 * LONG_BYTES
+					+ INT_BYTES + LONG_BYTES + INT_BYTES + LONG_BYTES + 6
+					* INT_BYTES + valueCount * (INT_BYTES + DOUBLE_BYTES);
+			template = ByteBuffer.allocate(totalSize);
+			/********* For every Row **********/
+			template.putShort((short) 4); // # of fields
+			template.putInt(2, LONG_BYTES * 2);
+			template.putLong(6, datadefUuid.getMostSignificantBits());
+			template.putLong(14, datadefUuid.getLeastSignificantBits());
+			template.putInt(22, LONG_BYTES);
+			// HERE:: RECORD_POSITION :: 8 bytes
+			template.putInt(34, LONG_BYTES);
+			// HERE:: RECORD_TIME :: 8 bytes
+			int sizeOfData = valueCount * INT_BYTES + valueCount * DOUBLE_BYTES
+					+ 5 * INT_BYTES;
+			template.putInt(46, sizeOfData); // size of data in bytes per row
+			template.putInt(50, 1); // dimension
+			template.putInt(54, 0); // flag
+			template.putInt(58, 701); // element_type
+			template.putInt(62, valueCount); // columns (or size of
+												// dimension[1])
+			template.putInt(66, 1); // lower bound
+			for (int a = 0; a < valueCount; a++) { // field size of array values
+				template.putInt(70 + a * 12, 8);
+			}
+			/********* End of Rows **********/
+		} catch (Exception ex) {
+			throw ex;
+		}
+		return template;
 	}
 }

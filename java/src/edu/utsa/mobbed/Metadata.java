@@ -3,6 +3,12 @@ package edu.utsa.mobbed;
 import java.sql.Connection;
 import java.util.UUID;
 
+/**
+ * Stores metadata information associated with a dataset.
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
+ * 
+ */
 public class Metadata {
 
 	private Attributes atb;

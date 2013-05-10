@@ -5,13 +5,12 @@ import java.util.UUID;
 import java.sql.*;
 
 /**
- * Handler class for STRUCTURES table. A structure represents a property of any
- * entity. In the MoBBED structure, name of any property along with its parent
- * and child is stored in the STRUCTURES table. The actual property values are
- * stored in the ATTRIBUTES table. A structure is uniquely identified by a
- * STRUCUTURE_UUID.
+ * Handler class for STRUCTURES table. The STRUCTURES table encapsulates the
+ * organization of the dataset for insertion into or extraction from a
+ * particular access layer. Structures form a forest for categorization and
+ * reconstruction.
  * 
- * @author Arif Hossain, Kay Robbins
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 
@@ -29,6 +28,11 @@ public class Structures {
 	private static final String selectQry = "SELECT STRUCTURE_NAME, STRUCTURE_PARENT_UUID FROM STRUCTURES "
 			+ "WHERE STRUCTURE_UUID = ?";
 
+	/**
+	 * Creates a Strucutres object
+	 * 
+	 * @param dbCon
+	 */
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
 		structureUuid = null;
@@ -39,7 +43,7 @@ public class Structures {
 	}
 
 	/**
-	 * Adds a child to the hash table
+	 * Add a child to the hashmap
 	 * 
 	 * @param childName
 	 * @param childUuid
@@ -49,19 +53,17 @@ public class Structures {
 	}
 
 	/**
-	 * Check if the given child name is a children of the current structure
+	 * Checks if the hashmap contains the child
 	 * 
 	 * @param childName
-	 *            Name of the child structure
-	 * @return boolean true if given name is a child of this structure, false
-	 *         otherwise.
+	 * @return
 	 */
 	public boolean containsChild(String childName) {
 		return children.containsKey(childName);
 	}
 
 	/**
-	 * Returns UUID of the child structure
+	 * Gets the UUID of the child structure
 	 * 
 	 * @param childName
 	 *            name of the child structure
@@ -72,7 +74,7 @@ public class Structures {
 	}
 
 	/**
-	 * Return UUID of the structure
+	 * Gets the UUID of the structure
 	 * 
 	 * @return UUID UUID of the structure
 	 */
@@ -81,7 +83,7 @@ public class Structures {
 	}
 
 	/**
-	 * Create a structure object
+	 * Sets class fields
 	 * 
 	 * @param structureUuid
 	 *            UUID for STRUCTURE table
@@ -119,6 +121,12 @@ public class Structures {
 		}
 	}
 
+	/**
+	 * Generates a structure path based on it's hierarchy
+	 * 
+	 * @return
+	 * @throws MobbedException
+	 */
 	private String generateStructurePath() throws MobbedException {
 		String structurePath = "/" + structureName;
 		UUID currentParentUuid = parentUuid;
@@ -141,7 +149,7 @@ public class Structures {
 	}
 
 	/**
-	 * Retrieve children of the current structure from database
+	 * Retrieves the children of the structure from the database
 	 * 
 	 * @throws Exception
 	 */

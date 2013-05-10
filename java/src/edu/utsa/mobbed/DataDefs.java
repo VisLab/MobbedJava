@@ -17,60 +17,14 @@ import org.postgresql.largeobject.LargeObjectManager;
 import org.xml.sax.InputSource;
 
 /**
- * Handler class for DATA_DEFS table. Each row in DATA_DEF usually indicates a
- * stream of data either stored as file or as numeric values. Each datadef also
- * contains the mapping format for that data stream. If the data stream is
- * stored as a file object, the file OID is also stored in this table.
+ * Handler class for DATADEFS table. The DATADEFS table identifies a piece of
+ * data (an array, a blob, a stream, or a file).
  * 
- * @author Arif Hossain
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 
 public class Datadefs {
-
-	/**
-	 * Creates a oid for a data definition
-	 * 
-	 * @param dbCon
-	 * @param datadefUuid
-	 * @param oid
-	 * @return
-	 * @throws Exception
-	 */
-	private static void createdatadefOid(Connection dbCon, String datadefUuid,
-			long oid) throws Exception {
-		String updateQry = "UPDATE DATADEFS SET DATADEF_OID = ? WHERE DATADEF_UUID = ?";
-		try {
-			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
-			stmt.setLong(1, oid);
-			stmt.setObject(2, datadefUuid, Types.OTHER);
-			stmt.executeUpdate();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not update datadef oid");
-		}
-	}
-
-	/**
-	 * Creates a oid for a dataset
-	 * 
-	 * @param dbCon
-	 * @param datasetUuid
-	 * @param oid
-	 * @return
-	 * @throws Exception
-	 */
-	private static void createDatasetOid(Connection dbCon, String datasetUuid,
-			long oid) throws Exception {
-		String updateQry = "UPDATE DATASETS SET DATASET_OID = ? WHERE DATASET_UUID = ?";
-		try {
-			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
-			stmt.setLong(1, oid);
-			stmt.setObject(2, UUID.fromString(datasetUuid), Types.OTHER);
-			stmt.executeUpdate();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not update dataset oid");
-		}
-	}
 
 	/**
 	 * Retireves a blob
@@ -208,7 +162,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Stores numeric value array
+	 * Stores a numeric value data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -230,7 +184,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Stores xml value data definition
+	 * Stores a xml value data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -248,6 +202,50 @@ public class Datadefs {
 			insertStmt.executeUpdate();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save xml data");
+		}
+	}
+
+	/**
+	 * Creates a oid for a data definition
+	 * 
+	 * @param dbCon
+	 * @param datadefUuid
+	 * @param oid
+	 * @return
+	 * @throws Exception
+	 */
+	private static void createdatadefOid(Connection dbCon, String datadefUuid,
+			long oid) throws Exception {
+		String updateQry = "UPDATE DATADEFS SET DATADEF_OID = ? WHERE DATADEF_UUID = ?";
+		try {
+			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
+			stmt.setLong(1, oid);
+			stmt.setObject(2, datadefUuid, Types.OTHER);
+			stmt.executeUpdate();
+		} catch (Exception ex) {
+			throw new MobbedException("Could not update datadef oid");
+		}
+	}
+
+	/**
+	 * Creates a oid for a dataset
+	 * 
+	 * @param dbCon
+	 * @param datasetUuid
+	 * @param oid
+	 * @return
+	 * @throws Exception
+	 */
+	private static void createDatasetOid(Connection dbCon, String datasetUuid,
+			long oid) throws Exception {
+		String updateQry = "UPDATE DATASETS SET DATASET_OID = ? WHERE DATASET_UUID = ?";
+		try {
+			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
+			stmt.setLong(1, oid);
+			stmt.setObject(2, UUID.fromString(datasetUuid), Types.OTHER);
+			stmt.executeUpdate();
+		} catch (Exception ex) {
+			throw new MobbedException("Could not update dataset oid");
 		}
 	}
 

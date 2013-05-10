@@ -4,20 +4,15 @@ import java.util.UUID;
 import java.sql.*;
 
 /**
- * Handler class for ELEMENTS table. Elements are considered to be data
- * collecting entities like channels in EEG. Class contains functions to store,
- * retrieve, delete or make other queries on the table. A record in the table is
- * uniquely identified by ELEMENT_UUID.
+ * Handler class for ELEMENTS table. Element entities identify time stamped data
+ * streams. An element may correspond to a single entity or may contain sub
+ * elements.
  * 
  * 
- * @author Arif Hossain, Kay Robbins
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 
-/**
- * @author Arif Hossain, Kay Robbins
- * 
- */
 public class Elements {
 	private Attributes atb;
 	private UUID datasetUuid;
@@ -38,7 +33,7 @@ public class Elements {
 			+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Creates a new element object
+	 * Creates a Elements object
 	 * 
 	 * @param dbCon
 	 * @throws Exception
@@ -57,7 +52,7 @@ public class Elements {
 	}
 
 	/**
-	 * Adds the attribute
+	 * Add the attribute to a batch
 	 * 
 	 * @param fieldName
 	 * @param numericValue
@@ -77,7 +72,7 @@ public class Elements {
 	}
 
 	/**
-	 * Adds a element to the batch
+	 * Add the elements to a batch
 	 * 
 	 * @throws Exception
 	 */
@@ -85,7 +80,6 @@ public class Elements {
 		insertStmt = dbCon.prepareStatement(insertElementQry);
 		String organizationalClass = "datasets";
 		if (groupLabel != null) {
-			// set query parameters for element a group parent
 			groupUuid = UUID.randomUUID();
 			insertStmt.setObject(1, groupUuid, Types.OTHER);
 			insertStmt.setObject(2, groupLabel);
@@ -111,27 +105,6 @@ public class Elements {
 			insertStmt.addBatch();
 		}
 		return stringElementUuids;
-	}
-
-	/**
-	 * Adds a new structure if it doesn't already exist
-	 * 
-	 * @param fieldName
-	 * @param handler
-	 * @throws Exception
-	 */
-	private void addNewStructure(String fieldName) throws Exception {
-		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), false);
-		elementStruct = Structures.retrieve(dbCon, elementField,
-				modalityStruct.getStructureUuid(), true);
-		if (!elementStruct.containsChild(fieldName)) {
-			Structures newChild = new Structures(dbCon);
-			newChild.reset(UUID.randomUUID(), fieldName,
-					elementStruct.getStructureUuid());
-			newChild.save();
-			elementStruct.addChild(fieldName, newChild.getStructureUuid());
-		}
 	}
 
 	/**
@@ -170,6 +143,27 @@ public class Elements {
 			atb.save();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save elements");
+		}
+	}
+
+	/**
+	 * Add a new structure if it doesn't already exist
+	 * 
+	 * @param fieldName
+	 * @param handler
+	 * @throws Exception
+	 */
+	private void addNewStructure(String fieldName) throws Exception {
+		modalityStruct = Structures.retrieve(dbCon, modalityName,
+				UUID.fromString(ManageDB.noParentUuid), false);
+		elementStruct = Structures.retrieve(dbCon, elementField,
+				modalityStruct.getStructureUuid(), true);
+		if (!elementStruct.containsChild(fieldName)) {
+			Structures newChild = new Structures(dbCon);
+			newChild.reset(UUID.randomUUID(), fieldName,
+					elementStruct.getStructureUuid());
+			newChild.save();
+			elementStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 
