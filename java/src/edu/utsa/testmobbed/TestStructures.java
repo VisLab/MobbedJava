@@ -15,7 +15,9 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.Structures;
 
 /**
- * @author JCockfield
+ * Unit tests for Structures class
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class TestStructures {

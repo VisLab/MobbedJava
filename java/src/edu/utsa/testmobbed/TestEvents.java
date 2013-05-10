@@ -13,6 +13,12 @@ import org.junit.Test;
 
 import edu.utsa.mobbed.*;
 
+/**
+ * Unit tests for Events class
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
+ * 
+ */
 public class TestEvents {
 	private static String tablePath = Class.class.getResource(
 			"/edu/utsa/testmobbed/mobbed.sql").getPath();

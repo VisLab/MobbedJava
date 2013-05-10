@@ -21,7 +21,9 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.MobbedException;
 
 /**
- * @author JCockfield
+ * Unit tests for ManageDB class
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class TestManageDB {

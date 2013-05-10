@@ -15,7 +15,9 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.Metadata;
 
 /**
- * @author JCockfield
+ * Unit tests for Metadata class
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class TestMetadata {

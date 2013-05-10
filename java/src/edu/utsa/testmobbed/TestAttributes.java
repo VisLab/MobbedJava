@@ -19,7 +19,9 @@ import edu.utsa.mobbed.ManageDB;
 import edu.utsa.mobbed.Structures;
 
 /**
- * @author JCockfield
+ * Unit tests for Attributes class
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
  */
 public class TestAttributes {
