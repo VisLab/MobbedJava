@@ -39,12 +39,13 @@ public class TestMetadata {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
 			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
-					null, null, null, "ELEMENT DATASET", null, null, null } };
+			String datasetValues[][] = { { null, null, null,
+					"METADATA_DATASET", null, null, null, "METADATA_DATASET",
+					null, null, null } };
 			String[] datasetUuids = md.addRows("datasets",
 					md.getColumnNames("datasets"), datasetValues, null, null);
 			metadata = new Metadata(md.getConnection());
-			metadata.reset(datasetUuids[0], "metadata");
+			metadata.reset("GENERIC", datasetUuids[0], "metadata");
 		}
 
 	}
@@ -69,7 +70,7 @@ public class TestMetadata {
 		actual = rs.getInt(1);
 		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
-		String fieldName = "metadatafield";
+		String fieldName = "X";
 		Double[] numAttrValues = { 0.123 };
 		String[] attrValues = { "0.123" };
 		metadata.addAttribute(fieldName, numAttrValues, attrValues);

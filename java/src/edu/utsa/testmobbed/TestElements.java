@@ -42,7 +42,7 @@ public class TestElements {
 			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
 			long[] elementPositions = { 1, 2 };
 			element = new Elements(md.getConnection());
-			element.reset(datasetUuids[0], "chanlocs", "EEG CAP",
+			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
 					elementLabels, elementDescriptions, elementPositions);
 		}
 

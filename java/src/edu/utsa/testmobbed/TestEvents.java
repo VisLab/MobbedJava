@@ -52,12 +52,12 @@ public class TestEvents {
 		String[] ureventParents = { ManageDB.noParentUuid,
 				ManageDB.noParentUuid };
 		urevent = new Events(md.getConnection());
-		urevent.reset(datasetUuids[0], "urevent", eventTypes, eventTypes,
-				positions, eventLatencies, eventLatencies, eventCertainties,
-				null, ureventParents);
+		urevent.reset("EEG", datasetUuids[0], "urevent", eventTypes,
+				eventTypes, positions, eventLatencies, eventLatencies,
+				eventCertainties, null, ureventParents);
 		String[] eventParents = urevent.addEvents();
 		event = new Events(md.getConnection());
-		event.reset(datasetUuids[0], "event", eventTypes, eventTypes,
+		event.reset("EEG", datasetUuids[0], "event", eventTypes, eventTypes,
 				positions, eventLatencies, eventLatencies, eventCertainties,
 				null, eventParents);
 	}

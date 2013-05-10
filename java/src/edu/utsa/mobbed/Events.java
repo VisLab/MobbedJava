@@ -61,13 +61,11 @@ public class Events {
 	public void addAttribute(String fieldName, Double[] numericFieldValues,
 			String[] fieldValues) throws Exception {
 		addNewStructure(fieldName);
-		String entityClass = "events";
-		String organizationalClass = "datasets";
 		UUID structureUUID = eventStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < types.length; i++) {
-			atb.reset(UUID.randomUUID(), eventUuids[i], entityClass,
-					datasetUuid, organizationalClass, structureUUID,
-					numericFieldValues[i], fieldValues[i]);
+			atb.reset(UUID.randomUUID(), eventUuids[i], "events", datasetUuid,
+					"datasets", structureUUID, numericFieldValues[i],
+					fieldValues[i]);
 			atb.addToBatch();
 		}
 	}
@@ -111,18 +109,16 @@ public class Events {
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName) throws Exception {
-		modalityName = Structures.retrieveModalityName(dbCon, datasetUuid);
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
 				UUID.fromString(ManageDB.noParentUuid), false);
 		eventStruct = Structures.retrieve(dbCon, eventField,
 				modalityStruct.getStructureUuid(), true);
 		if (!eventStruct.containsChild(fieldName)) {
-			Structures newStructure = new Structures(dbCon);
-			newStructure.reset(UUID.randomUUID(), fieldName,
+			Structures newChild = new Structures(dbCon);
+			newChild.reset(UUID.randomUUID(), fieldName,
 					eventStruct.getStructureUuid());
-			newStructure.save();
-			eventStruct = Structures.retrieve(dbCon, "event",
-					modalityStruct.getStructureUuid(), true);
+			newChild.save();
+			eventStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 
@@ -151,10 +147,12 @@ public class Events {
 	 * @param otherFields
 	 * @throws Exception
 	 */
-	public void reset(String datasetUuid, String eventField,
-			String uniqueTypes[], String[] types, long[] positions,
-			double[] startTimes, double[] endTimes, double[] certainties,
-			String[] existingUuids, String[] parentUuids) throws Exception {
+	public void reset(String modalityName, String datasetUuid,
+			String eventField, String uniqueTypes[], String[] types,
+			long[] positions, double[] startTimes, double[] endTimes,
+			double[] certainties, String[] existingUuids, String[] parentUuids)
+			throws Exception {
+		this.modalityName = modalityName;
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.eventField = eventField;
 		this.types = types;

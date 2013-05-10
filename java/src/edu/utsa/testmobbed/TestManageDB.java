@@ -61,8 +61,8 @@ public class TestManageDB {
 		String[] elementDescriptions = { "EEG channel: 1" };
 		long[] elementPositions = { 1 };
 		Elements element = new Elements(md.getConnection());
-		element.reset(datasetUuids[0], "chanlocs", "EEG CAP", elementLabels,
-				elementDescriptions, elementPositions);
+		element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
+				elementLabels, elementDescriptions, elementPositions);
 		String[] elementUuids = element.addElements();
 		String[][] attributeValues = {
 				{ null, elementUuids[0], "elements", datasetUuids[0],

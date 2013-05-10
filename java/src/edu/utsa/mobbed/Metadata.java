@@ -36,7 +36,6 @@ public class Metadata {
 	}
 
 	private void addNewStructure(String fieldName) throws Exception {
-		modalityName = Structures.retrieveModalityName(dbCon, datasetUuid);
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
 				UUID.fromString(ManageDB.noParentUuid), true);
 		metamodalityStruct = Structures.retrieve(dbCon, metadataField,
@@ -51,8 +50,9 @@ public class Metadata {
 		}
 	}
 
-	public void reset(String datasetUuid, String metadataField)
-			throws Exception {
+	public void reset(String modalityName, String datasetUuid,
+			String metadataField) throws Exception {
+		this.modalityName = modalityName;
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.metadataField = metadataField;
 		atb = new Attributes(dbCon);

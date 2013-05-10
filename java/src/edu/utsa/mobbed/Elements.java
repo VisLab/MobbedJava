@@ -66,14 +66,12 @@ public class Elements {
 	 */
 	public void addAttribute(String fieldName, Double[] numericValue,
 			String[] value) throws Exception {
-		String entityClass = "elements";
-		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
 		UUID structureUUID = elementStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
-			atb.reset(UUID.randomUUID(), elementUuids[i], entityClass,
-					datasetUuid, organizationalClass, structureUUID,
-					numericValue[i], value[i]);
+			atb.reset(UUID.randomUUID(), elementUuids[i], "elements",
+					datasetUuid, "datasets", structureUUID, numericValue[i],
+					value[i]);
 			atb.addToBatch();
 		}
 	}
@@ -123,18 +121,16 @@ public class Elements {
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName) throws Exception {
-		modalityName = Structures.retrieveModalityName(dbCon, datasetUuid);
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
 				UUID.fromString(ManageDB.noParentUuid), false);
 		elementStruct = Structures.retrieve(dbCon, elementField,
 				modalityStruct.getStructureUuid(), true);
 		if (!elementStruct.containsChild(fieldName)) {
-			Structures newStruct = new Structures(dbCon);
-			newStruct.reset(UUID.randomUUID(), fieldName,
+			Structures newChild = new Structures(dbCon);
+			newChild.reset(UUID.randomUUID(), fieldName,
 					elementStruct.getStructureUuid());
-			newStruct.save();
-			elementStruct = Structures.retrieve(dbCon, elementField,
-					modalityStruct.getStructureUuid(), true);
+			newChild.save();
+			elementStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 
@@ -149,10 +145,11 @@ public class Elements {
 	 * @param elementPositions
 	 * @throws Exception
 	 */
-	public void reset(String datasetUuid, String elementField,
-			String groupLabel, String[] elementLabels,
+	public void reset(String modalityName, String datasetUuid,
+			String elementField, String groupLabel, String[] elementLabels,
 			String[] elementDescriptions, long[] elementPositions)
 			throws Exception {
+		this.modalityName = modalityName;
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.groupLabel = groupLabel;
 		this.elementField = elementField;
