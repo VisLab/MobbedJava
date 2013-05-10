@@ -29,7 +29,7 @@ import org.xml.sax.InputSource;
 public class Datadefs {
 
 	/**
-	 * Creates a oid for a data defs row
+	 * Creates a oid for a data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -37,23 +37,21 @@ public class Datadefs {
 	 * @return
 	 * @throws Exception
 	 */
-	private static int createdatadefOid(Connection dbCon, String datadefUuid,
+	private static void createdatadefOid(Connection dbCon, String datadefUuid,
 			long oid) throws Exception {
-		int updateCount = 0;
 		String updateQry = "UPDATE DATADEFS SET DATADEF_OID = ? WHERE DATADEF_UUID = ?";
 		try {
 			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
 			stmt.setLong(1, oid);
 			stmt.setObject(2, datadefUuid, Types.OTHER);
-			updateCount = stmt.executeUpdate();
+			stmt.executeUpdate();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not update datadef oid");
 		}
-		return updateCount;
 	}
 
 	/**
-	 * Creates a oid for a datasets row
+	 * Creates a oid for a dataset
 	 * 
 	 * @param dbCon
 	 * @param datasetUuid
@@ -61,19 +59,17 @@ public class Datadefs {
 	 * @return
 	 * @throws Exception
 	 */
-	private static int createDatasetOid(Connection dbCon, String datasetUuid,
+	private static void createDatasetOid(Connection dbCon, String datasetUuid,
 			long oid) throws Exception {
-		int updateCount = 0;
 		String updateQry = "UPDATE DATASETS SET DATASET_OID = ? WHERE DATASET_UUID = ?";
 		try {
 			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
 			stmt.setLong(1, oid);
 			stmt.setObject(2, UUID.fromString(datasetUuid), Types.OTHER);
-			updateCount = stmt.executeUpdate();
+			stmt.executeUpdate();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not update dataset oid");
 		}
-		return updateCount;
 	}
 
 	/**
@@ -87,7 +83,7 @@ public class Datadefs {
 	 */
 	public static void retrieveBlob(Connection dbCon, String pathName,
 			String entityUuid, boolean additional) throws Exception {
-		String query = "";
+		String query;
 		if (additional)
 			query = "SELECT DATASET_OID FROM DATASETS WHERE DATASET_UUID = ? AND DATASET_OID IS NOT NULL LIMIT 1";
 		else
@@ -123,7 +119,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Retrieves a numeric value array
+	 * Retrieves a numeric value data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -147,7 +143,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Retrieves xml
+	 * Retrieves a xml value data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -234,7 +230,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Stores xml
+	 * Stores xml value data definition
 	 * 
 	 * @param dbCon
 	 * @param datadefUuid
@@ -256,7 +252,7 @@ public class Datadefs {
 	}
 
 	/**
-	 * Validates xml
+	 * Validates xml value data definition
 	 * 
 	 * @param xml
 	 * @throws Exception
@@ -267,12 +263,10 @@ public class Datadefs {
 		InputSource is = new InputSource();
 		Pattern p = Pattern.compile("^\\s*<\\?.*\\?>");
 		Matcher m = p.matcher(xml);
-		// has xml header
 		if (m.lookingAt())
 			is.setCharacterStream(new StringReader(m.replaceFirst(m.group()
 					+ " <fakeroot>")
 					+ " </fakeroot>"));
-		// doesn't have xml header
 		else
 			is.setCharacterStream(new StringReader("<fakeroot> " + xml
 					+ "</fakeroot>"));

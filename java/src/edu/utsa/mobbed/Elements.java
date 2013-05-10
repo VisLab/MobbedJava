@@ -114,7 +114,7 @@ public class Elements {
 	}
 
 	/**
-	 * Adds a new structure
+	 * Adds a new structure if it doesn't already exist
 	 * 
 	 * @param fieldName
 	 * @param handler
@@ -160,6 +160,20 @@ public class Elements {
 	} // reset
 
 	/**
+	 * Saves all elements as a batch
+	 * 
+	 * @throws Exception
+	 */
+	public void save() throws Exception {
+		try {
+			insertStmt.executeBatch();
+			atb.save();
+		} catch (Exception ex) {
+			throw new MobbedException("Could not save elements");
+		}
+	}
+
+	/**
 	 * Retrieves the element count
 	 * 
 	 * @param dbCon
@@ -178,20 +192,6 @@ public class Elements {
 		if (rs.next())
 			elementCount = rs.getInt("array_length");
 		return elementCount;
-	}
-
-	/**
-	 * Saves all elements as a batch
-	 * 
-	 * @throws Exception
-	 */
-	public void save() throws Exception {
-		try {
-			insertStmt.executeBatch();
-			atb.save();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save elements");
-		}
 	}
 
 }

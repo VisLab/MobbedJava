@@ -20,36 +20,33 @@ public class Metadata {
 		this.modalityName = null;
 	}
 
+	/**
+	 * Adds a new attribute
+	 * 
+	 * @param fieldName
+	 * @param numericValues
+	 * @param values
+	 * @throws Exception
+	 */
 	public void addAttribute(String fieldName, Double[] numericValues,
 			String[] values) throws Exception {
-		UUID entityUuid = null;
-		String entityClass = null;
-		String organizationalClass = "datasets";
 		addNewStructure(fieldName);
 		UUID structureUUID = metamodalityStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
-			atb.reset(UUID.randomUUID(), entityUuid, entityClass, datasetUuid,
-					organizationalClass, structureUUID, numericValues[i],
-					values[i]);
+			atb.reset(UUID.randomUUID(), null, null, datasetUuid, "datasets",
+					structureUUID, numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
 
-	private void addNewStructure(String fieldName) throws Exception {
-		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), true);
-		metamodalityStruct = Structures.retrieve(dbCon, metadataField,
-				modalityStruct.getStructureUuid(), true);
-		if (!metamodalityStruct.containsChild(fieldName)) {
-			Structures newStructure = new Structures(dbCon);
-			newStructure.reset(UUID.randomUUID(), fieldName,
-					metamodalityStruct.getStructureUuid());
-			newStructure.save();
-			metamodalityStruct = Structures.retrieve(dbCon, metadataField,
-					modalityStruct.getStructureUuid(), true);
-		}
-	}
-
+	/**
+	 * Sets class fields
+	 * 
+	 * @param modalityName
+	 * @param datasetUuid
+	 * @param metadataField
+	 * @throws Exception
+	 */
 	public void reset(String modalityName, String datasetUuid,
 			String metadataField) throws Exception {
 		this.modalityName = modalityName;
@@ -58,6 +55,11 @@ public class Metadata {
 		atb = new Attributes(dbCon);
 	}
 
+	/**
+	 * Saves all metadata as a batch
+	 * 
+	 * @throws Exception
+	 */
 	public void save() throws Exception {
 		try {
 			atb.save();
@@ -66,4 +68,23 @@ public class Metadata {
 		}
 	}
 
+	/**
+	 * Adds a new structure if it doesn't already exist
+	 * 
+	 * @param fieldName
+	 * @throws Exception
+	 */
+	private void addNewStructure(String fieldName) throws Exception {
+		modalityStruct = Structures.retrieve(dbCon, modalityName,
+				UUID.fromString(ManageDB.noParentUuid), true);
+		metamodalityStruct = Structures.retrieve(dbCon, metadataField,
+				modalityStruct.getStructureUuid(), true);
+		if (!metamodalityStruct.containsChild(fieldName)) {
+			Structures newChild = new Structures(dbCon);
+			newChild.reset(UUID.randomUUID(), fieldName,
+					metamodalityStruct.getStructureUuid());
+			newChild.save();
+			metamodalityStruct.addChild(fieldName, newChild.getStructureUuid());
+		}
+	}
 }

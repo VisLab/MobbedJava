@@ -38,7 +38,7 @@ public class Events {
 			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * create an Events object
+	 * Creates a Events object
 	 * 
 	 * @param dbCon
 	 *            connection to the database
@@ -58,6 +58,14 @@ public class Events {
 		this.modalityStruct = null;
 	}
 
+	/**
+	 * Adds the attribute to the batch
+	 * 
+	 * @param fieldName
+	 * @param numericFieldValues
+	 * @param fieldValues
+	 * @throws Exception
+	 */
 	public void addAttribute(String fieldName, Double[] numericFieldValues,
 			String[] fieldValues) throws Exception {
 		addNewStructure(fieldName);
@@ -71,7 +79,7 @@ public class Events {
 	}
 
 	/**
-	 * add Events to the database
+	 * Adds the events to the batch
 	 * 
 	 * @throws Exception
 	 */
@@ -87,7 +95,8 @@ public class Events {
 			insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 			insertStmt.setObject(2, datasetUuid, Types.OTHER);
 			insertStmt.setString(3, entityClass);
-			insertStmt.setObject(4, evType.getTypeUuid(types[i].toUpperCase()),
+			insertStmt.setObject(4,
+					evType.getEventTypeUuid(types[i].toUpperCase()),
 					Types.OTHER);
 			insertStmt.setObject(5, parentUuids[i], Types.OTHER);
 			insertStmt.setLong(6, positions[i]);
@@ -100,51 +109,40 @@ public class Events {
 	}
 
 	/**
-	 * Add a new structure to the elementStruct
+	 * Adds a new event type if it doesn't exist
 	 * 
-	 * @param fieldName
-	 *            name of the structure element to be added
-	 * @param handler
-	 *            - code for the integer
+	 * @return
 	 * @throws Exception
 	 */
-	private void addNewStructure(String fieldName) throws Exception {
-		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), false);
-		eventStruct = Structures.retrieve(dbCon, eventField,
-				modalityStruct.getStructureUuid(), true);
-		if (!eventStruct.containsChild(fieldName)) {
-			Structures newChild = new Structures(dbCon);
-			newChild.reset(UUID.randomUUID(), fieldName,
-					eventStruct.getStructureUuid());
-			newChild.save();
-			eventStruct.addChild(fieldName, newChild.getStructureUuid());
-		}
-	}
-
 	public String[] addNewTypes() throws Exception {
 		if (existingUuids != null)
-			evType.retrieveName2UuidMap(existingUuids);
+			evType.retrieveMap(existingUuids);
+		EventTypes newEventType = new EventTypes(dbCon);
 		for (int i = 0; i < uniqueTypes.length; i++) {
-			if (!evType.typeExists(uniqueTypes[i].toUpperCase())) {
-				evType.reset(uniqueTypes[i], null);
-				evType.save();
-				evType.addToHashMap();
+			if (!evType.containsEventType(uniqueTypes[i].toUpperCase())) {
+				newEventType.reset(uniqueTypes[i], null);
+				newEventType.save();
+				evType.addEventType(uniqueTypes[i].toUpperCase(),
+						newEventType.getEventTypeUuid());
 			}
 		}
 		return evType.getStringValues();
 	}
 
 	/**
-	 * Create a new set of events to be added to the database
+	 * Sets class fields
 	 * 
+	 * @param modalityName
+	 * @param datasetUuid
 	 * @param eventField
 	 * @param uniqueTypes
 	 * @param types
 	 * @param positions
 	 * @param startTimes
 	 * @param endTimes
-	 * @param otherFields
+	 * @param certainties
+	 * @param existingUuids
+	 * @param parentUuids
 	 * @throws Exception
 	 */
 	public void reset(String modalityName, String datasetUuid,
@@ -168,7 +166,7 @@ public class Events {
 	}
 
 	/**
-	 * Saves events in batch
+	 * Saves all events as a batch
 	 * 
 	 * @throws Exception
 	 */
@@ -178,6 +176,26 @@ public class Events {
 			atb.save();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save events");
+		}
+	}
+
+	/**
+	 * Adds a new structure if it doesn't exist
+	 * 
+	 * @param fieldName
+	 * @throws Exception
+	 */
+	private void addNewStructure(String fieldName) throws Exception {
+		modalityStruct = Structures.retrieve(dbCon, modalityName,
+				UUID.fromString(ManageDB.noParentUuid), false);
+		eventStruct = Structures.retrieve(dbCon, eventField,
+				modalityStruct.getStructureUuid(), true);
+		if (!eventStruct.containsChild(fieldName)) {
+			Structures newChild = new Structures(dbCon);
+			newChild.reset(UUID.randomUUID(), fieldName,
+					eventStruct.getStructureUuid());
+			newChild.save();
+			eventStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 

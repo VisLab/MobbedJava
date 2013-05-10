@@ -12,98 +12,113 @@ public class EventTypes {
 	private Connection dbCon;
 	private UUID eventTypeUuid;
 	private String eventType;
-	private String description;
-	private HashMap<String, UUID> name2UuidMap;
-	private HashMap<String, String> uuid2NameMap;
+	private String eventTypeDescription;
+	private HashMap<String, UUID> etMap;
 
+	/**
+	 * Creates a EventTypes object
+	 * 
+	 * @param dbCon
+	 */
 	public EventTypes(Connection dbCon) {
 		this.dbCon = dbCon;
 		this.eventTypeUuid = null;
 		this.eventType = null;
-		this.description = null;
-		name2UuidMap = new HashMap<String, UUID>();
-		uuid2NameMap = new HashMap<String, String>();
+		this.eventTypeDescription = null;
+		etMap = new HashMap<String, UUID>();
 	}
 
-	public void reset(String eventType, String description) {
-		this.eventTypeUuid = UUID.randomUUID();
-		this.eventType = eventType;
-		this.description = description;
+	/**
+	 * Adds a event type to the hashmap
+	 */
+	public void addEventType(String eventType, UUID eventTypeUuid) {
+		etMap.put(eventType.toUpperCase(), eventTypeUuid);
 	}
 
-	public void retrieveName2UuidMap(String[] existingEventTypes)
-			throws Exception {
-		String selQry = "SELECT * FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN (";
-		int numUuids = existingEventTypes.length;
-		for (int i = 0; i < numUuids; i++) {
-			if (i == numUuids - 1)
-				selQry += "'" + existingEventTypes[i] + "')";
-			else
-				selQry += "'" + existingEventTypes[i] + "',";
-		}
-		int rowCount = 0;
-		PreparedStatement pStmt = dbCon.prepareStatement(selQry);
-		ResultSet rs = pStmt.executeQuery();
-		while (rs.next()) {
-			rowCount++;
-			name2UuidMap.put(rs.getString("EVENT_TYPE").toUpperCase(),
-					UUID.fromString(rs.getString("EVENT_TYPE_UUID")));
-		}
-		if (rowCount != existingEventTypes.length)
-			throw new MobbedException("Event type(s) does not exist");
+	/**
+	 * Checks if the hashmap contains the event type
+	 * 
+	 * @param eventType
+	 * @return
+	 */
+	public boolean containsEventType(String eventType) {
+		return etMap.containsKey(eventType);
 	}
 
-	public void retrieveUuid2NameMap(UUID entityUuid) throws Exception {
-		String selQry = "SELECT * FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN "
-				+ "(SELECT EVENT_TYPE_UUID FROM EVENTS WHERE EVENT_ENTITY_UUID = ?)";
-		try {
-			PreparedStatement pStmt = dbCon.prepareStatement(selQry);
-			pStmt.setObject(1, entityUuid, Types.OTHER);
-			ResultSet rs = pStmt.executeQuery();
-			while (rs.next())
-				uuid2NameMap.put(rs.getString("EVENT_TYPE_UUID"),
-						rs.getString("EVENT_TYPE"));
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve event types");
-		}
+	/**
+	 * Get the event type uuid from the hashmap
+	 * 
+	 * @param eventType
+	 * @return
+	 */
+	public UUID getEventTypeUuid(String eventType) {
+		return etMap.get(eventType);
 	}
 
-	public void addToHashMap() {
-		name2UuidMap.put(eventType.toUpperCase(), eventTypeUuid);
+	/**
+	 * Get the event type uuid from the event type object
+	 * 
+	 * @param eventType
+	 * @return
+	 */
+	public UUID getEventTypeUuid() {
+		return eventTypeUuid;
 	}
 
-	public UUID[] getUUIDValues() {
-		int mapSize = name2UuidMap.size();
-		UUID[] eventTypeUuids = new UUID[mapSize];
-		Object[] mapObject = name2UuidMap.values().toArray();
-		for (int i = 0; i < mapSize; i++)
-			eventTypeUuids[i] = (UUID) mapObject[i];
-		return eventTypeUuids;
-	}
-
+	/**
+	 * Converts the event type uuids to strings and puts them in a array
+	 * 
+	 * @return
+	 */
 	public String[] getStringValues() {
-		int mapSize = name2UuidMap.size();
+		int mapSize = etMap.size();
 		String[] eventTypeUuids = new String[mapSize];
-		Object[] mapObject = name2UuidMap.values().toArray();
+		Object[] mapObject = etMap.values().toArray();
 		for (int i = 0; i < mapSize; i++)
 			eventTypeUuids[i] = mapObject[i].toString();
 		return eventTypeUuids;
 	}
 
-	public boolean typeExists(String eventType) {
-		return name2UuidMap.containsKey(eventType);
+	/**
+	 * Resets the fields of the event type object
+	 * 
+	 * @param eventType
+	 * @param eventTypeDescription
+	 */
+	public void reset(String eventType, String eventTypeDescription) {
+		this.eventTypeUuid = UUID.randomUUID();
+		this.eventType = eventType;
+		this.eventTypeDescription = eventTypeDescription;
 	}
 
-	public UUID getTypeUuid(String eventType) {
-		return name2UuidMap.get(eventType);
+	/**
+	 * Retrieves the event types from the database and puts them into a hashmap
+	 * 
+	 * @param eventTypeUuids
+	 * @throws Exception
+	 */
+	public void retrieveMap(String[] eventTypeUuids) throws Exception {
+		String selQry = "SELECT EVENT_TYPE, EVENT_TYPE_UUID FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN (";
+		int numUuids = eventTypeUuids.length;
+		for (int i = 0; i < numUuids - 1; i++)
+			selQry += "?,";
+		selQry += "?)";
+		PreparedStatement pStmt = dbCon.prepareStatement(selQry);
+		for (int i = 0; i < numUuids; i++)
+			pStmt.setObject(i + 1, UUID.fromString(eventTypeUuids[i]),
+					Types.OTHER);
+		ResultSet rs = pStmt.executeQuery();
+		while (rs.next())
+			etMap.put(rs.getString(1).toUpperCase(),
+					UUID.fromString(rs.getString(2)));
 	}
 
-	public String getTypeName(String typeUuid) {
-		return uuid2NameMap.get(typeUuid);
-	}
-
-	public int save() throws Exception {
-		int insertCount = 0;
+	/**
+	 * Saves a event type to the database
+	 * 
+	 * @throws Exception
+	 */
+	public void save() throws Exception {
 		String insertQry = "INSERT INTO EVENT_TYPES "
 				+ "(EVENT_TYPE_UUID, EVENT_TYPE, EVENT_TYPE_DESCRIPTION)"
 				+ " VALUES (?,?,?)";
@@ -111,31 +126,11 @@ public class EventTypes {
 			PreparedStatement pStmt = dbCon.prepareStatement(insertQry);
 			pStmt.setObject(1, eventTypeUuid, Types.OTHER);
 			pStmt.setString(2, eventType);
-			pStmt.setString(3, description);
-			insertCount = pStmt.executeUpdate();
+			pStmt.setString(3, eventTypeDescription);
+			pStmt.executeUpdate();
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save event types");
 		}
-		return insertCount;
 	}
 
-	public UUID getEventTypeUuid() {
-		return eventTypeUuid;
-	}
-
-	public String getEventType() {
-		return eventType;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public HashMap<String, UUID> getname2UuidMap() {
-		return name2UuidMap;
-	}
-
-	public HashMap<String, String> getuuid2NameMap() {
-		return uuid2NameMap;
-	}
 }

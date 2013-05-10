@@ -1,8 +1,8 @@
 package edu.utsa.mobbed;
 
+import java.util.HashMap;
 import java.util.UUID;
 import java.sql.*;
-import java.util.Hashtable;
 
 /**
  * Handler class for STRUCTURES table. A structure represents a property of any
@@ -18,7 +18,7 @@ import java.util.Hashtable;
 public class Structures {
 
 	private Connection dbCon;
-	private Hashtable<String, UUID> children;
+	private HashMap<String, UUID> children;
 	private UUID parentUuid;
 	private String structureName;
 	private UUID structureUuid;
@@ -35,7 +35,7 @@ public class Structures {
 		structureName = null;
 		parentUuid = null;
 		structurePath = null;
-		children = new Hashtable<String, UUID>();
+		children = new HashMap<String, UUID>();
 	}
 
 	/**
