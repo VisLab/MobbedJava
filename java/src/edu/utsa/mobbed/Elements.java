@@ -36,6 +36,7 @@ public class Elements {
 	 * Creates a Elements object
 	 * 
 	 * @param dbCon
+	 *            - a connection to a Mobbed database
 	 * @throws Exception
 	 */
 	public Elements(Connection dbCon) throws Exception {
@@ -55,24 +56,28 @@ public class Elements {
 	 * Add the attribute to a batch
 	 * 
 	 * @param fieldName
-	 * @param numericValue
-	 * @param value
+	 *            - the field name of the attribute
+	 * @param numericValues
+	 *            - the numeric values of the attribute
+	 * @param values
+	 *            - the string values of the attribute
 	 * @throws Exception
 	 */
-	public void addAttribute(String fieldName, Double[] numericValue,
-			String[] value) throws Exception {
+	public void addAttribute(String fieldName, Double[] numericValues,
+			String[] values) throws Exception {
 		addNewStructure(fieldName);
 		UUID structureUUID = elementStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
 			atb.reset(UUID.randomUUID(), elementUuids[i], "elements",
-					datasetUuid, "datasets", structureUUID, numericValue[i],
-					value[i]);
+					datasetUuid, "datasets", structureUUID, numericValues[i],
+					values[i]);
 			atb.addToBatch();
 		}
 	}
 
 	/**
-	 * Add the elements to a batch
+	 * Adds the elements to a batch. A group element will be added to the batch
+	 * prior to the child elements if a group label is given.
 	 * 
 	 * @throws Exception
 	 */
@@ -108,14 +113,22 @@ public class Elements {
 	}
 
 	/**
-	 * Sets class fields
+	 * Sets the class fields of a Elements object
 	 * 
+	 * @param modalityName
+	 *            - the name of the modality associated with the elements
 	 * @param datasetUuid
+	 *            - the UUID of the dataset associated with the elements
 	 * @param elementField
+	 *            - the field that contains the elements
 	 * @param groupLabel
+	 *            - the label of the parent element
 	 * @param elementLabels
+	 *            - the labels of the elements
 	 * @param elementDescriptions
+	 *            - the descriptions of the elements
 	 * @param elementPositions
+	 *            - the positions of the elements. starting at 1, 2, ...
 	 * @throws Exception
 	 */
 	public void reset(String modalityName, String datasetUuid,
@@ -133,7 +146,8 @@ public class Elements {
 	} // reset
 
 	/**
-	 * Saves all elements as a batch
+	 * Saves all elements as a batch. All elements in the batch will be
+	 * successfully written or the operation will be aborted.
 	 * 
 	 * @throws Exception
 	 */
@@ -147,10 +161,10 @@ public class Elements {
 	}
 
 	/**
-	 * Add a new structure if it doesn't already exist
+	 * Adds a field to the structures table if it does not already exist.
 	 * 
 	 * @param fieldName
-	 * @param handler
+	 *            - the name of the field
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName) throws Exception {
@@ -168,11 +182,14 @@ public class Elements {
 	}
 
 	/**
-	 * Retrieves the element count
+	 * Retrieves the length of each array in the numeric stream. The length is
+	 * equal to the number of elements in the stream.
 	 * 
 	 * @param dbCon
+	 *            - a connection to a Mobbed database
 	 * @param datadefUuid
-	 * @return
+	 *            - the UUID of the numeric stream data definition
+	 * @return the length of each row in the numeric stream
 	 * @throws Exception
 	 */
 	public static int getElementCount(Connection dbCon, String datadefUuid)

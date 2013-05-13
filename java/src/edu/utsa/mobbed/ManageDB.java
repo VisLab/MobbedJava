@@ -48,12 +48,19 @@ public class ManageDB {
 	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
-	 * Creates a ManageDB object
+	 * A handler to a Mobbed database. This handler can be used to update,
+	 * insert, and query the database.
 	 * 
-	 * @param name
+	 * @param dbname
+	 *            - name of the database
 	 * @param hostname
-	 * @param user
+	 *            - hostname of the database
+	 * @param username
+	 *            - user name of the database
 	 * @param password
+	 *            - password of the database
+	 * @param verbose
+	 *            - rather to print informative messages
 	 * @throws Exception
 	 */
 	public ManageDB(String dbname, String hostname, String username,
@@ -65,12 +72,21 @@ public class ManageDB {
 	}
 
 	/**
-	 * Inserts rows into a database
+	 * Inserts or updates rows in the database. To insert rows, do not assign
+	 * values to the key columns. To update rows, assign values to the key
+	 * columns that already exist in the database.
 	 * 
 	 * @param tableName
+	 *            - the table in the database
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @return
+	 *            - the values of the columns that are not double precision
+	 * @param doubleColumnNames
+	 *            - the names of the columns that are double precision
+	 * @param doubleValues
+	 *            - the values of the columns that are double precision
+	 * @return the keys of the rows that were inserted or updated
 	 * @throws Exception
 	 */
 	public String[] addRows(String tableName, String[] columnNames,
@@ -136,15 +152,21 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks the dataset's namespace and name to determine it's version number
+	 * Checks the dataset namespace and name combination. If isUnique is set to
+	 * true and the combination already exist then an exception will be thrown.
+	 * If isUnique is false and the combination already exist then the dataset
+	 * version will be incremented signifying a duplicate dataset.
 	 * 
-	 * @param IsUnique
+	 * @param isUnique
+	 *            - if the dataset has a unique namespace and name combination
 	 * @param datasetName
+	 *            - the name of the dataset
 	 * @param datasetNamespace
-	 * @return
+	 *            - the namespace of the dataset
+	 * @return the version number of the dataset
 	 * @throws Exception
 	 */
-	public int checkDatasetVersion(boolean IsUnique, String datasetNamespace,
+	public int checkDatasetVersion(boolean isUnique, String datasetNamespace,
 			String datasetName) throws Exception {
 		String query = "SELECT MAX(DATASET_VERSION) AS LATESTVERSION"
 				+ " FROM DATASETS WHERE DATASET_NAMESPACE = ? AND DATASET_NAME = ?";
@@ -154,13 +176,13 @@ public class ManageDB {
 		ResultSet rs = selStmt.executeQuery();
 		rs.next();
 		int version = rs.getInt(1);
-		if (IsUnique && version > 0)
+		if (isUnique && version > 0)
 			throw new MobbedException("dataset version is not unique");
 		return version + 1;
 	}
 
 	/**
-	 * Closes a database connection
+	 * Closes a database connection.
 	 * 
 	 * @throws Exception
 	 */

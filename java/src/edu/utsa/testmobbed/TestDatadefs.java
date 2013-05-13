@@ -5,6 +5,9 @@ package edu.utsa.testmobbed;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.Arrays;
 
 import org.junit.AfterClass;
@@ -50,34 +53,66 @@ public class TestDatadefs {
 	}
 
 	@Test
+	public void testStoreBlob() throws Exception {
+		System.out.println("Unit test for storeBlob");
+		System.out.println("It should store a external data definition");
+		String content = "This is the content to write into file";
+		// String filePath = tablePath.replace("mobbed.sql", "file.txt");
+		String filePath = "C:\\Users\\JCockfield\\Desktop\\file.txt";
+		File file = new File(filePath);
+		FileWriter fw = new FileWriter(file.getAbsoluteFile());
+		BufferedWriter bw = new BufferedWriter(fw);
+		bw.write(content);
+		bw.close();
+		String datadefValues[][] = { { null, "EXTERNAL", null, null,
+				"EXTERNAL DATADEF" } };
+		String[] doubleColumns = { "datadef_sampling_rate" };
+		Double[][] doubleValues = { { null } };
+		String[] datadefUuids = md.addRows("datadefs",
+				md.getColumnNames("datadefs"), datadefValues, doubleColumns,
+				doubleValues);
+		Datadefs.storeBlob(md.getConnection(), filePath, datadefUuids[0], true);
+		file.delete();
+		// Datadefs.retrieveBlob(md.getConnection(), filePath, datadefUuids[0],
+		// true);
+	}
+
+	@Test
 	public void testStoreNumericValue() throws Exception {
 		System.out.println("Unit test for storeNumericValue");
 		System.out.println("It should store a numeric value data definition");
-		String datadefValues[][] = { { null, "NUMERIC_VALUE", null, null, null,
+		String datadefValues[][] = { { null, "NUMERIC_VALUE", null, null,
 				"NUMERIC_VALUE DATADEF" } };
+		String[] doubleColumns = { "datadef_sampling_rate" };
+		Double[][] doubleValues = { { null } };
 		String[] datadefUuids = md.addRows("datadefs",
-				md.getColumnNames("datadefs"), datadefValues, null, null);
-		Object[] actual = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0 };
-		Datadefs.storeNumericValue(md.getConnection(), datadefUuids[0], actual);
-		Object expected = Datadefs.retrieveNumericValue(md.getConnection(),
+				md.getColumnNames("datadefs"), datadefValues, doubleColumns,
+				doubleValues);
+		Object[] expected = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0 };
+		Datadefs.storeNumericValue(md.getConnection(), datadefUuids[0],
+				expected);
+		Object actual = Datadefs.retrieveNumericValue(md.getConnection(),
 				datadefUuids[0]);
 		System.out
 				.println("--It should retrieve a numeric value data definition that is equal");
 		assertTrue("Data definition returned in not equal",
-				Arrays.equals((Object[]) expected, actual));
+				Arrays.equals(expected, (Object[]) actual));
 	}
 
 	@Test
 	public void testStoreXMLValue() throws Exception {
 		System.out.println("Unit test for storeXMLValue");
 		System.out.println("It should store a xml value data definition");
-		String datadefValues[][] = { { null, "XML_VALUE", null, null, null,
+		String datadefValues[][] = { { null, "XML_VALUE", null, null,
 				"NUMERIC_VALUE DATADEF" } };
+		String[] doubleColumns = { "datadef_sampling_rate" };
+		Double[][] doubleValues = { { null } };
 		String[] datadefUuids = md.addRows("datadefs",
-				md.getColumnNames("datadefs"), datadefValues, null, null);
-		String actual = "<xml> <tag1> valid xml </tag1> </xml>";
-		Datadefs.storeXMLValue(md.getConnection(), datadefUuids[0], actual);
-		String expected = Datadefs.retrieveXMLValue(md.getConnection(),
+				md.getColumnNames("datadefs"), datadefValues, doubleColumns,
+				doubleValues);
+		String expected = "<xml> <tag1> valid xml </tag1> </xml>";
+		Datadefs.storeXMLValue(md.getConnection(), datadefUuids[0], expected);
+		String actual = Datadefs.retrieveXMLValue(md.getConnection(),
 				datadefUuids[0]);
 		System.out
 				.println("--It should retrieve a xml value data definition that is equal");

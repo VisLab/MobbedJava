@@ -28,10 +28,10 @@ public class Attributes {
 			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Create a Attributes object
+	 * Creates a Attributes object
 	 * 
 	 * @param dbCon
-	 *            connection to the database
+	 *            - a connection to a Mobbed database
 	 */
 	public Attributes(Connection dbCon) throws Exception {
 		insertStmt = dbCon.prepareStatement(insertQry);
@@ -46,7 +46,7 @@ public class Attributes {
 	}
 
 	/**
-	 * Add the attribute to a batch
+	 * Adds a attribute to a batch.
 	 * 
 	 * @throws MobbedException
 	 * 
@@ -69,16 +69,25 @@ public class Attributes {
 	}
 
 	/**
-	 * Sets class fields
+	 * Sets the class fields of a Attributes object
 	 * 
 	 * @param attributeUuid
+	 *            - UUID of the attribute
 	 * @param entityUuid
+	 *            - UUID of the entity associated with the attribute
 	 * @param entityClass
+	 *            - name of the entity table associated with the attribute
 	 * @param organizationalUuid
+	 *            - UUID of the organization associated with the attribute
 	 * @param organizationalClass
+	 *            - name of the organizational table associated with the
+	 *            attribute
 	 * @param structureUuid
+	 *            - UUID of the structure associated with the attribute
 	 * @param attributeNumericValue
+	 *            - numeric representation of the attribute value
 	 * @param attributeValue
+	 *            - string representation of the attribute value
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
 			UUID organizationalUuid, String organizationalClass,
@@ -95,7 +104,8 @@ public class Attributes {
 	}
 
 	/**
-	 * Saves all attributes as a batch
+	 * Saves all attributes as a batch. All attributes in the batch will be
+	 * successfully written or the operation will be aborted.
 	 * 
 	 * @throws Exception
 	 */

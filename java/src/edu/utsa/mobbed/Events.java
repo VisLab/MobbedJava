@@ -39,9 +39,8 @@ public class Events {
 	 * Creates a Events object
 	 * 
 	 * @param dbCon
-	 *            connection to the database
-	 * @param datasetUuid
-	 *            UUID of the entity
+	 *            - a connection to a Mobbed database
+	 * @throws Exception
 	 */
 	public Events(Connection dbCon) throws Exception {
 		this.dbCon = dbCon;
@@ -60,25 +59,29 @@ public class Events {
 	 * Add the attribute to a batch
 	 * 
 	 * @param fieldName
-	 * @param numericFieldValues
-	 * @param fieldValues
+	 *            - the field name of the attribute
+	 * @param numericValue
+	 *            - the numeric values of the attribute
+	 * @param value
+	 *            - the string values of the attribute
 	 * @throws Exception
 	 */
-	public void addAttribute(String fieldName, Double[] numericFieldValues,
-			String[] fieldValues) throws Exception {
+	public void addAttribute(String fieldName, Double[] numericValues,
+			String[] values) throws Exception {
 		addNewStructure(fieldName);
 		UUID structureUUID = eventStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < types.length; i++) {
 			atb.reset(UUID.randomUUID(), eventUuids[i], "events", datasetUuid,
-					"datasets", structureUUID, numericFieldValues[i],
-					fieldValues[i]);
+					"datasets", structureUUID, numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
 
 	/**
-	 * Add the events to a batch
+	 * Adds the events to a batch. The original events should be stored prior to
+	 * storing the events that are derived from them.
 	 * 
+	 * @return the UUIDs of the events that were stored
 	 * @throws Exception
 	 */
 	public String[] addEvents() throws Exception {
@@ -107,9 +110,10 @@ public class Events {
 	}
 
 	/**
-	 * Add new event types if they don't exist
+	 * Adds a new event type if it does not already exist. Event types should be
+	 * reused when storing datasets that have event types with the same meaning.
 	 * 
-	 * @return
+	 * @return the UUIDs of the event types
 	 * @throws Exception
 	 */
 	public String[] addNewTypes() throws Exception {
@@ -128,19 +132,31 @@ public class Events {
 	}
 
 	/**
-	 * Sets class fields
+	 * Sets class fields of a Events object
 	 * 
 	 * @param modalityName
+	 *            - the modality name assocaited with the events
 	 * @param datasetUuid
+	 *            - the UUID of the dataset associated with the events
 	 * @param eventField
+	 *            - the name of the field that contains the events
 	 * @param uniqueTypes
+	 *            - the unique event types
 	 * @param types
+	 *            - all of the event types
 	 * @param positions
+	 *            - the positions of the events
 	 * @param startTimes
+	 *            - the start times of the events
 	 * @param endTimes
+	 *            - the end times of the events
 	 * @param certainties
+	 *            - the certainties of the events
 	 * @param existingUuids
+	 *            - the UUIDs of the event types that will be reused
 	 * @param parentUuids
+	 *            - the UUIDs of the original events in which these events were
+	 *            derived from
 	 * @throws Exception
 	 */
 	public void reset(String modalityName, String datasetUuid,
@@ -164,7 +180,8 @@ public class Events {
 	}
 
 	/**
-	 * Saves all events as a batch
+	 * Saves all events as a batch. All events in the batch will be successfully
+	 * written or the operation will be aborted.
 	 * 
 	 * @throws Exception
 	 */
@@ -178,9 +195,10 @@ public class Events {
 	}
 
 	/**
-	 * Adds a new structure if it doesn't exist
+	 * Adds a field to the structures table if it does not already exist.
 	 * 
 	 * @param fieldName
+	 *            - the name of the field
 	 * @throws Exception
 	 */
 	private void addNewStructure(String fieldName) throws Exception {

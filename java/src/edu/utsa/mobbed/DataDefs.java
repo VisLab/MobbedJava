@@ -155,8 +155,9 @@ public class Datadefs {
 				createDatasetOid(dbCon, entityUuid, oid);
 			else
 				createdatadefOid(dbCon, entityUuid, oid);
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save blob");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save blob\n"
+					+ ex.getNextException().getMessage());
 		}
 		return oid;
 	}
