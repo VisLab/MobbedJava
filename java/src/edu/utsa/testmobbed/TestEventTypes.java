@@ -21,7 +21,7 @@ import edu.utsa.mobbed.ManageDB;
 public class TestEventTypes {
 	private static String tablePath = Class.class.getResource(
 			"/edu/utsa/testmobbed/mobbed.sql").getPath();
-	private static String name = "eventdb";
+	private static String name = "eventtypedb";
 	private static String hostname = "localhost";
 	private static String user = "postgres";
 	private static String password = "admin";
