@@ -54,7 +54,7 @@ public class ManageDB {
 	 * @param dbname
 	 *            - the name of the database
 	 * @param hostname
-	 *            - the hostname of the database
+	 *            - the host name of the database
 	 * @param username
 	 *            - the user name of the database
 	 * @param password
@@ -77,9 +77,9 @@ public class ManageDB {
 	 * columns that already exist in the database.
 	 * 
 	 * @param tableName
-	 *            - the table in the database
+	 *            - the name of the table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            - the names of the columns in the table
 	 * @param columnValues
 	 *            - the values of the columns that are not double precision
 	 * @param doubleColumnNames
@@ -87,11 +87,12 @@ public class ManageDB {
 	 * @param doubleValues
 	 *            - the values of the columns that are double precision
 	 * @return the keys of the rows that were inserted or updated
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public String[] addRows(String tableName, String[] columnNames,
 			String[][] columnValues, String[] doubleColumnNames,
-			Double[][] doubleValues) throws Exception {
+			Double[][] doubleValues) throws MobbedException {
 		validateTableName(tableName);
 		validateColumnNames(columnNames);
 		int numRows = columnValues.length;
@@ -501,8 +502,10 @@ public class ManageDB {
 	 * Constructs a insert query
 	 * 
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
-	 * @return
+	 *            - the names of the columns
+	 * @return a insert query string
 	 */
 	private String constructInsertQuery(String tableName, String[] columnNames) {
 		String qry = "INSERT INTO " + tableName;
@@ -671,9 +674,12 @@ public class ManageDB {
 	 * Constructs a update query
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
-	 * @return
+	 *            - the names of the columns
+	 * @return a update query string
 	 */
 	private String constructUpdateQuery(ArrayList<Integer> keyIndexes,
 			String tableName, String[] columnNames) {
@@ -712,29 +718,48 @@ public class ManageDB {
 	 * Finds the index of a particular column
 	 * 
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnName
-	 * @return
+	 *            - the name of the column that the index is searched for
+	 * @return the index of the column name in the array
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private int findIndexOfColumn(String[] columnNames, String columnName) {
+	private int findIndexOfColumn(String[] columnNames, String columnName)
+			throws MobbedException {
 		int index = 0;
+		boolean found = false;
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
-			if (columnNames[i].equalsIgnoreCase(columnName))
+			if (columnNames[i].equalsIgnoreCase(columnName)) {
 				index = i;
+				found = true;
+			}
 		}
+		if (!found)
+			throw new MobbedException("Could not find the index of the column "
+					+ columnName);
 		return index;
 	}
 
 	/**
-	 * Generates key column values
+	 * Generates the keys for insertion
 	 * 
 	 * @param keyIndexes
+	 *            - a list of key indexes
+	 * @param tableName
+	 *            - the name of the table
+	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @return
+	 *            - the values of the columns
+	 * @return keys for each row being inserted
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private String[] generateKeys(ArrayList<Integer> keyIndexes,
 			String tableName, String[] columnNames, String[] columnValues)
-			throws Exception {
+			throws MobbedException {
 		if (tableName.equalsIgnoreCase("datasets")) {
 			int sessionIndex = findIndexOfColumn(columnNames,
 					"dataset_session_uuid");
@@ -791,6 +816,7 @@ public class ManageDB {
 	 * Initializes the hash maps
 	 * 
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void initializeHashMaps() throws MobbedException {
 		columnMap = new HashMap<String, String[]>();
@@ -848,12 +874,15 @@ public class ManageDB {
 	 * Checks if key columns are empty
 	 * 
 	 * @param keyIndexes
+	 *            - a list of key indexes
 	 * @param columnValues
-	 * @return
-	 * @throws Exception
+	 *            - the values of the columns
+	 * @return true if the key columns are empty, false if otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private boolean keysEmpty(ArrayList<Integer> keyIndexes,
-			String[] columnValues) throws Exception {
+			String[] columnValues) throws MobbedException {
 		boolean empty = true;
 		int keyCount = 0;
 		for (int i = 0; i < keyIndexes.size(); i++) {
@@ -861,7 +890,8 @@ public class ManageDB {
 				keyCount++;
 		}
 		if (keyCount > 0 && keyIndexes.size() > keyCount)
-			throw new MobbedException("Composite key is missing column(s)");
+			throw new MobbedException(
+					"All composite key values must be provided");
 		else if (keyCount == keyIndexes.size())
 			empty = false;
 		return empty;
@@ -871,25 +901,37 @@ public class ManageDB {
 	 * Checks if the given keys exist in the database
 	 * 
 	 * @param keyIndexes
+	 *            - a list of key indexes
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
+	 *            - the column names of the table
 	 * @param columnValues
-	 * @return
-	 * @throws Exception
+	 *            - the values of the columns
+	 * @return true if the keys exist in the database, false if otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private boolean keysExist(ArrayList<Integer> keyIndexes, String tableName,
-			String[] columnNames, String[] columnValues) throws Exception {
+			String[] columnNames, String[] columnValues) throws MobbedException {
 		boolean exist = false;
 		if (!keysEmpty(keyIndexes, columnValues)) {
 			String[] keyColumns = addByIndex(keyIndexes, columnNames);
 			String[] keyValues = addByIndex(keyIndexes, columnValues);
 			String selectQuery = constructSelectQuery(keyIndexes, tableName,
 					columnNames);
-			PreparedStatement pstmt = connection.prepareStatement(selectQuery);
-			setSelectStatementValues(pstmt, keyColumns, keyValues);
-			ResultSet rs = pstmt.executeQuery();
-			if (rs.next())
-				exist = true;
+			try {
+				PreparedStatement pstmt = connection
+						.prepareStatement(selectQuery);
+				setSelectStatementValues(pstmt, keyColumns, keyValues);
+				ResultSet rs = pstmt.executeQuery();
+				if (rs.next())
+					exist = true;
+			} catch (SQLException ex) {
+				throw new MobbedException(
+						"Could not execute query to find if keys exist\n"
+								+ ex.getNextException().getMessage());
+			}
 		}
 		return exist;
 	}
@@ -1129,13 +1171,17 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates the column names
+	 * Validates the column names of a table in the database
 	 * 
 	 * @param columnNames
-	 * @return
-	 * @throws Exception
+	 *            - the names of the columns in a table
+	 * @return true if the column names are valid, throws an exception if
+	 *         otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private boolean validateColumnNames(String[] columnNames) throws Exception {
+	private boolean validateColumnNames(String[] columnNames)
+			throws MobbedException {
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
 			if (getColumnType(columnNames[i]) == null)
@@ -1149,24 +1195,26 @@ public class ManageDB {
 	 * Validates a given column value
 	 * 
 	 * @param columnName
+	 *            - the name of the column
 	 * @param columnValue
-	 * @return
-	 * @throws Exception
+	 *            - the value of the column
+	 * @return true if the column value is valid, false if otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private boolean validateColumnValue(String columnName, String columnValue)
-			throws Exception {
+			throws MobbedException {
 		String type = typeMap.get(columnName);
 		try {
-			if (type.equalsIgnoreCase("uuid")) {
+			if (type.equalsIgnoreCase("uuid"))
 				UUID.fromString(columnValue);
-			} else if (type.equalsIgnoreCase("integer")) {
+			else if (type.equalsIgnoreCase("integer"))
 				Integer.parseInt(columnValue);
-			} else if (type.equalsIgnoreCase("bigint")) {
+			else if (type.equalsIgnoreCase("bigint"))
 				Long.parseLong(columnValue);
-			} else if (type.equalsIgnoreCase("timestamp without time zone")) {
+			else if (type.equalsIgnoreCase("timestamp without time zone"))
 				Timestamp.valueOf(columnValue);
-			}
-		} catch (Exception me) {
+		} catch (Exception ex) {
 			throw new MobbedException("Invalid type, column: " + columnName
 					+ " value: " + columnValue);
 		}
@@ -1174,13 +1222,16 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates a table name
+	 * Validates a table name in the database
 	 * 
 	 * @param tableName
-	 * @return
-	 * @throws Exception
+	 *            - the name of the table in the database
+	 * @return true if the table is a valid database table, throws an exception
+	 *         if otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private boolean validateTableName(String tableName) throws Exception {
+	private boolean validateTableName(String tableName) throws MobbedException {
 		if (getColumnNames(tableName) == null)
 			throw new MobbedException("table " + tableName
 					+ " is an invalid table");
