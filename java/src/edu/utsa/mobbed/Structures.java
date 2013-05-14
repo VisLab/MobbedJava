@@ -29,9 +29,10 @@ public class Structures {
 			+ "WHERE STRUCTURE_UUID = ?";
 
 	/**
-	 * Creates a Strucutres object
+	 * Creates a Structures object
 	 * 
 	 * @param dbCon
+	 *            - a connection to a Mobbed database
 	 */
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -43,20 +44,23 @@ public class Structures {
 	}
 
 	/**
-	 * Add a child to the hashmap
+	 * Adds a child structure to the hashmap
 	 * 
 	 * @param childName
+	 *            - the name of the child structure
 	 * @param childUuid
+	 *            - the UUID of the child structure
 	 */
 	public void addChild(String childName, UUID childUuid) {
 		children.put(childName, childUuid);
 	}
 
 	/**
-	 * Checks if the hashmap contains the child
+	 * Checks if the hashmap contains the child structure
 	 * 
 	 * @param childName
-	 * @return
+	 *            - the name of the child structure
+	 * @return true if the child structure is in the hashmap, false if otherwise
 	 */
 	public boolean containsChild(String childName) {
 		return children.containsKey(childName);
@@ -66,8 +70,8 @@ public class Structures {
 	 * Gets the UUID of the child structure
 	 * 
 	 * @param childName
-	 *            name of the child structure
-	 * @return UUID UUID of the child structure
+	 *            - the name of the child structure
+	 * @return the UUID of the child structure
 	 */
 	public UUID getChildStructUuid(String childName) {
 		return children.get(childName);
@@ -76,24 +80,23 @@ public class Structures {
 	/**
 	 * Gets the UUID of the structure
 	 * 
-	 * @return UUID UUID of the structure
+	 * @return the UUID of the structure
 	 */
 	public UUID getStructureUuid() {
 		return structureUuid;
 	}
 
 	/**
-	 * Sets class fields
+	 * Sets the class fields of a Structures object
 	 * 
 	 * @param structureUuid
-	 *            UUID for STRUCTURE table
+	 *            - the UUID of the structure
 	 * @param structureName
-	 *            Name of the structure
-	 * @param structureHandler
-	 *            Handler for this structure (see
-	 *            {@link edu.utsa.mobbed.MobbedConstants} )
+	 *            - the name of the structure
 	 * @param parentUuid
 	 *            UUID of the parent structure
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void reset(UUID structureUuid, String structureName, UUID parentUuid)
 			throws MobbedException {
@@ -106,7 +109,8 @@ public class Structures {
 	/**
 	 * Saves a structure to the database
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void save() throws MobbedException {
 		try {
@@ -125,8 +129,9 @@ public class Structures {
 	/**
 	 * Generates a structure path based on it's hierarchy
 	 * 
-	 * @return
+	 * @return the path of the structure
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private String generateStructurePath() throws MobbedException {
 		String structurePath = "/" + structureName;
@@ -143,8 +148,9 @@ public class Structures {
 					currentParentUuid = UUID.fromString(rs.getString(2));
 				}
 			}
-		} catch (SQLException e) {
-			e.printStackTrace();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not generate the structure path\n"
+					+ ex.getNextException().getMessage());
 		}
 		return structurePath;
 	}
@@ -152,11 +158,14 @@ public class Structures {
 	/**
 	 * Retrieves the children of the structure from the database
 	 * 
-	 * @throws Exception
+	 * @param dbCon
+	 *            - a connection to a Mobbed database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void retrieveChildren(Connection dbCon) throws MobbedException {
+		String query = "SELECT STRUCTURE_NAME, STRUCTURE_UUID FROM STRUCTURES WHERE STRUCTURE_PARENT_UUID = ?";
 		try {
-			String query = "SELECT STRUCTURE_NAME, STRUCTURE_UUID FROM STRUCTURES WHERE STRUCTURE_PARENT_UUID = ?";
 			PreparedStatement pstmt = dbCon.prepareStatement(query);
 			pstmt.setObject(1, structureUuid, Types.OTHER);
 			ResultSet rs = pstmt.executeQuery();
@@ -173,14 +182,15 @@ public class Structures {
 	 * Retrieves an structure with its children
 	 * 
 	 * @param dbCon
-	 *            connection to the database
+	 *            - a connection to a Mobbed database
 	 * @param structureName
-	 *            Name of the structure
+	 *            - the name of the structure
 	 * @param parentUuid
-	 *            UUID of the parent
+	 *            - the UUID of the parent structure
 	 * @param retrieveChildren
-	 *            True if retrieval of children is required. False otherwise.
-	 * @throws Exception
+	 *            - retrieves the children of the structure if true
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static Structures retrieve(Connection dbCon, String structureName,
 			UUID parentUuid, boolean retrieveChildren) throws MobbedException {

@@ -232,6 +232,8 @@ public class NumericStreams {
 	 *            - total number of channels in this dataset
 	 * @return A 2D-array of double values. Each row represents a single time
 	 *         point and each values is a sample from each element.
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public double[][] retrieveByPosition(int startPosition, int endPosition,
 			int elementCount) throws MobbedException {
@@ -283,15 +285,18 @@ public class NumericStreams {
 	 * data in binary
 	 * 
 	 * @param values
-	 *            2D-array of doubles values. Each row represent samples from an
-	 *            element
+	 *            - 2D-array of doubles values. Each row represent samples from
+	 *            an element
+	 * @param times
+	 *            - the times of the samples
 	 * @param signalPosition
-	 *            position of recording that sample
-	 * @return boolean Success of storing and closing all threads
-	 * @throws Exception
+	 *            - the position of samples
+	 * @return true if the store was successful, false if otherwise
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public boolean save(double[][] values, double[] times, long signalPosition)
-			throws Exception {
+			throws MobbedException {
 		boolean success = false;
 		try {
 			// The input stream for connecting to the table
@@ -327,12 +332,13 @@ public class NumericStreams {
 	 * data field is kept empty for insertion
 	 * 
 	 * @param valueCount
-	 *            Total number of values. Required to estimate the size of a row
-	 *            in bytes
+	 *            - total number of values. Required to estimate the size of a
+	 *            row in bytes
 	 * @param datadefUuid
-	 *            UUID of the datadef
-	 * @return ByteBuffer A row template in a bytebuffer
-	 * @throws Exception
+	 *            - the UUID of the data definition
+	 * @return a row template in a byte buffer
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private ByteBuffer createTemplate(int valueCount, UUID datadefUuid)
 			throws Exception {
