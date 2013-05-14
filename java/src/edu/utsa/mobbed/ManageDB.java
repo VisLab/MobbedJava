@@ -23,7 +23,8 @@ import java.util.UUID;
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
- * Manages a mobbed database
+ * A handler to a Mobbed database. This handler can be used to update, insert,
+ * and query the database.
  * 
  * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
@@ -48,23 +49,22 @@ public class ManageDB {
 	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
-	 * A handler to a Mobbed database. This handler can be used to update,
-	 * insert, and query the database.
+	 * Creates a ManageDB object
 	 * 
 	 * @param dbname
-	 *            - name of the database
+	 *            - the name of the database
 	 * @param hostname
-	 *            - hostname of the database
+	 *            - the hostname of the database
 	 * @param username
-	 *            - user name of the database
+	 *            - the user name of the database
 	 * @param password
-	 *            - password of the database
+	 *            - the password of the database
 	 * @param verbose
-	 *            - rather to print informative messages
+	 *            - prints informative messages if true
 	 * @throws Exception
 	 */
 	public ManageDB(String dbname, String hostname, String username,
-			String password, boolean verbose) throws Exception {
+			String password, boolean verbose) throws MobbedException {
 		connection = establishConnection(dbname, hostname, username, password);
 		this.verbose = verbose;
 		setAutoCommit(false);
@@ -425,31 +425,34 @@ public class ManageDB {
 	}
 
 	/**
-	 * Rollback all transactions
+	 * Rollback the transaction
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void rollback() throws Exception {
+	public void rollback() throws MobbedException {
 		try {
 			connection.rollback();
-		} catch (Exception me) {
+		} catch (SQLException ex) {
 			throw new MobbedException("Could not rollback transactions\n"
-					+ me.getMessage());
+					+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Sets the auto commit mode
+	 * Sets the auto commit mode of the connection
 	 * 
 	 * @param autoCommit
-	 * @throws Exception
+	 *            - true to enable auto-commit mode, false to disable it
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void setAutoCommit(boolean autoCommit) throws Exception {
+	public void setAutoCommit(boolean autoCommit) throws MobbedException {
 		try {
 			connection.setAutoCommit(autoCommit);
-		} catch (Exception me) {
-			throw new MobbedException("Could not set auto commit mode\n"
-					+ me.getMessage());
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not set the auto commit mode\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -746,29 +749,38 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes hash maps that involve columns
+	 * Initializes the hash maps that contain column metadata
 	 * 
 	 * @param columnStatement
+	 *            - the prepared statement object used for the queries
 	 * @param tableName
-	 * @throws Exception
+	 *            - the name of the database table
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private void initializeColumns(PreparedStatement columnStatement,
-			String tableName) throws Exception {
-		columnStatement.setString(1, tableName);
-		ResultSet rs = columnStatement.executeQuery();
+	private void initializeColumnHashMaps(PreparedStatement columnStatement,
+			String tableName) throws MobbedException {
 		ArrayList<String> columnNameList = new ArrayList<String>();
 		String columnDefault = null;
 		String columnName = null;
 		String columnType = null;
-		while (rs.next()) {
-			columnDefault = rs.getString(1);
-			if (columnDefault != null)
-				columnDefault = columnDefault.split(":")[0].replaceAll("'", "");
-			columnName = rs.getString(2);
-			columnType = rs.getString(3);
-			defaultValues.put(columnName, columnDefault);
-			typeMap.put(columnName, columnType);
-			columnNameList.add(columnName);
+		try {
+			columnStatement.setString(1, tableName);
+			ResultSet rs = columnStatement.executeQuery();
+			while (rs.next()) {
+				columnDefault = rs.getString(1);
+				if (columnDefault != null)
+					columnDefault = columnDefault.split(":")[0].replaceAll("'",
+							"");
+				columnName = rs.getString(2);
+				columnType = rs.getString(3);
+				defaultValues.put(columnName, columnDefault);
+				typeMap.put(columnName, columnType);
+				columnNameList.add(columnName);
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve the columns\n"
+					+ ex.getNextException().getMessage());
 		}
 		String[] columnNames = columnNameList.toArray(new String[columnNameList
 				.size()]);
@@ -776,39 +788,56 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes hash map fields
+	 * Initializes the hash maps
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
 	 */
-	private void initializeHashMaps() throws Exception {
+	private void initializeHashMaps() throws MobbedException {
 		columnMap = new HashMap<String, String[]>();
 		typeMap = new HashMap<String, String>();
 		defaultValues = new HashMap<String, String>();
 		keyMap = new HashMap<String, String[]>();
-		Statement tableStatement = connection.createStatement();
-		PreparedStatement columnStatement = connection.prepareCall(columnQuery);
-		PreparedStatement keyStatement = connection.prepareCall(keyQuery);
-		ResultSet rs = tableStatement.executeQuery(tableQuery);
-		while (rs.next()) {
-			initializeColumns(columnStatement, rs.getString("table_name"));
-			initializeKeys(keyStatement, rs.getString("table_name"));
+		ResultSet rs = null;
+		PreparedStatement columnStatement = null;
+		PreparedStatement keyStatement = null;
+		try {
+			Statement tableStatement = connection.createStatement();
+			columnStatement = connection.prepareCall(columnQuery);
+			keyStatement = connection.prepareCall(keyQuery);
+			rs = tableStatement.executeQuery(tableQuery);
+			while (rs.next()) {
+				initializeColumnHashMaps(columnStatement,
+						rs.getString("table_name"));
+				initializeKeyHashMap(keyStatement, rs.getString("table_name"));
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not initialize statement objects\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Initialize hash map for key columns
+	 * Initializes a hashmap that contains the keys of each table
 	 * 
 	 * @param keyStatement
+	 *            - the prepared statement object used for the queries
 	 * @param tableName
-	 * @throws Exception
+	 *            - the name of the database table
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private void initializeKeys(PreparedStatement keyStatement, String tableName)
-			throws Exception {
-		keyStatement.setString(1, tableName);
-		ResultSet rs = keyStatement.executeQuery();
+	private void initializeKeyHashMap(PreparedStatement keyStatement,
+			String tableName) throws MobbedException {
 		ArrayList<String> keyColumnList = new ArrayList<String>();
-		while (rs.next()) {
-			keyColumnList.add(rs.getString(1));
+		try {
+			keyStatement.setString(1, tableName);
+			ResultSet rs = keyStatement.executeQuery();
+			while (rs.next())
+				keyColumnList.add(rs.getString(1));
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not initialize key hashmap\n"
+					+ ex.getNextException().getMessage());
 		}
 		String[] keyColumns = keyColumnList.toArray(new String[keyColumnList
 				.size()]);
@@ -1423,16 +1452,21 @@ public class ManageDB {
 	 * @throws Exception
 	 */
 	private static Connection establishConnection(String dbname,
-			String hostname, String username, String password) throws Exception {
+			String hostname, String username, String password)
+			throws MobbedException {
 		Connection dbCon = null;
 		String url = "jdbc:postgresql://" + hostname + "/" + dbname;
 		try {
 			Class.forName("org.postgresql.Driver");
+		} catch (ClassNotFoundException ex) {
+			throw new MobbedException("Class was not found\n" + ex.getMessage());
+		}
+		try {
 			dbCon = DriverManager.getConnection(url, username, password);
-		} catch (Exception me) {
+		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not establish a connection to database " + dbname
-							+ "\n" + me.getMessage());
+							+ "\n" + ex.getNextException().getMessage());
 		}
 		return dbCon;
 	}
