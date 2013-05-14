@@ -108,7 +108,7 @@ public class Structures {
 	 * 
 	 * @throws Exception
 	 */
-	public void save() throws Exception {
+	public void save() throws MobbedException {
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
 			insertStmt.setObject(1, structureUuid, Types.OTHER);
@@ -116,8 +116,9 @@ public class Structures {
 			insertStmt.setObject(3, parentUuid, Types.OTHER);
 			insertStmt.setString(4, structurePath);
 			insertStmt.execute();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save structure");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save structure\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -153,7 +154,7 @@ public class Structures {
 	 * 
 	 * @throws Exception
 	 */
-	private void retrieveChildren(Connection dbCon) throws Exception {
+	private void retrieveChildren(Connection dbCon) throws MobbedException {
 		try {
 			String query = "SELECT STRUCTURE_NAME, STRUCTURE_UUID FROM STRUCTURES WHERE STRUCTURE_PARENT_UUID = ?";
 			PreparedStatement pstmt = dbCon.prepareStatement(query);
@@ -161,8 +162,10 @@ public class Structures {
 			ResultSet rs = pstmt.executeQuery();
 			while (rs.next())
 				children.put(rs.getString(1), UUID.fromString(rs.getString(2)));
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve structure's children");
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not retrieve structure's children\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -180,7 +183,7 @@ public class Structures {
 	 * @throws Exception
 	 */
 	public static Structures retrieve(Connection dbCon, String structureName,
-			UUID parentUuid, boolean retrieveChildren) throws Exception {
+			UUID parentUuid, boolean retrieveChildren) throws MobbedException {
 		String query = "SELECT STRUCTURE_UUID FROM STRUCTURES"
 				+ " WHERE STRUCTURE_NAME = ? AND STRUCTURE_PARENT_UUID = ?";
 		Structures s = new Structures(dbCon);
@@ -198,12 +201,10 @@ public class Structures {
 			}
 			if (retrieveChildren)
 				s.retrieveChildren(dbCon);
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve structure");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve structure\n"
+					+ ex.getNextException().getMessage());
 		}
 		return s;
 	}
-	
-	
-
 }

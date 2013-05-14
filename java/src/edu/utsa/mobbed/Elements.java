@@ -37,9 +37,8 @@ public class Elements {
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
-	 * @throws Exception
 	 */
-	public Elements(Connection dbCon) throws Exception {
+	public Elements(Connection dbCon) {
 		this.dbCon = dbCon;
 		this.datasetUuid = null;
 		this.modalityName = null;
@@ -53,7 +52,6 @@ public class Elements {
 	}
 
 	/**
-	 * Add the attribute to a batch
 	 * 
 	 * @param fieldName
 	 *            - the field name of the attribute
@@ -61,10 +59,10 @@ public class Elements {
 	 *            - the numeric values of the attribute
 	 * @param values
 	 *            - the string values of the attribute
-	 * @throws Exception
+	 * @throws MobbedException
 	 */
 	public void addAttribute(String fieldName, Double[] numericValues,
-			String[] values) throws Exception {
+			String[] values) throws MobbedException {
 		addNewStructure(fieldName);
 		UUID structureUUID = elementStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
@@ -79,35 +77,42 @@ public class Elements {
 	 * Adds the elements to a batch. A group element will be added to the batch
 	 * prior to the child elements if a group label is given.
 	 * 
-	 * @throws Exception
+	 * @return the UUIDs of the elements that were added to the batch
+	 * @throws MobbedException
 	 */
-	public String[] addElements() throws Exception {
-		insertStmt = dbCon.prepareStatement(insertElementQry);
+	public String[] addElements() throws MobbedException {
 		String organizationalClass = "datasets";
-		if (groupLabel != null) {
-			groupUuid = UUID.randomUUID();
-			insertStmt.setObject(1, groupUuid, Types.OTHER);
-			insertStmt.setObject(2, groupLabel);
-			insertStmt.setObject(3, datasetUuid);
-			insertStmt.setString(4, organizationalClass);
-			insertStmt.setObject(5, ManageDB.noParentUuid, Types.OTHER);
-			insertStmt.setInt(6, -1);
-			insertStmt.setObject(7, groupLabel);
-			insertStmt.addBatch();
-		}
 		elementUuids = new UUID[elementLabels.length];
 		String[] stringElementUuids = new String[elementLabels.length];
-		for (int i = 0; i < elementLabels.length; i++) {
-			elementUuids[i] = UUID.randomUUID();
-			stringElementUuids[i] = elementUuids[i].toString();
-			insertStmt.setObject(1, elementUuids[i], Types.OTHER);
-			insertStmt.setObject(2, elementLabels[i]);
-			insertStmt.setObject(3, datasetUuid);
-			insertStmt.setString(4, organizationalClass);
-			insertStmt.setObject(5, groupUuid, Types.OTHER);
-			insertStmt.setLong(6, elementPositions[i]);
-			insertStmt.setObject(7, elementDescriptions[i]);
-			insertStmt.addBatch();
+		try {
+			insertStmt = dbCon.prepareStatement(insertElementQry);
+			if (groupLabel != null) {
+				groupUuid = UUID.randomUUID();
+				insertStmt.setObject(1, groupUuid, Types.OTHER);
+				insertStmt.setObject(2, groupLabel);
+				insertStmt.setObject(3, datasetUuid);
+				insertStmt.setString(4, organizationalClass);
+				insertStmt.setObject(5, ManageDB.noParentUuid, Types.OTHER);
+				insertStmt.setInt(6, -1);
+				insertStmt.setObject(7, groupLabel);
+				insertStmt.addBatch();
+			}
+
+			for (int i = 0; i < elementLabels.length; i++) {
+				elementUuids[i] = UUID.randomUUID();
+				stringElementUuids[i] = elementUuids[i].toString();
+				insertStmt.setObject(1, elementUuids[i], Types.OTHER);
+				insertStmt.setObject(2, elementLabels[i]);
+				insertStmt.setObject(3, datasetUuid);
+				insertStmt.setString(4, organizationalClass);
+				insertStmt.setObject(5, groupUuid, Types.OTHER);
+				insertStmt.setLong(6, elementPositions[i]);
+				insertStmt.setObject(7, elementDescriptions[i]);
+				insertStmt.addBatch();
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not add elements\n"
+					+ ex.getNextException().getMessage());
 		}
 		return stringElementUuids;
 	}
@@ -165,9 +170,9 @@ public class Elements {
 	 * 
 	 * @param fieldName
 	 *            - the name of the field
-	 * @throws Exception
+	 * @throws MobbedException
 	 */
-	private void addNewStructure(String fieldName) throws Exception {
+	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
 				UUID.fromString(ManageDB.noParentUuid), false);
 		elementStruct = Structures.retrieve(dbCon, elementField,

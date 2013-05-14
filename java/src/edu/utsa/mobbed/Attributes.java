@@ -32,9 +32,10 @@ public class Attributes {
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public Attributes(Connection dbCon) throws Exception {
-		insertStmt = dbCon.prepareStatement(insertQry);
+	public Attributes(Connection dbCon) throws MobbedException {
 		attributeUuid = null;
 		entityUuid = null;
 		entityClass = null;
@@ -43,14 +44,19 @@ public class Attributes {
 		structureUuid = null;
 		attributeNumericValue = null;
 		attributeValue = null;
+		try {
+			insertStmt = dbCon.prepareStatement(insertQry);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not create Attributes object\n"
+					+ ex.getNextException().getMessage());
+		}
 	}
 
 	/**
 	 * Adds a attribute to a batch.
 	 * 
 	 * @throws MobbedException
-	 * 
-	 * @throws Exception
+	 *             if an error occurs
 	 */
 	public void addToBatch() throws MobbedException {
 		try {
@@ -63,8 +69,9 @@ public class Attributes {
 			insertStmt.setObject(7, attributeNumericValue);
 			insertStmt.setString(8, attributeValue);
 			insertStmt.addBatch();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not add attribute to batch");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not add attribute to batch\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -107,13 +114,15 @@ public class Attributes {
 	 * Saves all attributes as a batch. All attributes in the batch will be
 	 * successfully written or the operation will be aborted.
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void save() throws MobbedException {
 		try {
 			insertStmt.executeBatch();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save attributes");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save attributes\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 }
