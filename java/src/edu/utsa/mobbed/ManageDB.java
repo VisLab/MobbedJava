@@ -101,10 +101,10 @@ public class ManageDB {
 		Double[] currentDoubleValues;
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
+		String insertQry = constructInsertQuery(tableName, columnNames);
+		String updateQry = constructUpdateQuery(keyIndexes, tableName,
+				columnNames);
 		try {
-			String insertQry = constructInsertQuery(tableName, columnNames);
-			String updateQry = constructUpdateQuery(keyIndexes, tableName,
-					columnNames);
 			PreparedStatement insertStmt = connection
 					.prepareStatement(insertQry);
 			PreparedStatement updateStmt = connection
@@ -159,24 +159,33 @@ public class ManageDB {
 	 * version will be incremented signifying a duplicate dataset.
 	 * 
 	 * @param isUnique
-	 *            - if the dataset has a unique namespace and name combination
+	 *            - rather the dataset should have a unique namespace and name
+	 *            combination
 	 * @param datasetName
 	 *            - the name of the dataset
 	 * @param datasetNamespace
 	 *            - the namespace of the dataset
 	 * @return the version number of the dataset
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public int checkDatasetVersion(boolean isUnique, String datasetNamespace,
-			String datasetName) throws Exception {
+			String datasetName) throws MobbedException {
 		String query = "SELECT MAX(DATASET_VERSION) AS LATESTVERSION"
 				+ " FROM DATASETS WHERE DATASET_NAMESPACE = ? AND DATASET_NAME = ?";
-		PreparedStatement selStmt = connection.prepareStatement(query);
-		selStmt.setString(1, datasetNamespace);
-		selStmt.setString(2, datasetName);
-		ResultSet rs = selStmt.executeQuery();
-		rs.next();
-		int version = rs.getInt(1);
+		int version;
+		try {
+			PreparedStatement selStmt = connection.prepareStatement(query);
+			selStmt.setString(1, datasetNamespace);
+			selStmt.setString(2, datasetName);
+			ResultSet rs = selStmt.executeQuery();
+			rs.next();
+			version = rs.getInt(1);
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not execute query to determine dataset version\n"
+							+ ex.getNextException().getMessage());
+		}
 		if (isUnique && version > 0)
 			throw new MobbedException("dataset version is not unique");
 		return version + 1;
@@ -185,28 +194,30 @@ public class ManageDB {
 	/**
 	 * Closes a database connection.
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void close() throws Exception {
+	public void close() throws MobbedException {
 		try {
 			connection.close();
-		} catch (Exception me) {
-			throw new MobbedException("Could not close connection\n"
-					+ me.getMessage());
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not close the connection\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Commits all database transactions
+	 * Commits the database transaction
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void commit() throws Exception {
+	public void commit() throws MobbedException {
 		try {
 			connection.commit();
-		} catch (Exception me) {
-			throw new MobbedException("Could not commit transaction(s)\n"
-					+ me.getMessage());
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not commit transaction\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -214,22 +225,38 @@ public class ManageDB {
 	 * Extracts inter-related rows
 	 * 
 	 * @param inTableName
+	 *            - the name of the table
 	 * @param inColumnNames
+	 *            - the names of the columns
 	 * @param inColumnValues
+	 *            - the values of the columns
 	 * @param outTableName
+	 *            - the name of the table
 	 * @param outColumnNames
+	 *            - the names of the columns
 	 * @param outColumnValues
+	 *            - the values of the columns
 	 * @param limit
+	 *            - the maximum number of rows to return
 	 * @param regExp
+	 *            - rather to allow regular expressions
 	 * @param lower
+	 *            - the lower limit
 	 * @param upper
-	 * @return
-	 * @throws Exception
+	 *            - the upper limit
+	 * @return the row retrieved from the search
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public String[][] extractRows(String inTableName, String[] inColumnNames,
 			String[][] inColumnValues, String outTableName,
 			String[] outColumnNames, String[][] outColumnValues, double limit,
-			String regExp, double lower, double upper) throws Exception {
+			String regExp, double lower, double upper) throws MobbedException {
+		validateTableName(inTableName);
+		validateTableName(outTableName);
+		validateColumnNames(inColumnNames);
+		validateColumnNames(outColumnNames);
+		ResultSet rs;
 		String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
 		String[] columns = getColumnNames(inTableName);
 		for (int i = 0; i < columns.length; i++)
@@ -238,30 +265,36 @@ public class ManageDB {
 		if (limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + limit;
 		String inQry = "SELECT * FROM " + inTableName;
-		if (inColumnNames != null) {
-			inQry += constructQualificationQuery(inTableName, regExp, null,
-					null, inColumnNames, inColumnValues);
-			PreparedStatement inStmt = connection.prepareStatement(inQry);
-			setStructureStatementValues(inStmt, 1, inColumnNames,
-					inColumnValues);
-			inQry = inStmt.toString();
+		try {
+			if (inColumnNames != null) {
+				inQry += constructQualificationQuery(inTableName, regExp, null,
+						null, inColumnNames, inColumnValues);
+				PreparedStatement inStmt = connection.prepareStatement(inQry);
+				setStructureStatementValues(inStmt, 1, inColumnNames,
+						inColumnValues);
+				inQry = inStmt.toString();
+			}
+			String outQry = "SELECT * FROM " + inTableName;
+			if (outColumnNames != null) {
+				outQry += constructQualificationQuery(outTableName, regExp,
+						null, null, outColumnNames, outColumnValues);
+				PreparedStatement outStmt = connection.prepareStatement(outQry);
+				setStructureStatementValues(outStmt, 1, outColumnNames,
+						outColumnValues);
+				outQry = outStmt.toString();
+			}
+			PreparedStatement pstmt = connection.prepareStatement(qry,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			pstmt.setString(1, inQry);
+			pstmt.setString(2, outQry);
+			pstmt.setDouble(3, lower);
+			pstmt.setDouble(4, upper);
+			rs = pstmt.executeQuery();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not extract rows\n"
+					+ ex.getNextException().getMessage());
 		}
-		String outQry = "SELECT * FROM " + inTableName;
-		if (outColumnNames != null) {
-			outQry += constructQualificationQuery(outTableName, regExp, null,
-					null, outColumnNames, outColumnValues);
-			PreparedStatement outStmt = connection.prepareStatement(outQry);
-			setStructureStatementValues(outStmt, 1, outColumnNames,
-					outColumnValues);
-			outQry = outStmt.toString();
-		}
-		PreparedStatement pstmt = connection.prepareStatement(qry,
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		pstmt.setString(1, inQry);
-		pstmt.setString(2, outQry);
-		pstmt.setDouble(3, lower);
-		pstmt.setDouble(4, upper);
-		ResultSet rs = pstmt.executeQuery();
 		String[][] rows = populateArray(rs);
 		return rows;
 	}
@@ -478,11 +511,13 @@ public class ManageDB {
 	}
 
 	/**
-	 * Adds a key value to array
+	 * Adds a key value to a array
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param columnValues
-	 * @return
+	 *            - the values of the columns
+	 * @return a key value
 	 */
 	private String addKeyValue(ArrayList<Integer> keyIndexes,
 			String[] columnValues) {
@@ -524,18 +559,26 @@ public class ManageDB {
 	 * Constructs a query based on search criteria
 	 * 
 	 * @param tableName
+	 *            - the name of the table
 	 * @param limit
+	 *            - the maximum number of rows to return
 	 * @param regExp
+	 *            - rather to allow regular expressions
 	 * @param tags
+	 *            - the tag search criteria
 	 * @param attributes
+	 *            - the attribute search criteria
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @return
-	 * @throws Exception
+	 *            - the values of the columns
+	 * @return a string query
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private String constructQualificationQuery(String tableName, String regExp,
 			String[][] tags, String[][] attributes, String[] columnNames,
-			String[][] columnValues) throws Exception {
+			String[][] columnValues) throws MobbedException {
 		String qry = "";
 		String closer = "";
 		String[] keys = keyMap.get(tableName);
@@ -583,17 +626,20 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query from a structure array
+	 * Constructs a query associated with a table in the database
 	 * 
 	 * @param regExp
+	 *            - rather to allow regular expressions
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @return
-	 * @throws Exception
+	 *            - the values of the columns
+	 * @return a query string
 	 */
 	private String constructStructQuery(String regExp, String tableName,
-			String[] columnNames, String[][] columnValues) throws Exception {
+			String[] columnNames, String[][] columnValues) {
 		String type;
 		String columnName;
 		String qry = "";
@@ -606,15 +652,12 @@ public class ManageDB {
 			else
 				columnName = columnNames[i];
 			int numValues = columnValues[i].length;
-			// With regexp (only works for strings)
 			if (type.equalsIgnoreCase("character varying")
 					&& regExp.equalsIgnoreCase("on")) {
 				qry += columnName + " ~* ?";
 				for (int j = 1; j < numValues; j++)
 					qry += " OR " + columnName + " ~* ?";
-			}
-			// Without regexp (works for everything)
-			else {
+			} else {
 				qry += columnName + " IN (?";
 				for (int j = 1; j < numValues; j++)
 					qry += ",?";
@@ -627,16 +670,18 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query from tags or attributes
+	 * Constructs a query associated with tags and attributes
 	 * 
 	 * @param regExp
+	 *            - rather to allow regular expressions
 	 * @param qualification
+	 *            - the type of qualification, tag or attribute
 	 * @param values
-	 * @return
-	 * @throws Exception
+	 *            - the values used in the query
+	 * @return a query string
 	 */
 	private String constructTagAttributesQuery(String regExp,
-			String qualification, String[][] values) throws Exception {
+			String qualification, String[][] values) {
 		String selectqry = "";
 		String columnName = "";
 		if (qualification.equalsIgnoreCase("Tags")) {
@@ -937,10 +982,11 @@ public class ManageDB {
 	}
 
 	/**
-	 * Looks up the jdbc sql types
+	 * Looks up the jdbc sql types of a given column
 	 * 
 	 * @param columnName
-	 * @return
+	 *            - the name of the column
+	 * @return the jdbc sql type of the column
 	 */
 	private int lookupTargetType(Object columnName) {
 		// 1.6 doesn't support switch statement with string object
@@ -970,20 +1016,28 @@ public class ManageDB {
 	 * Populates an array with a result set
 	 * 
 	 * @param rs
-	 * @return
-	 * @throws Exception
+	 *            - the result set object that contains the rows from the query
+	 * @return an array that mirrors the rows in the result set
+	 * @throws MobbedException
 	 */
-	private String[][] populateArray(ResultSet rs) throws Exception {
-		ResultSetMetaData rsMeta = rs.getMetaData();
-		rs.last();
-		int rowCount = rs.getRow();
-		int colCount = rsMeta.getColumnCount();
-		String[][] allocatedArray = new String[rowCount][colCount];
-		rs.beforeFirst();
-		for (int i = 0; i < rowCount; i++) {
-			rs.next();
-			for (int j = 0; j < colCount; j++)
-				allocatedArray[i][j] = rs.getString(j + 1);
+	private String[][] populateArray(ResultSet rs) throws MobbedException {
+		String[][] allocatedArray;
+		try {
+			ResultSetMetaData rsMeta = rs.getMetaData();
+			rs.last();
+			int rowCount = rs.getRow();
+			int colCount = rsMeta.getColumnCount();
+			allocatedArray = new String[rowCount][colCount];
+			rs.beforeFirst();
+			for (int i = 0; i < rowCount; i++) {
+				rs.next();
+				for (int j = 0; j < colCount; j++)
+					allocatedArray[i][j] = rs.getString(j + 1);
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not populate the array with the result set\n"
+							+ ex.getNextException().getMessage());
 		}
 		return allocatedArray;
 	}
@@ -1083,15 +1137,21 @@ public class ManageDB {
 	 * Sets structure array query values
 	 * 
 	 * @param pstmt
+	 *            - the prepared statement object that contains the query
 	 * @param valueCount
+	 *            - the number of values passed in so far
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @return
-	 * @throws SQLException
+	 *            - the values of the columns
+	 * @return the number of values that were set in the query in addition to
+	 *         the ones prior
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private int setStructureStatementValues(PreparedStatement pstmt,
 			int valueCount, String[] columnNames, String[][] columnValues)
-			throws SQLException {
+			throws MobbedException {
 		int numColumns = columnNames.length;
 		int numValues = 0;
 		int targetType = 0;
@@ -1102,7 +1162,12 @@ public class ManageDB {
 				// Case insensitive fix
 				if (targetType == Types.VARCHAR)
 					columnValues[i][j] = columnValues[i][j].toUpperCase();
-				pstmt.setObject(valueCount, columnValues[i][j], targetType);
+				try {
+					pstmt.setObject(valueCount, columnValues[i][j], targetType);
+				} catch (SQLException ex) {
+					throw new MobbedException("Could not set value in query\n"
+							+ ex.getNextException().getMessage());
+				}
 				valueCount++;
 			}
 		}
