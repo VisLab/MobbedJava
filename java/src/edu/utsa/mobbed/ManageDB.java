@@ -4,6 +4,7 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 //import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -303,16 +304,19 @@ public class ManageDB {
 	 * Extracts unique inter-related rows
 	 * 
 	 * @param extractedRows
+	 *            - the rows that were previously extracted
 	 * @param limit
-	 * @return
+	 *            - the maximum number of rows to return
+	 * @return the unique rows returned by the search
 	 * @throws Exception
 	 */
 	public String[][] extractUniqueRows(String[][] extractedRows, int limit)
-			throws Exception {
+			throws MobbedException {
 		int extractedColumn = extractedRows[0].length - 1;
 		int numRows = extractedRows.length;
-		String[] extractedUuids = null;
+		String[] extractedUuids;
 		ArrayList<String> alist = new ArrayList<String>();
+		ResultSet rs;
 		for (int i = 0; i < numRows; i++) {
 			extractedUuids = extractedRows[i][extractedColumn].replaceAll(
 					"[{}]", "").split(",");
@@ -325,9 +329,15 @@ public class ManageDB {
 		String qry = "SELECT * FROM EVENTS WHERE EVENT_UUID IN (" + list + ")";
 		if (limit > 0)
 			qry += " LIMIT " + limit;
-		Statement stmt = connection.createStatement(
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		ResultSet rs = stmt.executeQuery(qry);
+		try {
+			Statement stmt = connection.createStatement(
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(qry);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not extract unique rows\n"
+					+ ex.getNextException().getMessage());
+		}
 		String[][] rows = populateArray(rs);
 		return rows;
 	}
@@ -335,18 +345,20 @@ public class ManageDB {
 	/**
 	 * Gets the column names of a table
 	 * 
-	 * @param table
-	 * @return
+	 * @param tableName
+	 *            - the name of the table
+	 * @return the columns of the table
 	 */
-	public String[] getColumnNames(String table) {
-		return columnMap.get(table);
+	public String[] getColumnNames(String tableName) {
+		return columnMap.get(tableName);
 	}
 
 	/**
 	 * Gets the column type of a column
 	 * 
 	 * @param columnName
-	 * @return
+	 *            - the name of the column
+	 * @return the type of the column
 	 */
 	public String getColumnType(String columnName) {
 		return typeMap.get(columnName);
@@ -355,8 +367,9 @@ public class ManageDB {
 	/**
 	 * Gets all of the columns types of a given table
 	 * 
-	 * @param table
-	 * @return
+	 * @param tableName
+	 *            - the name of the table
+	 * @return the types of the columns in the table
 	 */
 	public String[] getColumnTypes(String tableName) {
 		String[] columnNames = getColumnNames(tableName);
@@ -370,7 +383,7 @@ public class ManageDB {
 	/**
 	 * Gets a database connection
 	 * 
-	 * @return
+	 * @return a database connection
 	 */
 	public Connection getConnection() {
 		return connection;
@@ -380,7 +393,8 @@ public class ManageDB {
 	 * Gets the default value of a column
 	 * 
 	 * @param columnName
-	 * @return
+	 *            - the name of the column
+	 * @return the default value of a column
 	 */
 	public String getDefaultValue(String columnName) {
 		return defaultValues.get(columnName);
@@ -390,7 +404,8 @@ public class ManageDB {
 	 * Gets the columns that are double precision of a table
 	 * 
 	 * @param tableName
-	 * @return
+	 *            - the name of the table
+	 * @return the double precision columns in the table
 	 */
 	public String[] getDoubleColumns(String tableName) {
 		ArrayList<String> al = new ArrayList<String>();
@@ -407,17 +422,18 @@ public class ManageDB {
 	/**
 	 * Gets the keys of a table
 	 * 
-	 * @param table
-	 * @return
+	 * @param tableName
+	 *            - the name of the table
+	 * @return the keys in the table
 	 */
-	public String[] getKeys(String table) {
-		return keyMap.get(table);
+	public String[] getKeys(String tableName) {
+		return keyMap.get(tableName);
 	}
 
 	/**
-	 * Gets all of the tables from a database
+	 * Gets all of the tables from the database
 	 * 
-	 * @return
+	 * @return the tables from the database
 	 */
 	public String[] getTables() {
 		Set<String> keySet = columnMap.keySet();
@@ -429,9 +445,13 @@ public class ManageDB {
 	 * Retrieves rows from a table by search criteria
 	 * 
 	 * @param tableName
+	 *            - the name of the table
 	 * @param limit
+	 *            - the maximum number of rows to return
 	 * @param regExp
+	 *            - rather to allow regular expressions
 	 * @param tags
+	 *            -
 	 * @param attributes
 	 * @param columnNames
 	 * @param columnValues
@@ -1379,124 +1399,163 @@ public class ManageDB {
 	/**
 	 * Deletes a database
 	 * 
-	 * @param name
+	 * @param dbname
+	 *            - the name of the database
 	 * @param hostname
-	 * @param user
+	 *            - the host name of the database
+	 * @param username
+	 *            - the user name of the database
 	 * @param password
+	 *            - the password of the database
 	 * @param verbose
-	 * @throws Exception
+	 *            - prints informative messages if true
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public static void deleteDatabase(String name, String hostname,
-			String user, String password, boolean verbose) throws Exception {
-		Connection databaseConnection = establishConnection(name, hostname,
-				user, password);
+	public static void deleteDatabase(String dbname, String hostname,
+			String username, String password, boolean verbose) throws Exception {
+		Connection databaseConnection = establishConnection(dbname, hostname,
+				username, password);
 		checkForActiveConnections(databaseConnection);
 		deleteDatasetOids(databaseConnection);
 		deleteDataDefOids(databaseConnection);
 		databaseConnection.close();
 		Connection templateConnection = establishConnection(templateName,
-				hostname, user, password);
-		dropDatabase(templateConnection, name);
+				hostname, username, password);
+		dropDatabase(templateConnection, dbname);
 		templateConnection.close();
 		if (verbose)
-			System.out.println("Database " + name + " dropped");
+			System.out.println("Database " + dbname + " dropped");
 	}
 
 	/**
 	 * Executes a sql statement
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param statement
-	 * @throws Exception
+	 *            - the sql statement to be executed
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static void executeSQL(Connection dbCon, String statement)
-			throws Exception {
-		Statement stmt = dbCon.createStatement();
+			throws MobbedException {
 		try {
+			Statement stmt = dbCon.createStatement();
 			stmt.execute(statement);
-		} catch (Exception me) {
-			dbCon.close();
+		} catch (SQLException ex1) {
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close the connection\n"
+						+ ex2.getNextException().getMessage());
+			}
 			throw new MobbedException("Could not execute sql statement\n"
-					+ me.getMessage());
+					+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Loads credentials from a property file
+	 * Loads the database credentials from a property file. The credentials are
+	 * stored in a array.
 	 * 
 	 * @param filename
-	 * @return
-	 * @throws Exception
+	 *            - the name of the property file
+	 * @return a array that contains the database credentials
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static String[] loadCredentials(String filename) throws Exception {
 		Properties prop = new Properties();
 		String[] credentials = {};
 		try {
 			prop.load(new FileInputStream(filename));
-			credentials = new String[prop.size()];
-			credentials[0] = prop.getProperty("dbname");
-			credentials[1] = prop.getProperty("hostname");
-			credentials[2] = prop.getProperty("username");
-			credentials[3] = prop.getProperty("password");
-		} catch (Exception me) {
-			throw new MobbedException("Could not load credentials");
+		} catch (IOException ex) {
+			throw new MobbedException("Could not load property file\n"
+					+ ex.getMessage());
 		}
+		credentials = new String[prop.size()];
+		credentials[0] = prop.getProperty("dbname");
+		credentials[1] = prop.getProperty("hostname");
+		credentials[2] = prop.getProperty("username");
+		credentials[3] = prop.getProperty("password");
+
 		return credentials;
 	}
 
 	/**
-	 * Creates a database
 	 * 
 	 * @param dbCon
-	 * @throws Exception
+	 *            - the connection to the database
+	 * @param dbname
+	 *            - the name of the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static void createDatabase(Connection dbCon, String name)
-			throws Exception {
-		String sql = "CREATE DATABASE " + name;
+	private static void createDatabase(Connection dbCon, String dbname)
+			throws MobbedException {
+		String sql = "CREATE DATABASE " + dbname;
 		try {
 			PreparedStatement pStmt = dbCon.prepareStatement(sql);
 			pStmt.execute();
-		} catch (Exception me) {
-			dbCon.close();
-			throw new MobbedException("Could not create database " + name
-					+ "\n" + me.getMessage());
+		} catch (SQLException ex1) {
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close connection\n"
+						+ ex2.getNextException().getMessage());
+			}
+			throw new MobbedException("Could not create database " + dbname
+					+ "\n" + ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Creates database tables from a sql file
+	 * Creates the database tables from a sql file
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param path
-	 * @throws Exception
+	 *            - the path to the sql file
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private static void createTables(Connection dbCon, String filename)
-			throws Exception {
-		DataInputStream in = null;
-		Statement stmt = dbCon.createStatement();
+			throws MobbedException {
+		DataInputStream in;
+		byte[] buffer;
 		try {
 			File file = new File(filename);
-			byte[] buffer = new byte[(int) file.length()];
+			buffer = new byte[(int) file.length()];
 			in = new DataInputStream(new FileInputStream(file));
 			in.readFully(buffer);
 			in.close();
-			String result = new String(buffer);
-			String[] tables = result.split("-- execute");
+		} catch (IOException ioex) {
+			throw new MobbedException("Could not read file\n"
+					+ ioex.getMessage());
+		}
+		String result = new String(buffer);
+		String[] tables = result.split("-- execute");
+		try {
+			Statement stmt = dbCon.createStatement();
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
-		} catch (Exception me) {
+		} catch (SQLException ex) {
 			throw new MobbedException("Could not execute sql code\n"
-					+ me.getMessage());
+					+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Deletes oids in datadefs table
+	 * Deletes the oids in datadefs table
 	 * 
 	 * @param dbCon
-	 * @throws Exception
+	 *            - connection to the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static void deleteDataDefOids(Connection dbCon) throws Exception {
+	private static void deleteDataDefOids(Connection dbCon)
+			throws MobbedException {
 		try {
 			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
 					.getLargeObjectAPI();
@@ -1506,21 +1565,29 @@ public class ManageDB {
 			while (rs.next()) {
 				lobj.unlink(rs.getLong(1));
 			}
-		} catch (Exception me) {
-			dbCon.close();
+		} catch (SQLException ex1) {
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close connection\n"
+						+ ex2.getNextException().getMessage());
+			}
 			throw new MobbedException(
 					"Could not delete oids in datadefs table\n"
-							+ me.getMessage());
+							+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Deletes oids in datasets table
+	 * Deletes the oids in datasets table
 	 * 
 	 * @param dbCon
-	 * @throws Exception
+	 *            - a connection to the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static void deleteDatasetOids(Connection dbCon) throws Exception {
+	private static void deleteDatasetOids(Connection dbCon)
+			throws MobbedException {
 		try {
 			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
 					.getLargeObjectAPI();
@@ -1529,43 +1596,62 @@ public class ManageDB {
 			ResultSet rs = stmt.executeQuery(qry);
 			while (rs.next())
 				lobj.unlink(rs.getLong(1));
-		} catch (Exception me) {
-			dbCon.close();
+		} catch (SQLException ex1) {
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close connection\n"
+						+ ex2.getNextException().getMessage());
+			}
 			throw new MobbedException(
 					"Could not delete oids in datasets table\n"
-							+ me.getMessage());
+							+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Drops a database given a name
+	 * Drops a database. There must be no active connections to drop the
+	 * database.
 	 * 
 	 * @param dbCon
-	 * @param name
-	 * @throws Exception
+	 *            - connection to a different database
+	 * @param dbname
+	 *            - the name of the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static void dropDatabase(Connection dbCon, String name)
-			throws Exception {
-		String sql = "DROP DATABASE IF EXISTS " + name;
+	private static void dropDatabase(Connection dbCon, String dbname)
+			throws MobbedException {
+		String sql = "DROP DATABASE IF EXISTS " + dbname;
 		try {
 			Statement stmt = dbCon.createStatement();
 			stmt.execute(sql);
-		} catch (Exception me) {
-			dbCon.close();
-			throw new MobbedException("Could not drop database" + name + "\n"
-					+ me.getMessage());
+		} catch (SQLException ex1) {
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close connection\n"
+						+ ex2.getNextException().getMessage());
+			}
+			throw new MobbedException("Could not drop database" + dbname + "\n"
+					+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
 	 * Establishes a connection to a database
 	 * 
-	 * @param name
+	 * @param dbname
+	 *            - the name of the database
 	 * @param hostname
-	 * @param user
+	 *            - the host name of the database
+	 * @param username
+	 *            - the user name of the database
 	 * @param password
-	 * @return
-	 * @throws Exception
+	 *            - the password of the database
+	 * @return a connection to the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private static Connection establishConnection(String dbname,
 			String hostname, String username, String password)
@@ -1591,7 +1677,7 @@ public class ManageDB {
 	 * Checks if a string is empty
 	 * 
 	 * @param s
-	 * @return
+	 * @return true if the string is empty, false if otherwise
 	 */
 	private static boolean isEmpty(String s) {
 		boolean empty = true;
@@ -1605,8 +1691,8 @@ public class ManageDB {
 	/**
 	 * Checks if a array is empty
 	 * 
-	 * @param s
-	 * @return
+	 * @param o
+	 * @return true if the array is empty, false if otherwise
 	 */
 	private static boolean isEmpty(Object[] o) {
 		boolean empty = true;
