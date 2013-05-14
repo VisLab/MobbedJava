@@ -32,13 +32,13 @@ public class NumericStreams {
 		 * Creates a ReadBinaryData object.
 		 * 
 		 * @param pout
-		 *            PipedOutputStream to write the data.
+		 *            - PipedOutputStream to write the data.
 		 * @param datadefUuid
-		 *            UUID of the DataDef
+		 *            - UUID of the DataDef
 		 * @param startPosition
-		 *            Start time for retrieval
+		 *            - start time for retrieval
 		 * @param endPosition
-		 *            End time for retrieval
+		 *            - end time for retrieval
 		 */
 		public ReadBinaryData(PipedOutputStream pout, UUID datadefUuid,
 				int startPosition, int endPosition) {
@@ -84,14 +84,13 @@ public class NumericStreams {
 		 * Creates a new WriteBinaryData object
 		 * 
 		 * @param pout
-		 *            PipedOutputStream to write the data
+		 *            - PipedOutputStream to write the data
 		 * @param values
-		 *            Values to be written
+		 *            - values to be written
 		 * @param signalPosition
-		 *            Time of first signal. Value is automatically incremented
-		 *            for each row
+		 *            - position of the first signal
 		 * @param template
-		 *            Row template as a bytebuffer
+		 *            - row template as a bytebuffer
 		 */
 		public WriteBinaryData(PipedOutputStream pout, double[][] values,
 				double[] times, long signalPosition, ByteBuffer template) {
@@ -159,36 +158,41 @@ public class NumericStreams {
 	private static final int SHORT_BYTES = 2;
 
 	/**
-	 * Creates a NumericStreams object
+	 * Creates a Numeric Streams object
 	 * 
 	 * @param dbCon
-	 *            Connection to the database
+	 *            - a connection to a Mobbed database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public NumericStreams(Connection dbCon) throws Exception {
+	public NumericStreams(Connection dbCon) throws MobbedException {
+		this.dbCon = dbCon;
 		try {
-			this.dbCon = dbCon;
 			copyMgr = ((org.postgresql.PGConnection) dbCon).getCopyAPI();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not create numeric stream object");
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not create a NumericStreams object\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Gets the data definition uuid
+	 * Gets the data definition UUID
 	 * 
-	 * @return UUID - UUID of the DataDefs
+	 * @return UUID of the data definition
 	 */
 	public UUID getDatadefUuid() {
 		return datadefUuid;
 	}
 
 	/**
-	 * Returns the last position of sampling for an element
+	 * Gets the last position of the numeric stream
 	 * 
-	 * @return long Last sampling time
-	 * @throws Exception
+	 * @return last position of the stream
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public long getMaxPosition() throws Exception {
+	public long getMaxPosition() throws MobbedException {
 		int maxPosition = 0;
 		String selectQuery = "SELECT MAX(NUMERIC_STREAM_RECORD_POSITION) FROM NUMERIC_STREAMS WHERE"
 				+ " NUMERIC_STREAM_DEF_UUID = ?";
@@ -198,14 +202,15 @@ public class NumericStreams {
 			ResultSet rs = selectStmt.executeQuery();
 			if (rs.next())
 				maxPosition = rs.getInt("MAX");
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve max position");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve max position\n"
+					+ ex.getNextException().getMessage());
 		}
 		return maxPosition;
 	}
 
 	/**
-	 * Sets class fields
+	 * Sets the class fields of a NumericStreams object
 	 * 
 	 * @param datadefUuid
 	 *            UUID of the DataDefs
@@ -220,16 +225,16 @@ public class NumericStreams {
 	 * thread reads only the required data and put them in a 2D-array
 	 * 
 	 * @param startPosition
-	 *            Start time for retrieval
+	 *            - start time for retrieval
 	 * @param endPosition
-	 *            End time for retrieval
+	 *            - end time for retrieval
 	 * @param elementCount
-	 *            Total number of channels in this dataset
-	 * @return double[][] A 2D-array of double values. Each row represents a
-	 *         single time point and each values is a sample from each element.
+	 *            - total number of channels in this dataset
+	 * @return A 2D-array of double values. Each row represents a single time
+	 *         point and each values is a sample from each element.
 	 */
 	public double[][] retrieveByPosition(int startPosition, int endPosition,
-			int elementCount) throws Exception {
+			int elementCount) throws MobbedException {
 		double[][] signal_data = new double[endPosition - startPosition][elementCount];
 		try {
 			// inputStream to read the data

@@ -60,6 +60,7 @@ public class Elements {
 	 * @param values
 	 *            - the string values of the attribute
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void addAttribute(String fieldName, Double[] numericValues,
 			String[] values) throws MobbedException {
@@ -111,7 +112,7 @@ public class Elements {
 				insertStmt.addBatch();
 			}
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not add elements\n"
+			throw new MobbedException("Could not add elements to the batch\n"
 					+ ex.getNextException().getMessage());
 		}
 		return stringElementUuids;
@@ -134,12 +135,13 @@ public class Elements {
 	 *            - the descriptions of the elements
 	 * @param elementPositions
 	 *            - the positions of the elements. starting at 1, 2, ...
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void reset(String modalityName, String datasetUuid,
 			String elementField, String groupLabel, String[] elementLabels,
 			String[] elementDescriptions, long[] elementPositions)
-			throws Exception {
+			throws MobbedException {
 		this.modalityName = modalityName;
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.groupLabel = groupLabel;
@@ -154,14 +156,16 @@ public class Elements {
 	 * Saves all elements as a batch. All elements in the batch will be
 	 * successfully written or the operation will be aborted.
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void save() throws Exception {
+	public void save() throws MobbedException {
+		atb.save();
 		try {
 			insertStmt.executeBatch();
-			atb.save();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save elements");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save elements\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -171,6 +175,7 @@ public class Elements {
 	 * @param fieldName
 	 *            - the name of the field
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
@@ -187,26 +192,32 @@ public class Elements {
 	}
 
 	/**
-	 * Retrieves the length of each array in the numeric stream. The length is
-	 * equal to the number of elements in the stream.
+	 * Finds the length of each array in the numeric stream. The length is equal
+	 * to the number of elements in the stream.
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
 	 * @param datadefUuid
 	 *            - the UUID of the numeric stream data definition
-	 * @return the length of each row in the numeric stream
-	 * @throws Exception
+	 * @return the length of each array in the numeric stream
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static int getElementCount(Connection dbCon, String datadefUuid)
-			throws Exception {
+			throws MobbedException {
 		int elementCount = 0;
 		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
-		PreparedStatement pstmt = dbCon.prepareStatement(countQry);
-		pstmt.setObject(1, datadefUuid, Types.OTHER);
-		ResultSet rs = pstmt.executeQuery();
-		rs = pstmt.executeQuery();
-		if (rs.next())
-			elementCount = rs.getInt("array_length");
+		try {
+			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
+			pstmt.setObject(1, datadefUuid, Types.OTHER);
+			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
+			if (rs.next())
+				elementCount = rs.getInt("array_length");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not get element count\n"
+					+ ex.getNextException().getMessage());
+		}
 		return elementCount;
 	}
 

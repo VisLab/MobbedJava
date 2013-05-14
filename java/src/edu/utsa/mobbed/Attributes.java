@@ -47,7 +47,7 @@ public class Attributes {
 		try {
 			insertStmt = dbCon.prepareStatement(insertQry);
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not create Attributes object\n"
+			throw new MobbedException("Could not create a Attributes object\n"
 					+ ex.getNextException().getMessage());
 		}
 	}

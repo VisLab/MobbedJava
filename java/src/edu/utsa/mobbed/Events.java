@@ -40,9 +40,8 @@ public class Events {
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
-	 * @throws Exception
 	 */
-	public Events(Connection dbCon) throws Exception {
+	public Events(Connection dbCon) {
 		this.dbCon = dbCon;
 		this.datasetUuid = null;
 		this.modalityName = null;
@@ -60,14 +59,15 @@ public class Events {
 	 * 
 	 * @param fieldName
 	 *            - the field name of the attribute
-	 * @param numericValue
+	 * @param numericValues
 	 *            - the numeric values of the attribute
-	 * @param value
+	 * @param values
 	 *            - the string values of the attribute
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void addAttribute(String fieldName, Double[] numericValues,
-			String[] values) throws Exception {
+			String[] values) throws MobbedException {
 		addNewStructure(fieldName);
 		UUID structureUUID = eventStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < types.length; i++) {
@@ -82,29 +82,35 @@ public class Events {
 	 * storing the events that are derived from them.
 	 * 
 	 * @return the UUIDs of the events that were stored
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public String[] addEvents() throws Exception {
-		insertStmt = dbCon.prepareStatement(insertQry);
+	public String[] addEvents() throws MobbedException {
 		addNewTypes();
 		String entityClass = "datasets";
 		eventUuids = new UUID[types.length];
 		String[] stringEventUuids = new String[types.length];
-		for (int i = 0; i < types.length; i++) {
-			eventUuids[i] = UUID.randomUUID();
-			stringEventUuids[i] = eventUuids[i].toString();
-			insertStmt.setObject(1, eventUuids[i], Types.OTHER);
-			insertStmt.setObject(2, datasetUuid, Types.OTHER);
-			insertStmt.setString(3, entityClass);
-			insertStmt.setObject(4,
-					evType.getEventTypeUuid(types[i].toUpperCase()),
-					Types.OTHER);
-			insertStmt.setObject(5, parentUuids[i], Types.OTHER);
-			insertStmt.setLong(6, positions[i]);
-			insertStmt.setDouble(7, startTimes[i]);
-			insertStmt.setDouble(8, endTimes[i]);
-			insertStmt.setDouble(9, certainties[i]);
-			insertStmt.addBatch();
+		try {
+			insertStmt = dbCon.prepareStatement(insertQry);
+			for (int i = 0; i < types.length; i++) {
+				eventUuids[i] = UUID.randomUUID();
+				stringEventUuids[i] = eventUuids[i].toString();
+				insertStmt.setObject(1, eventUuids[i], Types.OTHER);
+				insertStmt.setObject(2, datasetUuid, Types.OTHER);
+				insertStmt.setString(3, entityClass);
+				insertStmt.setObject(4,
+						evType.getEventTypeUuid(types[i].toUpperCase()),
+						Types.OTHER);
+				insertStmt.setObject(5, parentUuids[i], Types.OTHER);
+				insertStmt.setLong(6, positions[i]);
+				insertStmt.setDouble(7, startTimes[i]);
+				insertStmt.setDouble(8, endTimes[i]);
+				insertStmt.setDouble(9, certainties[i]);
+				insertStmt.addBatch();
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not add events to the batch\n"
+					+ ex.getNextException().getMessage());
 		}
 		return stringEventUuids;
 	}
@@ -114,9 +120,10 @@ public class Events {
 	 * reused when storing datasets that have event types with the same meaning.
 	 * 
 	 * @return the UUIDs of the event types
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public String[] addNewTypes() throws Exception {
+	public String[] addNewTypes() throws MobbedException {
 		if (existingUuids != null)
 			evType.retrieveMap(existingUuids);
 		EventTypes newEventType = new EventTypes(dbCon);
@@ -157,13 +164,14 @@ public class Events {
 	 * @param parentUuids
 	 *            - the UUIDs of the original events in which these events were
 	 *            derived from
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public void reset(String modalityName, String datasetUuid,
 			String eventField, String uniqueTypes[], String[] types,
 			long[] positions, double[] startTimes, double[] endTimes,
 			double[] certainties, String[] existingUuids, String[] parentUuids)
-			throws Exception {
+			throws MobbedException {
 		this.modalityName = modalityName;
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.eventField = eventField;
@@ -183,14 +191,16 @@ public class Events {
 	 * Saves all events as a batch. All events in the batch will be successfully
 	 * written or the operation will be aborted.
 	 * 
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public void save() throws Exception {
+	public void save() throws MobbedException {
+		atb.save();
 		try {
 			insertStmt.executeBatch();
-			atb.save();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save events");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save events\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -199,9 +209,10 @@ public class Events {
 	 * 
 	 * @param fieldName
 	 *            - the name of the field
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private void addNewStructure(String fieldName) throws Exception {
+	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
 				UUID.fromString(ManageDB.noParentUuid), false);
 		eventStruct = Structures.retrieve(dbCon, eventField,
