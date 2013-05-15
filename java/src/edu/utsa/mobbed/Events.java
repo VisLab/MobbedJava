@@ -36,10 +36,10 @@ public class Events {
 			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Creates a Events object
+	 * Creates a Events object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 */
 	public Events(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -55,7 +55,7 @@ public class Events {
 	}
 
 	/**
-	 * Add the attribute to a batch
+	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
 	 *            - the field name of the attribute
@@ -139,10 +139,10 @@ public class Events {
 	}
 
 	/**
-	 * Sets class fields of a Events object
+	 * Sets class fields of a Events object.
 	 * 
 	 * @param modalityName
-	 *            - the modality name assocaited with the events
+	 *            - the modality name associated with the events
 	 * @param datasetUuid
 	 *            - the UUID of the dataset associated with the events
 	 * @param eventField

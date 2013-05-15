@@ -81,7 +81,7 @@ public class NumericStreams {
 		double[][] values;
 
 		/**
-		 * Creates a new WriteBinaryData object
+		 * Creates a new WriteBinaryData object.
 		 * 
 		 * @param pout
 		 *            - PipedOutputStream to write the data
@@ -158,10 +158,10 @@ public class NumericStreams {
 	private static final int SHORT_BYTES = 2;
 
 	/**
-	 * Creates a Numeric Streams object
+	 * Creates a Numeric Streams object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -177,7 +177,7 @@ public class NumericStreams {
 	}
 
 	/**
-	 * Gets the data definition UUID
+	 * Gets the data definition UUID.
 	 * 
 	 * @return UUID of the data definition
 	 */
@@ -186,7 +186,7 @@ public class NumericStreams {
 	}
 
 	/**
-	 * Gets the last position of the numeric stream
+	 * Gets the last position of the numeric stream.
 	 * 
 	 * @return last position of the stream
 	 * @throws MobbedException
@@ -210,7 +210,7 @@ public class NumericStreams {
 	}
 
 	/**
-	 * Sets the class fields of a NumericStreams object
+	 * Sets the class fields of a NumericStreams object.
 	 * 
 	 * @param datadefUuid
 	 *            UUID of the DataDefs
@@ -222,7 +222,7 @@ public class NumericStreams {
 	/**
 	 * Retrieves data samples between a given position range. Creates a separate
 	 * thread to retrieve data from database as binary. The current execution
-	 * thread reads only the required data and put them in a 2D-array
+	 * thread reads only the required data and put them in a 2D-array.
 	 * 
 	 * @param startPosition
 	 *            - start time for retrieval
@@ -282,7 +282,7 @@ public class NumericStreams {
 	 * Saves an array of data samples to the database. Creates an
 	 * DataInputStream to the database, which writes data in binary. A
 	 * WriteBinaryData object is created to run on a separate thread to write
-	 * data in binary
+	 * data in binary.
 	 * 
 	 * @param values
 	 *            - 2D-array of doubles values. Each row represent samples from
@@ -329,7 +329,7 @@ public class NumericStreams {
 	/**
 	 * Creates a template row for NUMERIC_DATA table. All required binary flags,
 	 * dimensions, and size of data in bytes is added to the template. Only the
-	 * data field is kept empty for insertion
+	 * data field is kept empty for insertion.
 	 * 
 	 * @param valueCount
 	 *            - total number of values. Required to estimate the size of a

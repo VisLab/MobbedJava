@@ -29,10 +29,10 @@ public class Structures {
 			+ "WHERE STRUCTURE_UUID = ?";
 
 	/**
-	 * Creates a Structures object
+	 * Creates a Structures object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 */
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -44,7 +44,7 @@ public class Structures {
 	}
 
 	/**
-	 * Adds a child structure to the hashmap
+	 * Adds a child structure to the hashmap.
 	 * 
 	 * @param childName
 	 *            - the name of the child structure
@@ -56,7 +56,7 @@ public class Structures {
 	}
 
 	/**
-	 * Checks if the hashmap contains the child structure
+	 * Checks if the hashmap contains the child structure.
 	 * 
 	 * @param childName
 	 *            - the name of the child structure
@@ -67,7 +67,7 @@ public class Structures {
 	}
 
 	/**
-	 * Gets the UUID of the child structure
+	 * Gets the UUID of the child structure.
 	 * 
 	 * @param childName
 	 *            - the name of the child structure
@@ -78,7 +78,7 @@ public class Structures {
 	}
 
 	/**
-	 * Gets the UUID of the structure
+	 * Gets the UUID of the structure.
 	 * 
 	 * @return the UUID of the structure
 	 */
@@ -87,7 +87,7 @@ public class Structures {
 	}
 
 	/**
-	 * Sets the class fields of a Structures object
+	 * Sets the class fields of a Structures object.
 	 * 
 	 * @param structureUuid
 	 *            - the UUID of the structure
@@ -107,7 +107,7 @@ public class Structures {
 	}
 
 	/**
-	 * Saves a structure to the database
+	 * Saves a structure to the database.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -127,7 +127,7 @@ public class Structures {
 	}
 
 	/**
-	 * Generates a structure path based on it's hierarchy
+	 * Generates a structure path based on it's hierarchy.
 	 * 
 	 * @return the path of the structure
 	 * @throws MobbedException
@@ -156,7 +156,7 @@ public class Structures {
 	}
 
 	/**
-	 * Retrieves the children of the structure from the database
+	 * Retrieves the children of the structure from the database.
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
@@ -179,7 +179,7 @@ public class Structures {
 	}
 
 	/**
-	 * Retrieves an structure with its children
+	 * Retrieves an structure with its children.
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database

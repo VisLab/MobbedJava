@@ -33,10 +33,10 @@ public class Elements {
 			+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Creates a Elements object
+	 * Creates a Elements object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 */
 	public Elements(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -52,6 +52,7 @@ public class Elements {
 	}
 
 	/**
+	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
 	 *            - the field name of the attribute
@@ -119,7 +120,7 @@ public class Elements {
 	}
 
 	/**
-	 * Sets the class fields of a Elements object
+	 * Sets the class fields of a Elements object.
 	 * 
 	 * @param modalityName
 	 *            - the name of the modality associated with the elements
@@ -150,7 +151,7 @@ public class Elements {
 		this.elementDescriptions = elementDescriptions;
 		this.elementPositions = elementPositions;
 		atb = new Attributes(dbCon);
-	} // reset
+	}
 
 	/**
 	 * Saves all elements as a batch. All elements in the batch will be
@@ -196,7 +197,7 @@ public class Elements {
 	 * to the number of elements in the stream.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 * @param datadefUuid
 	 *            - the UUID of the numeric stream data definition
 	 * @return the length of each array in the numeric stream

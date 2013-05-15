@@ -271,7 +271,7 @@ public class ManageDB {
 				inQry += constructQualificationQuery(inTableName, regExp, null,
 						null, inColumnNames, inColumnValues);
 				PreparedStatement inStmt = connection.prepareStatement(inQry);
-				setStructureStatementValues(inStmt, 1, inColumnNames,
+				setTableStatementValues(inStmt, 1, inColumnNames,
 						inColumnValues);
 				inQry = inStmt.toString();
 			}
@@ -280,7 +280,7 @@ public class ManageDB {
 				outQry += constructQualificationQuery(outTableName, regExp,
 						null, null, outColumnNames, outColumnValues);
 				PreparedStatement outStmt = connection.prepareStatement(outQry);
-				setStructureStatementValues(outStmt, 1, outColumnNames,
+				setTableStatementValues(outStmt, 1, outColumnNames,
 						outColumnValues);
 				outQry = outStmt.toString();
 			}
@@ -355,7 +355,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the column type of a column
+	 * Gets the type of a column.
 	 * 
 	 * @param columnName
 	 *            - the name of the column
@@ -366,7 +366,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets all of the columns types of a given table
+	 * Gets all of the columns types of a given table.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -382,7 +382,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets a database connection
+	 * Gets a database connection.
 	 * 
 	 * @return a database connection
 	 */
@@ -391,7 +391,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the default value of a column
+	 * Gets the default value of a column.
 	 * 
 	 * @param columnName
 	 *            - the name of the column
@@ -402,7 +402,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the columns that are double precision of a table
+	 * Gets the columns that are double precision of a table.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -421,7 +421,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the keys of a table
+	 * Gets the keys of a table.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -432,7 +432,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets all of the tables from the database
+	 * Gets all of the tables from the database.
 	 * 
 	 * @return the tables from the database
 	 */
@@ -443,7 +443,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Retrieves rows from a table by search criteria
+	 * Retrieves rows from a table given search criteria.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -493,7 +493,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Rollback the transaction
+	 * Rollback the transaction.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -508,7 +508,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets the auto commit mode of the connection
+	 * Sets the auto commit mode of the connection.
 	 * 
 	 * @param autoCommit
 	 *            - true to enable auto-commit mode, false to disable it
@@ -525,7 +525,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Adds elements to String array by index
+	 * Adds elements to a array by index.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -546,7 +546,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Adds a key value to a array
+	 * Adds a key value to a array.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -569,7 +569,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a insert query
+	 * Constructs a insert query.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -591,7 +591,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query based on search criteria
+	 * Constructs a query based on search criteria.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -634,7 +634,7 @@ public class ManageDB {
 						+ " WHERE ";
 			else
 				qry += " WHERE ";
-			qry += constructStructQuery(regExp, tableName, columnNames,
+			qry += constructTableQuery(regExp, tableName, columnNames,
 					columnValues);
 		}
 		qry += closer;
@@ -642,7 +642,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a select query
+	 * Constructs a select query.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -664,7 +664,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query associated with a table in the database
+	 * Constructs a query associated with a table in the database.
 	 * 
 	 * @param regExp
 	 *            - rather to allow regular expressions
@@ -676,7 +676,7 @@ public class ManageDB {
 	 *            - the values of the columns
 	 * @return a query string
 	 */
-	private String constructStructQuery(String regExp, String tableName,
+	private String constructTableQuery(String regExp, String tableName,
 			String[] columnNames, String[][] columnValues) {
 		String type;
 		String columnName;
@@ -708,7 +708,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a query associated with tags and attributes
+	 * Constructs a query associated with tags and attributes.
 	 * 
 	 * @param regExp
 	 *            - rather to allow regular expressions
@@ -754,7 +754,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Constructs a update query
+	 * Constructs a update query.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -779,7 +779,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Finds the indexes that contain key columns
+	 * Finds the indexes that contain key columns.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -800,7 +800,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Finds the index of a particular column
+	 * Finds the index of a particular column.
 	 * 
 	 * @param columnNames
 	 *            - the names of the columns
@@ -828,7 +828,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Generates the keys for insertion
+	 * Generates the keys for insertion.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of key indexes
@@ -859,7 +859,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes the hash maps that contain column metadata
+	 * Initializes the hashmaps that contain column metadata.
 	 * 
 	 * @param columnStatement
 	 *            - the prepared statement object used for the queries
@@ -898,7 +898,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes the hash maps
+	 * Initializes the hashmaps. The hashmaps contain metadata about columns and
+	 * the keys from each table.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -929,7 +930,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes a hashmap that contains the keys of each table
+	 * Initializes a hashmap that contains the keys of each table.
 	 * 
 	 * @param keyStatement
 	 *            - the prepared statement object used for the queries
@@ -956,7 +957,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if key columns are empty
+	 * Checks if key columns are empty.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of key indexes
@@ -983,7 +984,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if the given keys exist in the database
+	 * Checks if the given keys exist in the database.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of key indexes
@@ -1022,7 +1023,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Looks up the jdbc sql types of a given column
+	 * Looks up the jdbc sql types of a given column.
 	 * 
 	 * @param columnName
 	 *            - the name of the column
@@ -1053,7 +1054,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Populates an array with a result set
+	 * Populates an array with a result set.
 	 * 
 	 * @param rs
 	 *            - the result set object that contains the rows from the query
@@ -1084,7 +1085,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates a array of non-index elements
+	 * Creates a array of non-index elements.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -1106,8 +1107,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set values for a prepared statement object that inserts rows into the
-	 * database
+	 * Set the values for a prepared statement object that inserts rows into the
+	 * database.
 	 * 
 	 * @param pstmt
 	 *            - the prepared statement object used to do the queries
@@ -1145,7 +1146,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets the values of a query constructed by search criteria
+	 * Sets the values of a prepared statement object that retrieves rows from
+	 * the database.
 	 * 
 	 * @param pstmt
 	 *            - the prepared statement object used to do the query
@@ -1173,13 +1175,13 @@ public class ManageDB {
 			valueCount = setTagAttributesStatementValues(pstmt, valueCount,
 					attributes);
 		if (columnNames != null)
-			valueCount = setStructureStatementValues(pstmt, valueCount,
+			valueCount = setTableStatementValues(pstmt, valueCount,
 					columnNames, columnValues);
 	}
 
 	/**
-	 * Set values for a prepared statement object that selects rows from the
-	 * database
+	 * Set the values of a prepared statement object that retrieves rows from
+	 * the database.
 	 * 
 	 * @param pstmt
 	 *            - the prepared statement object used to do the query
@@ -1204,7 +1206,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets query values associated with a particular table
+	 * Sets the values of a prepared statement object that retrieves rows from a
+	 * particular table in the database.
 	 * 
 	 * @param pstmt
 	 *            - the prepared statement object used to do the query
@@ -1219,7 +1222,7 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private int setStructureStatementValues(PreparedStatement pstmt,
+	private int setTableStatementValues(PreparedStatement pstmt,
 			int valueCount, String[] columnNames, String[][] columnValues)
 			throws MobbedException {
 		int numColumns = columnNames.length;
@@ -1245,7 +1248,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Sets tag or attribute query values
+	 * Sets the values of a prepared statement object that retrieves rows from
+	 * the attributes or tags table in the database.
 	 * 
 	 * @param pstmt
 	 *            - the prepared statement object used to do the query
@@ -1277,8 +1281,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set values for a prepared statement object that updates rows in the
-	 * database
+	 * Set the values of a prepared statement object that updates rows in the
+	 * database.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -1329,7 +1333,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates the column names of a table in the database
+	 * Validates the column names of a table in the database.
 	 * 
 	 * @param columnNames
 	 *            - the names of the columns in a table
@@ -1350,7 +1354,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates a given column value
+	 * Validates a given column value.
 	 * 
 	 * @param columnName
 	 *            - the name of the column
@@ -1380,7 +1384,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates a table name in the database
+	 * Validates a table name in the database.
 	 * 
 	 * @param tableName
 	 *            - the name of the table in the database
@@ -1397,7 +1401,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks for active connections
+	 * Checks for active connections.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1431,7 +1435,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates credentials that are stored in a property file
+	 * Stores the database credentials in a property file.
 	 * 
 	 * @param filename
 	 *            - the filename of the property file
@@ -1464,7 +1468,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates a database
+	 * Creates a database. The database will be created from a valid SQL file.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1504,7 +1508,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes a database
+	 * Deletes a database. There must be no active connections to delete the
+	 * database.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1542,7 +1547,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Executes a sql statement
+	 * Executes a SQL statement.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1596,6 +1601,7 @@ public class ManageDB {
 	}
 
 	/**
+	 * Creates a database. The database is only created.
 	 * 
 	 * @param dbCon
 	 *            - the connection to the database
@@ -1623,12 +1629,12 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates the database tables from a sql file
+	 * Creates the database tables from a valid SQL file.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
 	 * @param filename
-	 *            - the name of the sql file
+	 *            - the name of the SQL file
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1659,7 +1665,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes the oids in the datadefs table
+	 * Deletes the oids in the datadefs table.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1691,7 +1697,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes the oids in the datasets table
+	 * Deletes the oids in the datasets table.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1751,7 +1757,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Establishes a connection to a database
+	 * Establishes a connection to a database.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1786,7 +1792,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if a string is empty
+	 * Checks if a string is empty.
 	 * 
 	 * @param s
 	 * @return true if the string is empty, false if otherwise
@@ -1801,7 +1807,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if a array is empty
+	 * Checks if a array is empty.
 	 * 
 	 * @param o
 	 * @return true if the array is empty, false if otherwise

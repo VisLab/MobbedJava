@@ -24,10 +24,10 @@ public class EventTypes {
 	private HashMap<String, UUID> etMap;
 
 	/**
-	 * Creates a EventTypes object
+	 * Creates a EventTypes object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 */
 	public EventTypes(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -38,7 +38,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Adds a event type to the hashmap
+	 * Adds a event type to the hashmap.
 	 * 
 	 * @param eventType
 	 *            - the name of the event type
@@ -50,7 +50,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Checks if the hashmap contains the event type
+	 * Checks if the hashmap contains the event type.
 	 * 
 	 * @param eventType
 	 *            - the name of the event type
@@ -61,7 +61,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Gets the event type UUID from the hashmap
+	 * Gets the event type UUID from the hashmap.
 	 * 
 	 * @param eventType
 	 *            - the name of the event type
@@ -72,7 +72,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Gets the event type UUID from the event type
+	 * Gets the event type UUID from the event type.
 	 * 
 	 * @return the UUID of the event type
 	 */
@@ -81,7 +81,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Gets the string representation of the event type UUIDs
+	 * Gets the string representation of the event type UUIDs.
 	 * 
 	 * @return the string representation of the event type UUIDs
 	 */
@@ -95,7 +95,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Sets the class fields of a Event Type object
+	 * Sets the class fields of a Event Type object.
 	 * 
 	 * @param eventType
 	 *            - the name of the event type
@@ -109,7 +109,7 @@ public class EventTypes {
 	}
 
 	/**
-	 * Retrieves the event types from the database and puts them into a hashmap
+	 * Retrieves the event types from the database and puts them into a hashmap.
 	 * 
 	 * @param eventTypeUuids
 	 *            - the UUIDs of the event types that exist in the database

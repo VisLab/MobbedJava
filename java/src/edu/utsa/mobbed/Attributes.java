@@ -28,10 +28,10 @@ public class Attributes {
 			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 	/**
-	 * Creates a Attributes object
+	 * Creates a Attributes object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -76,7 +76,7 @@ public class Attributes {
 	}
 
 	/**
-	 * Sets the class fields of a Attributes object
+	 * Sets the class fields of a Attributes object.
 	 * 
 	 * @param attributeUuid
 	 *            - UUID of the attribute

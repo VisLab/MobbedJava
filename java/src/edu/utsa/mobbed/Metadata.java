@@ -20,10 +20,10 @@ public class Metadata {
 	private String modalityName;
 
 	/**
-	 * Creates a Metadata object
+	 * Creates a Metadata object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            - a connection to the database
 	 */
 	public Metadata(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -33,7 +33,7 @@ public class Metadata {
 	}
 
 	/**
-	 * Adds a new attribute
+	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
 	 *            - name of the field
@@ -56,7 +56,7 @@ public class Metadata {
 	}
 
 	/**
-	 * Sets the class fields of a Metadata object
+	 * Sets the class fields of a Metadata object.
 	 * 
 	 * @param modalityName
 	 *            - the name of the modality
