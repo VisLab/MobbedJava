@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-//import java.security.MessageDigest;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -50,7 +49,7 @@ public class ManageDB {
 	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
-	 * Creates a ManageDB object
+	 * Creates a ManageDB object.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -62,7 +61,8 @@ public class ManageDB {
 	 *            - the password of the database
 	 * @param verbose
 	 *            - prints informative messages if true
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public ManageDB(String dbname, String hostname, String username,
 			String password, boolean verbose) throws MobbedException {
@@ -208,7 +208,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Commits the database transaction
+	 * Commits the database transaction.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -223,7 +223,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Extracts inter-related rows
+	 * Extracts inter-related rows.
 	 * 
 	 * @param inTableName
 	 *            - the name of the table
@@ -301,14 +301,15 @@ public class ManageDB {
 	}
 
 	/**
-	 * Extracts unique inter-related rows
+	 * Extracts unique inter-related rows.
 	 * 
 	 * @param extractedRows
 	 *            - the rows that were previously extracted
 	 * @param limit
 	 *            - the maximum number of rows to return
 	 * @return the unique rows returned by the search
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public String[][] extractUniqueRows(String[][] extractedRows, int limit)
 			throws MobbedException {
@@ -343,7 +344,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the column names of a table
+	 * Gets the column names of a table.
 	 * 
 	 * @param tableName
 	 *            - the name of the table
@@ -451,30 +452,43 @@ public class ManageDB {
 	 * @param regExp
 	 *            - rather to allow regular expressions
 	 * @param tags
-	 *            -
+	 *            - the tags search criteria
 	 * @param attributes
+	 *            - the attributes search criteria
 	 * @param columnNames
+	 *            - the name of the columns
 	 * @param columnValues
+	 *            - the values of the columns
 	 * @return
-	 * @throws Exception
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
-			String[] columnNames, String[][] columnValues) throws Exception {
+			String[] columnNames, String[][] columnValues)
+			throws MobbedException {
 		validateTableName(tableName);
 		String qry = "SELECT * FROM " + tableName;
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
 				columnNames, columnValues);
 		if (limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + limit;
-		PreparedStatement pstmt = connection.prepareStatement(qry,
-				ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
-				columnValues);
-		if (verbose)
-			System.out.println(pstmt);
-		ResultSet rs = pstmt.executeQuery();
-		String[][] rows = populateArray(rs);
+		String[][] rows;
+		try {
+			PreparedStatement pstmt = connection.prepareStatement(qry,
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
+					columnValues);
+			ResultSet rs = pstmt.executeQuery();
+			rows = populateArray(rs);
+			if (verbose)
+				System.out.println(pstmt);
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not execute query to retrieve rows\n"
+							+ ex.getNextException().getMessage());
+		}
 		return rows;
 	}
 
@@ -514,11 +528,12 @@ public class ManageDB {
 	 * Adds elements to String array by index
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param array
-	 * @return
+	 *            - a array that contains the column names
+	 * @return a array that contains the key columns
 	 */
 	private String[] addByIndex(ArrayList<Integer> keyIndexes, String[] array) {
-		// Used to get key column names and values
 		String[] newArray = new String[keyIndexes.size()];
 		int j = 0;
 		for (int i = 0; i < keyIndexes.size(); i++) {
@@ -630,9 +645,12 @@ public class ManageDB {
 	 * Constructs a select query
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
-	 * @return
+	 *            - the names of the columns
+	 * @return a select query string
 	 */
 	private String constructSelectQuery(ArrayList<Integer> keyIndexes,
 			String tableName, String[] columnNames) {
@@ -764,8 +782,10 @@ public class ManageDB {
 	 * Finds the indexes that contain key columns
 	 * 
 	 * @param tableName
+	 *            - the name of the table
 	 * @param columnNames
-	 * @return
+	 *            - the names of the columns
+	 * @return the indexes of the key columns
 	 */
 	private ArrayList<Integer> findKeyIndexes(String tableName,
 			String[] columnNames) {
@@ -786,7 +806,7 @@ public class ManageDB {
 	 *            - the names of the columns
 	 * @param columnName
 	 *            - the name of the column that the index is searched for
-	 * @return the index of the column name in the array
+	 * @return the index of the column name
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1039,6 +1059,7 @@ public class ManageDB {
 	 *            - the result set object that contains the rows from the query
 	 * @return an array that mirrors the rows in the result set
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private String[][] populateArray(ResultSet rs) throws MobbedException {
 		String[][] allocatedArray;
@@ -1066,8 +1087,10 @@ public class ManageDB {
 	 * Creates a array of non-index elements
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param array
-	 * @return
+	 *            - a array that contains the column names
+	 * @return a array that contains non key columns
 	 */
 	private String[] removeByIndex(ArrayList<Integer> keyIndexes, String[] array) {
 		// Used to get non-key column names and values
@@ -1083,31 +1106,41 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set values for insert prepared statement
+	 * Set values for a prepared statement object that inserts rows into the
+	 * database
 	 * 
 	 * @param pstmt
+	 *            - the prepared statement object used to do the queries
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @throws SQLException
+	 *            - the values of the columns
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void setInsertStatementValues(PreparedStatement pstmt,
 			String[] columnNames, String[] columnValues, Double[] doubleValues)
-			throws SQLException {
+			throws MobbedException {
 		int numColumns = columnNames.length;
 		int i = 0;
 		int j = 0;
-		for (int k = 0; k < numColumns; k++) {
-			int targetType = lookupTargetType(columnNames[k]);
-			if (doubleValues != null && targetType == Types.DOUBLE) {
-				if (doubleValues[i] != null)
-					pstmt.setDouble(k + 1, doubleValues[i]);
-				else
-					pstmt.setObject(k + 1, doubleValues[i]);
-				i++;
-			} else {
-				pstmt.setObject(k + 1, columnValues[j], targetType);
-				j++;
+		try {
+			for (int k = 0; k < numColumns; k++) {
+				int targetType = lookupTargetType(columnNames[k]);
+				if (doubleValues != null && targetType == Types.DOUBLE) {
+					if (doubleValues[i] != null)
+						pstmt.setDouble(k + 1, doubleValues[i]);
+					else
+						pstmt.setObject(k + 1, doubleValues[i]);
+					i++;
+				} else {
+					pstmt.setObject(k + 1, columnValues[j], targetType);
+					j++;
+				}
 			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not set value\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -1115,16 +1148,23 @@ public class ManageDB {
 	 * Sets the values of a query constructed by search criteria
 	 * 
 	 * @param pstmt
+	 *            - the prepared statement object used to do the query
 	 * @param qry
+	 *            - the query that will be executed
 	 * @param tags
+	 *            - the values of the tags search criteria
 	 * @param attributes
+	 *            - the values of the attributes search criteria
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @throws Exception
+	 *            - the values of the columns
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void setQaulificationValues(PreparedStatement pstmt, String qry,
 			String[][] tags, String[][] attributes, String[] columnNames,
-			String[][] columnValues) throws Exception {
+			String[][] columnValues) throws MobbedException {
 		int valueCount = 1;
 		if (tags != null)
 			valueCount = setTagAttributesStatementValues(pstmt, valueCount,
@@ -1138,26 +1178,36 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set values for select prepared statement
+	 * Set values for a prepared statement object that selects rows from the
+	 * database
 	 * 
 	 * @param pstmt
+	 *            - the prepared statement object used to do the query
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @throws SQLException
+	 *            - the values of the columns
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void setSelectStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues) throws SQLException {
+			String[] columnNames, String[] columnValues) throws MobbedException {
 		for (int i = 0; i < columnValues.length; i++) {
 			int targetType = lookupTargetType(columnNames[i]);
-			pstmt.setObject(i + 1, columnValues[i], targetType);
+			try {
+				pstmt.setObject(i + 1, columnValues[i], targetType);
+			} catch (SQLException ex) {
+				throw new MobbedException("Could not set value\n"
+						+ ex.getNextException().getMessage());
+			}
 		}
 	}
 
 	/**
-	 * Sets structure array query values
+	 * Sets query values associated with a particular table
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object that contains the query
+	 *            - the prepared statement object used to do the query
 	 * @param valueCount
 	 *            - the number of values passed in so far
 	 * @param columnNames
@@ -1198,19 +1248,28 @@ public class ManageDB {
 	 * Sets tag or attribute query values
 	 * 
 	 * @param pstmt
+	 *            - the prepared statement object used to do the query
 	 * @param valueCount
+	 *            - the number of values passed in so far
 	 * @param values
+	 *            - the values of the tags or attributes search criteria
 	 * @return
-	 * @throws SQLException
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private int setTagAttributesStatementValues(PreparedStatement pstmt,
-			int valueCount, String[][] values) throws SQLException {
+			int valueCount, String[][] values) throws MobbedException {
 		int numGroups = values.length;
 		for (int i = 0; i < numGroups; i++) {
 			int numValues = values[i].length;
 			for (int j = 0; j < numValues; j++) {
 				values[i][j] = values[i][j].toUpperCase();
-				pstmt.setObject(valueCount, values[i][j], Types.VARCHAR);
+				try {
+					pstmt.setObject(valueCount, values[i][j], Types.VARCHAR);
+				} catch (SQLException ex) {
+					throw new MobbedException("Could not set value\n"
+							+ ex.getNextException().getMessage());
+				}
 				valueCount++;
 			}
 		}
@@ -1218,17 +1277,26 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set values for update prepared statement
+	 * Set values for a prepared statement object that updates rows in the
+	 * database
 	 * 
 	 * @param keyIndexes
+	 *            - a list of the key indexes
 	 * @param pstmt
+	 *            - the prepared statement object used to do the query
 	 * @param columnNames
+	 *            - the names of the columns
 	 * @param columnValues
-	 * @throws SQLException
+	 *            - the values of the columns
+	 * @param doubleValues
+	 *            - the double precision values of the columns
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private void setUpdateStatementValues(ArrayList<Integer> keyIndexes,
 			PreparedStatement pstmt, String[] columnNames,
-			String[] columnValues, Double[] doubleValues) throws SQLException {
+			String[] columnValues, Double[] doubleValues)
+			throws MobbedException {
 		String[] keyColumns = addByIndex(keyIndexes, columnNames);
 		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
 		String[] keyValues = addByIndex(keyIndexes, columnValues);
@@ -1236,22 +1304,27 @@ public class ManageDB {
 		int i;
 		int k = 0;
 		int l = 0;
-		for (i = 0; i < nonKeyColumns.length; i++) {
-			int targetType = lookupTargetType(nonKeyColumns[i]);
-			if (doubleValues != null && targetType == Types.DOUBLE) {
-				if (doubleValues[k] != null)
-					pstmt.setDouble(i + 1, doubleValues[k]);
-				else
-					pstmt.setObject(i + 1, doubleValues[k]);
-				k++;
-			} else {
-				pstmt.setObject(i + 1, nonKeyValues[l], targetType);
-				l++;
+		try {
+			for (i = 0; i < nonKeyColumns.length; i++) {
+				int targetType = lookupTargetType(nonKeyColumns[i]);
+				if (doubleValues != null && targetType == Types.DOUBLE) {
+					if (doubleValues[k] != null)
+						pstmt.setDouble(i + 1, doubleValues[k]);
+					else
+						pstmt.setObject(i + 1, doubleValues[k]);
+					k++;
+				} else {
+					pstmt.setObject(i + 1, nonKeyValues[l], targetType);
+					l++;
+				}
 			}
-		}
-		for (int j = 0; j < keyColumns.length; j++) {
-			int targetType = lookupTargetType(keyColumns[j]);
-			pstmt.setObject(i + j + 1, keyValues[j], targetType);
+			for (int j = 0; j < keyColumns.length; j++) {
+				int targetType = lookupTargetType(keyColumns[j]);
+				pstmt.setObject(i + j + 1, keyValues[j], targetType);
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not set value\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -1327,17 +1400,31 @@ public class ManageDB {
 	 * Checks for active connections
 	 * 
 	 * @param dbCon
-	 * @throws Exception
+	 *            - a connection to the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static void checkForActiveConnections(Connection dbCon)
-			throws Exception {
-		Statement stmt = dbCon.createStatement();
-		String qry = "SELECT count(pid) from pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()";
-		ResultSet rs = stmt.executeQuery(qry);
-		rs.next();
-		int otherConnections = rs.getInt(1);
+			throws MobbedException {
+		int otherConnections;
+		try {
+			Statement stmt = dbCon.createStatement();
+			String qry = "SELECT count(pid) from pg_stat_activity WHERE datname = current_database() AND pid <> pg_backend_pid()";
+			ResultSet rs = stmt.executeQuery(qry);
+			rs.next();
+			otherConnections = rs.getInt(1);
+		} catch (SQLException ex1) {
+			throw new MobbedException(
+					"Could not execute query to get active connections\n"
+							+ ex1.getNextException().getMessage());
+		}
 		if (otherConnections > 0) {
-			dbCon.close();
+			try {
+				dbCon.close();
+			} catch (SQLException ex2) {
+				throw new MobbedException("Could not close connection\n"
+						+ ex2.getNextException().getMessage());
+			}
 			throw new MobbedException(
 					"Close all connections before dropping the database");
 		}
@@ -1347,14 +1434,21 @@ public class ManageDB {
 	 * Creates credentials that are stored in a property file
 	 * 
 	 * @param filename
+	 *            - the filename of the property file
 	 * @param dbname
+	 *            - the name of the database
 	 * @param hostname
+	 *            - the host name of the database
 	 * @param username
+	 *            - the user name of the database
 	 * @param password
-	 * @throws Exception
+	 *            - the password of the database
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static void createCredentials(String filename, String dbname,
-			String hostname, String username, String password) throws Exception {
+			String hostname, String username, String password)
+			throws MobbedException {
 		Properties prop = new Properties();
 		try {
 			prop.setProperty("dbname", dbname);
@@ -1362,38 +1456,51 @@ public class ManageDB {
 			prop.setProperty("username", username);
 			prop.setProperty("password", password);
 			prop.store(new FileOutputStream(filename), null);
-		} catch (Exception me) {
-			throw new MobbedException("Could not create credentials");
+		} catch (IOException ex) {
+			throw new MobbedException("Could not create credentials\n"
+					+ ex.getMessage());
 		}
 
 	}
 
 	/**
-	 * Creates and sets up a database
+	 * Creates a database
 	 * 
-	 * @param name
+	 * @param dbname
+	 *            - the name of the database
 	 * @param hostname
-	 * @param user
+	 *            - the host name of the database
+	 * @param username
+	 *            - the user name of the database
 	 * @param password
-	 * @param tablePath
+	 *            - the password of the database
+	 * @param filename
+	 *            - the file name of the sql file
 	 * @param verbose
-	 * @throws Exception
+	 *            - prints informative messages if true
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public static void createDatabase(String name, String hostname,
-			String user, String password, String filename, boolean verbose)
-			throws Exception {
+	public static void createDatabase(String dbname, String hostname,
+			String username, String password, String filename, boolean verbose)
+			throws MobbedException {
 		if (isEmpty(filename))
 			throw new MobbedException("SQL script does not exist");
-		Connection templateConnection = establishConnection(templateName,
-				hostname, user, password);
-		createDatabase(templateConnection, name);
-		templateConnection.close();
-		Connection databaseConnection = establishConnection(name, hostname,
-				user, password);
-		createTables(databaseConnection, filename);
-		databaseConnection.close();
+		try {
+			Connection templateConnection = establishConnection(templateName,
+					hostname, username, password);
+			createDatabase(templateConnection, dbname);
+			templateConnection.close();
+			Connection databaseConnection = establishConnection(dbname,
+					hostname, username, password);
+			createTables(databaseConnection, filename);
+			databaseConnection.close();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not create database\n"
+					+ ex.getNextException().getMessage());
+		}
 		if (verbose)
-			System.out.println("Database " + name + " created");
+			System.out.println("Database " + dbname + " created");
 	}
 
 	/**
@@ -1413,17 +1520,23 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	public static void deleteDatabase(String dbname, String hostname,
-			String username, String password, boolean verbose) throws Exception {
-		Connection databaseConnection = establishConnection(dbname, hostname,
-				username, password);
-		checkForActiveConnections(databaseConnection);
-		deleteDatasetOids(databaseConnection);
-		deleteDataDefOids(databaseConnection);
-		databaseConnection.close();
-		Connection templateConnection = establishConnection(templateName,
-				hostname, username, password);
-		dropDatabase(templateConnection, dbname);
-		templateConnection.close();
+			String username, String password, boolean verbose)
+			throws MobbedException {
+		try {
+			Connection databaseConnection = establishConnection(dbname,
+					hostname, username, password);
+			checkForActiveConnections(databaseConnection);
+			deleteDatasetOids(databaseConnection);
+			deleteDataDefOids(databaseConnection);
+			databaseConnection.close();
+			Connection templateConnection = establishConnection(templateName,
+					hostname, username, password);
+			dropDatabase(templateConnection, dbname);
+			templateConnection.close();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not delete the database\n"
+					+ ex.getNextException().getMessage());
+		}
 		if (verbose)
 			System.out.println("Database " + dbname + " dropped");
 	}
@@ -1479,7 +1592,6 @@ public class ManageDB {
 		credentials[1] = prop.getProperty("hostname");
 		credentials[2] = prop.getProperty("username");
 		credentials[3] = prop.getProperty("password");
-
 		return credentials;
 	}
 
@@ -1515,8 +1627,8 @@ public class ManageDB {
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
-	 * @param path
-	 *            - the path to the sql file
+	 * @param filename
+	 *            - the name of the sql file
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1547,10 +1659,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes the oids in datadefs table
+	 * Deletes the oids in the datadefs table
 	 * 
 	 * @param dbCon
-	 *            - connection to the database
+	 *            - a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1579,7 +1691,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Deletes the oids in datasets table
+	 * Deletes the oids in the datasets table
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database

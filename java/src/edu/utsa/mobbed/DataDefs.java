@@ -18,7 +18,7 @@ import org.xml.sax.InputSource;
 
 /**
  * Handler class for DATADEFS table. The DATADEFS table identifies a piece of
- * data (an array, a blob, a stream, or a file).
+ * data (an array, a blob, or a stream).
  * 
  * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
@@ -27,16 +27,21 @@ import org.xml.sax.InputSource;
 public class Datadefs {
 
 	/**
-	 * Retireves a blob
+	 * Retrieves a blob from the database
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param pathName
+	 *            - the name of the file that contains the blob
 	 * @param entityUuid
+	 *            - the entity UUID that is associated
 	 * @param additional
-	 * @throws Exception
+	 *            - is the blob addition data
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public static void retrieveBlob(Connection dbCon, String pathName,
-			String entityUuid, boolean additional) throws Exception {
+	public static void retrieveBlob(Connection dbCon, String filename,
+			String entityUuid, boolean additional) throws MobbedException {
 		String query;
 		if (additional)
 			query = "SELECT DATASET_OID FROM DATASETS WHERE DATASET_UUID = ? AND DATASET_OID IS NOT NULL LIMIT 1";
@@ -51,7 +56,7 @@ public class Datadefs {
 			if (rs.next()) {
 				long oid = rs.getLong(1);
 				LargeObject obj = lobj.open(oid, LargeObjectManager.READ);
-				File file = new File(pathName);
+				File file = new File(filename);
 				FileOutputStream fos = new FileOutputStream(file);
 				int fileLength = obj.size();
 				byte buf[] = new byte[65536];
@@ -76,12 +81,15 @@ public class Datadefs {
 	 * Retrieves a numeric value data definition
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datadefUuid
-	 * @return
-	 * @throws Exception
+	 *            - the data definition UUID that is associated
+	 * @return a array that contains the data
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static Object retrieveNumericValue(Connection dbCon,
-			String datadefUuid) throws Exception {
+			String datadefUuid) throws MobbedException {
 		Object numericData = null;
 		String selectQry = "SELECT NUMERIC_VALUE_DATA_VALUE FROM NUMERIC_VALUES WHERE NUMERIC_VALUE_DEF_UUID = ?";
 		try {
@@ -90,8 +98,9 @@ public class Datadefs {
 			ResultSet rs = insertStmt.executeQuery();
 			if (rs.next())
 				numericData = rs.getArray(1).getArray();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve numeric values");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve numeric values\n"
+					+ ex.getNextException().getMessage());
 		}
 		return numericData;
 	}
@@ -100,12 +109,15 @@ public class Datadefs {
 	 * Retrieves a xml value data definition
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datadefUuid
-	 * @return
-	 * @throws Exception
+	 *            - the data definition UUID that is associated
+	 * @return a string that contains the data
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static String retrieveXMLValue(Connection dbCon, String datadefUuid)
-			throws Exception {
+			throws MobbedException {
 		String xmlData = null;
 		String selectQry = "SELECT XML_VALUE_DATA_VALUE FROM XML_VALUES WHERE XML_VALUE_DEF_UUID = ?";
 		try {
@@ -114,8 +126,9 @@ public class Datadefs {
 			ResultSet rs = insertStmt.executeQuery();
 			if (rs.next())
 				xmlData = rs.getString(1);
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve xml data");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve xml values\n"
+					+ ex.getNextException().getMessage());
 		}
 		return xmlData;
 	}
@@ -124,21 +137,26 @@ public class Datadefs {
 	 * Stores a blob
 	 * 
 	 * @param dbCon
-	 * @param pathName
+	 *            - a connection to the database
+	 * @param filename
+	 *            - the name of the file that contains the blob
 	 * @param entityUuid
+	 *            - the entity UUID that is associated
 	 * @param additional
-	 * @return
-	 * @throws Exception
+	 *            -
+	 * @return a oid associated with the blob stored
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	public static long storeBlob(Connection dbCon, String pathName,
-			String entityUuid, boolean additional) throws Exception {
+	public static long storeBlob(Connection dbCon, String filename,
+			String entityUuid, boolean additional) throws MobbedException {
 		long oid = 0;
 		try {
 			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
 					.getLargeObjectAPI();
 			oid = lobj.createLO();
 			LargeObject obj = lobj.open(oid, LargeObjectManager.WRITE);
-			File file = new File(pathName);
+			File file = new File(filename);
 			FileInputStream fis = new FileInputStream(file);
 			long fileLength = file.length();
 			byte[] buff = new byte[65536];
@@ -155,9 +173,8 @@ public class Datadefs {
 				createDatasetOid(dbCon, entityUuid, oid);
 			else
 				createdatadefOid(dbCon, entityUuid, oid);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not save blob\n"
-					+ ex.getNextException().getMessage());
+		} catch (Exception ex) {
+			throw new MobbedException("Could not save blob");
 		}
 		return oid;
 	}
@@ -166,12 +183,16 @@ public class Datadefs {
 	 * Stores a numeric value data definition
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datadefUuid
+	 *            - the data definition UUID that is associated
 	 * @param numericValue
-	 * @throws Exception
+	 *            - the values for the numeric values data definition
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static void storeNumericValue(Connection dbCon, String datadefUuid,
-			Object[] numericValue) throws Exception {
+			Object[] numericValue) throws MobbedException {
 		String insertQry = "INSERT INTO NUMERIC_VALUES (NUMERIC_VALUE_DEF_UUID, NUMERIC_VALUE_DATA_VALUE) VALUES (?,?)";
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
@@ -179,8 +200,9 @@ public class Datadefs {
 			insertStmt.setObject(1, UUID.fromString(datadefUuid));
 			insertStmt.setArray(2, sqlArray);
 			insertStmt.execute();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save numeric values");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save numeric values\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -188,15 +210,19 @@ public class Datadefs {
 	 * Stores a xml value data definition
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datadefUuid
+	 *            - the data definition UUID that is associated
 	 * @param xml
-	 * @throws Exception
+	 *            - the value for the xml value definition
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static void storeXMLValue(Connection dbCon, String datadefUuid,
-			String xml) throws Exception {
+			String xml) throws MobbedException {
 		String insertQry = "INSERT INTO XML_VALUES (XML_VALUE_DEF_UUID, XML_VALUE_DATA_VALUE) VALUES (?,?)";
+		validateXMLValue(xml);
 		try {
-			validateXMLValue(xml);
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
 			insertStmt.setObject(1, UUID.fromString(datadefUuid));
 			insertStmt.setString(2, xml);
@@ -210,21 +236,25 @@ public class Datadefs {
 	 * Creates a oid for a data definition
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datadefUuid
+	 *            - the data definition UUID that is associated
 	 * @param oid
-	 * @return
-	 * @throws Exception
+	 *            - the oid that was created from storing the blob
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private static void createdatadefOid(Connection dbCon, String datadefUuid,
-			long oid) throws Exception {
+			long oid) throws MobbedException {
 		String updateQry = "UPDATE DATADEFS SET DATADEF_OID = ? WHERE DATADEF_UUID = ?";
 		try {
 			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
 			stmt.setLong(1, oid);
 			stmt.setObject(2, datadefUuid, Types.OTHER);
 			stmt.executeUpdate();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not update datadef oid");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not update datadef oid\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -232,21 +262,26 @@ public class Datadefs {
 	 * Creates a oid for a dataset
 	 * 
 	 * @param dbCon
+	 *            - a connection to the database
 	 * @param datasetUuid
+	 *            - the UUID of the dataset that is associated
 	 * @param oid
-	 * @return
-	 * @throws Exception
+	 *            - the oid that was created from storing the blob
+	 * 
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	private static void createDatasetOid(Connection dbCon, String datasetUuid,
-			long oid) throws Exception {
+			long oid) throws MobbedException {
 		String updateQry = "UPDATE DATASETS SET DATASET_OID = ? WHERE DATASET_UUID = ?";
 		try {
 			PreparedStatement stmt = dbCon.prepareStatement(updateQry);
 			stmt.setLong(1, oid);
 			stmt.setObject(2, UUID.fromString(datasetUuid), Types.OTHER);
 			stmt.executeUpdate();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not update dataset oid");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not update dataset oid\n"
+					+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -254,22 +289,28 @@ public class Datadefs {
 	 * Validates xml value data definition
 	 * 
 	 * @param xml
-	 * @throws Exception
+	 *            - the xml that will be validated
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static void validateXMLValue(String xml) throws Exception {
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		InputSource is = new InputSource();
-		Pattern p = Pattern.compile("^\\s*<\\?.*\\?>");
-		Matcher m = p.matcher(xml);
-		if (m.lookingAt())
-			is.setCharacterStream(new StringReader(m.replaceFirst(m.group()
-					+ " <fakeroot>")
-					+ " </fakeroot>"));
-		else
-			is.setCharacterStream(new StringReader("<fakeroot> " + xml
-					+ "</fakeroot>"));
-		db.parse(is);
+	private static void validateXMLValue(String xml) throws MobbedException {
+		try {
+			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+			DocumentBuilder db = dbf.newDocumentBuilder();
+			InputSource is = new InputSource();
+			Pattern p = Pattern.compile("^\\s*<\\?.*\\?>");
+			Matcher m = p.matcher(xml);
+			if (m.lookingAt())
+				is.setCharacterStream(new StringReader(m.replaceFirst(m.group()
+						+ " <fakeroot>")
+						+ " </fakeroot>"));
+			else
+				is.setCharacterStream(new StringReader("<fakeroot> " + xml
+						+ "</fakeroot>"));
+			db.parse(is);
+		} catch (Exception ex) {
+			throw new MobbedException("XML is invalid");
+		}
 	}
 
 }
