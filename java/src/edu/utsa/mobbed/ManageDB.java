@@ -255,8 +255,6 @@ public class ManageDB {
 			String regExp, double lower, double upper) throws MobbedException {
 		validateTableName(inTableName);
 		validateTableName(outTableName);
-		validateColumnNames(inColumnNames);
-		validateColumnNames(outColumnNames);
 		ResultSet rs;
 		String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
 		String[] columns = getColumnNames(inTableName);
@@ -1346,7 +1344,7 @@ public class ManageDB {
 			throws MobbedException {
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
-			if (getColumnType(columnNames[i]) == null)
+			if (getColumnType(columnNames[i].toLowerCase()) == null)
 				throw new MobbedException("column " + columnNames[i]
 						+ " is an invalid column type");
 		}
@@ -1394,7 +1392,7 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	private boolean validateTableName(String tableName) throws MobbedException {
-		if (getColumnNames(tableName) == null)
+		if (getColumnNames(tableName.toLowerCase()) == null)
 			throw new MobbedException("table " + tableName
 					+ " is an invalid table");
 		return true;
