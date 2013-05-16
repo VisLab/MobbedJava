@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.postgresql.largeobject.LargeObjectManager;
 
@@ -294,7 +296,7 @@ public class ManageDB {
 			throw new MobbedException("Could not extract rows\n"
 					+ ex.getNextException().getMessage());
 		}
-		String[][] rows = populateArray(rs);
+		String[][] rows = formatExtracted(populateArray(rs));
 		return rows;
 	}
 
@@ -823,6 +825,26 @@ public class ManageDB {
 			throw new MobbedException("Could not find the index of the column "
 					+ columnName);
 		return index;
+	}
+
+	/**
+	 * * Formats the extracted column
+	 * 
+	 * @param extracted
+	 *            - The array that contains the extracted column
+	 * 
+	 * @return the array with a formatted extracted column
+	 */
+	private String[][] formatExtracted(String[][] extracted) {
+		int extractedCol = extracted[0].length - 1;
+		for (int i = 0; i < extracted.length; i++) {
+			Pattern uuidPattern = Pattern.compile("(?<=\\{)([^}]*)(?=\\})");
+			Matcher uuidMatcher = uuidPattern
+					.matcher(extracted[i][extractedCol]);
+			uuidMatcher.find();
+			extracted[i][extractedCol] = uuidMatcher.group();
+		}
+		return extracted;
 	}
 
 	/**
