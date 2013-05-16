@@ -351,7 +351,7 @@ public class ManageDB {
 	 * @return the columns of the table
 	 */
 	public String[] getColumnNames(String tableName) {
-		return columnMap.get(tableName);
+		return columnMap.get(tableName.toLowerCase());
 	}
 
 	/**
@@ -362,7 +362,7 @@ public class ManageDB {
 	 * @return the type of the column
 	 */
 	public String getColumnType(String columnName) {
-		return typeMap.get(columnName);
+		return typeMap.get(columnName.toLowerCase());
 	}
 
 	/**
@@ -373,7 +373,7 @@ public class ManageDB {
 	 * @return the types of the columns in the table
 	 */
 	public String[] getColumnTypes(String tableName) {
-		String[] columnNames = getColumnNames(tableName);
+		String[] columnNames = getColumnNames(tableName.toLowerCase());
 		int numColumns = columnNames.length;
 		String[] columnTypes = new String[numColumns];
 		for (int i = 0; i < numColumns; i++)
@@ -398,7 +398,7 @@ public class ManageDB {
 	 * @return the default value of a column
 	 */
 	public String getDefaultValue(String columnName) {
-		return defaultValues.get(columnName);
+		return defaultValues.get(columnName.toLowerCase());
 	}
 
 	/**
@@ -410,7 +410,7 @@ public class ManageDB {
 	 */
 	public String[] getDoubleColumns(String tableName) {
 		ArrayList<String> al = new ArrayList<String>();
-		String[] columns = columnMap.get(tableName);
+		String[] columns = columnMap.get(tableName.toLowerCase());
 		int numColumns = columns.length;
 		for (int i = 0; i < numColumns; i++) {
 			if (typeMap.get(columns[i]).equalsIgnoreCase("double precision"))
@@ -428,7 +428,7 @@ public class ManageDB {
 	 * @return the keys in the table
 	 */
 	public String[] getKeys(String tableName) {
-		return keyMap.get(tableName);
+		return keyMap.get(tableName.toLowerCase());
 	}
 
 	/**
@@ -1386,7 +1386,7 @@ public class ManageDB {
 	 */
 	private boolean validateColumnValue(String columnName, String columnValue)
 			throws MobbedException {
-		String type = typeMap.get(columnName);
+		String type = typeMap.get(columnName.toLowerCase());
 		try {
 			if (type.equalsIgnoreCase("uuid"))
 				UUID.fromString(columnValue);
