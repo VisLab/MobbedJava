@@ -80,15 +80,18 @@ public class ManageDB {
 	 * columns that already exist in the database.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns in the table
+	 *            - the names of the columns in the database table
 	 * @param columnValues
-	 *            - the values of the columns that are not double precision
+	 *            - the values of the columns that are not double precision in
+	 *            the database table
 	 * @param doubleColumnNames
-	 *            - the names of the columns that are double precision
+	 *            - the names of the columns that are double precision in the
+	 *            database table
 	 * @param doubleValues
-	 *            - the values of the columns that are double precision
+	 *            - the values of the columns that are double precision in the
+	 *            database table
 	 * @return the keys of the rows that were inserted or updated
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -149,8 +152,9 @@ public class ManageDB {
 			insertStmt.executeBatch();
 			updateStmt.executeBatch();
 		} catch (SQLException me) {
-			throw new MobbedException("Could not add row(s)\n"
-					+ me.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not insert or update row(s) in the database\n"
+							+ me.getNextException().getMessage());
 		}
 		return keyList;
 	}
@@ -162,7 +166,7 @@ public class ManageDB {
 	 * version will be incremented signifying a duplicate dataset.
 	 * 
 	 * @param isUnique
-	 *            - rather the dataset should have a unique namespace and name
+	 *            - if the dataset namespace and name combination is unique
 	 *            combination
 	 * @param datasetName
 	 *            - the name of the dataset
@@ -204,8 +208,9 @@ public class ManageDB {
 		try {
 			connection.close();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not close the connection\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not close the database connection\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 
@@ -228,13 +233,13 @@ public class ManageDB {
 	 * Extracts inter-related rows.
 	 * 
 	 * @param inTableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param inColumnNames
 	 *            - the names of the columns
 	 * @param inColumnValues
 	 *            - the values of the columns
 	 * @param outTableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param outColumnNames
 	 *            - the names of the columns
 	 * @param outColumnValues
@@ -344,10 +349,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the column names of a table.
+	 * Gets the column names of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @return the columns of the table
 	 */
 	public String[] getColumnNames(String tableName) {
@@ -355,10 +360,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the type of a column.
+	 * Gets the type of a database column.
 	 * 
 	 * @param columnName
-	 *            - the name of the column
+	 *            - the name of the database column
 	 * @return the type of the column
 	 */
 	public String getColumnType(String columnName) {
@@ -366,10 +371,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets all of the columns types of a given table.
+	 * Gets all of the columns types of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @return the types of the columns in the table
 	 */
 	public String[] getColumnTypes(String tableName) {
@@ -391,10 +396,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the default value of a column.
+	 * Gets the default value of a database column.
 	 * 
 	 * @param columnName
-	 *            - the name of the column
+	 *            - the name of the database column
 	 * @return the default value of a column
 	 */
 	public String getDefaultValue(String columnName) {
@@ -402,10 +407,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the columns that are double precision of a table.
+	 * Gets the columns that are double precision of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @return the double precision columns in the table
 	 */
 	public String[] getDoubleColumns(String tableName) {
@@ -421,10 +426,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the keys of a table.
+	 * Gets the keys of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @return the keys in the table
 	 */
 	public String[] getKeys(String tableName) {
@@ -443,10 +448,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Retrieves rows from a table given search criteria.
+	 * Retrieves rows from a table based on search criteria.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param limit
 	 *            - the maximum number of rows to return
 	 * @param regExp
@@ -456,7 +461,7 @@ public class ManageDB {
 	 * @param attributes
 	 *            - the attributes search criteria
 	 * @param columnNames
-	 *            - the name of the columns
+	 *            - the name of the database columns
 	 * @param columnValues
 	 *            - the values of the columns
 	 * @return
@@ -525,7 +530,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Adds elements to a array by index.
+	 * Adds elements to an array by index.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
@@ -572,7 +577,7 @@ public class ManageDB {
 	 * Constructs a insert query.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @return a insert query string
@@ -594,7 +599,7 @@ public class ManageDB {
 	 * Constructs a query based on search criteria.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param limit
 	 *            - the maximum number of rows to return
 	 * @param regExp
@@ -647,7 +652,7 @@ public class ManageDB {
 	 * @param keyIndexes
 	 *            - a list of the key indexes
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @return a select query string
@@ -669,7 +674,7 @@ public class ManageDB {
 	 * @param regExp
 	 *            - rather to allow regular expressions
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @param columnValues
@@ -759,7 +764,7 @@ public class ManageDB {
 	 * @param keyIndexes
 	 *            - a list of the key indexes
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @return a update query string
@@ -782,7 +787,7 @@ public class ManageDB {
 	 * Finds the indexes that contain key columns.
 	 * 
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @return the indexes of the key columns
@@ -805,7 +810,8 @@ public class ManageDB {
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @param columnName
-	 *            - the name of the column that the index is searched for
+	 *            - the name of the database column that the index is searched
+	 *            for
 	 * @return the index of the column name
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -853,7 +859,7 @@ public class ManageDB {
 	 * @param keyIndexes
 	 *            - a list of key indexes
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the names of the columns
 	 * @param columnValues
@@ -1009,7 +1015,7 @@ public class ManageDB {
 	 * @param keyIndexes
 	 *            - a list of key indexes
 	 * @param tableName
-	 *            - the name of the table
+	 *            - the name of the database table
 	 * @param columnNames
 	 *            - the column names of the table
 	 * @param columnValues
@@ -1046,7 +1052,7 @@ public class ManageDB {
 	 * Looks up the jdbc sql types of a given column.
 	 * 
 	 * @param columnName
-	 *            - the name of the column
+	 *            - the name of the database column
 	 * @return the jdbc sql type of the column
 	 */
 	private int lookupTargetType(Object columnName) {
@@ -1105,13 +1111,13 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates a array of non-index elements.
+	 * Creates an array of non-index elements.
 	 * 
 	 * @param keyIndexes
 	 *            - a list of the key indexes
 	 * @param array
-	 *            - a array that contains the column names
-	 * @return a array that contains non key columns
+	 *            - an array that contains the column names
+	 * @return an array that contains non key columns
 	 */
 	private String[] removeByIndex(ArrayList<Integer> keyIndexes, String[] array) {
 		// Used to get non-key column names and values
@@ -1127,7 +1133,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Set the values for a prepared statement object that inserts rows into the
+	 * Set the values of a prepared statement object that inserts rows into the
 	 * database.
 	 * 
 	 * @param pstmt
@@ -1377,9 +1383,9 @@ public class ManageDB {
 	 * Validates a given column value.
 	 * 
 	 * @param columnName
-	 *            - the name of the column
+	 *            - the name of the database column
 	 * @param columnValue
-	 *            - the value of the column
+	 *            - the value of the database column
 	 * @return true if the column value is valid, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1407,7 +1413,7 @@ public class ManageDB {
 	 * Validates a table name in the database.
 	 * 
 	 * @param tableName
-	 *            - the name of the table in the database
+	 *            - the name of the database table
 	 * @return true if the table is a valid database table, throws an exception
 	 *         if otherwise
 	 * @throws MobbedException
@@ -1455,7 +1461,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Stores the database credentials in a property file.
+	 * Stores the database credentials in a property file. Call loadCredentials
+	 * to get the database credentials back.
 	 * 
 	 * @param filename
 	 *            - the filename of the property file
@@ -1488,7 +1495,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates a database. The database will be created from a valid SQL file.
+	 * Creates and populates a database. The database must not already exist to
+	 * create it. The database will be created from a valid SQL file.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1499,7 +1507,7 @@ public class ManageDB {
 	 * @param password
 	 *            - the password of the database
 	 * @param filename
-	 *            - the file name of the sql file
+	 *            - the name of the sql file
 	 * @param verbose
 	 *            - prints informative messages if true
 	 * @throws MobbedException
@@ -1509,7 +1517,7 @@ public class ManageDB {
 			String username, String password, String filename, boolean verbose)
 			throws MobbedException {
 		if (isEmpty(filename))
-			throw new MobbedException("SQL script does not exist");
+			throw new MobbedException("SQL file does not exist");
 		try {
 			Connection templateConnection = establishConnection(templateName,
 					hostname, username, password);
@@ -1517,19 +1525,21 @@ public class ManageDB {
 			templateConnection.close();
 			Connection databaseConnection = establishConnection(dbname,
 					hostname, username, password);
-			createTables(databaseConnection, filename);
+			populateTables(databaseConnection, filename);
 			databaseConnection.close();
+			if (verbose)
+				System.out.println("Database " + dbname + " created");
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not create database\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not create and populate database\n"
+							+ ex.getNextException().getMessage());
 		}
-		if (verbose)
-			System.out.println("Database " + dbname + " created");
 	}
 
 	/**
-	 * Deletes a database. There must be no active connections to delete the
-	 * database.
+	 * Deletes the database and all objects associated with oids. The database
+	 * must already exist to delete it. There must be no active connections to
+	 * delete the database.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1567,7 +1577,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Executes a SQL statement.
+	 * Executes a SQL statement. The sql statement must be valid or an exception
+	 * will be thrown.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1585,21 +1596,22 @@ public class ManageDB {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close the connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException(
+						"Could not close the database connection\n"
+								+ ex2.getNextException().getMessage());
 			}
-			throw new MobbedException("Could not execute sql statement\n"
+			throw new MobbedException("Could not execute the sql statement\n"
 					+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Loads the database credentials from a property file. The credentials are
-	 * stored in a array.
+	 * Loads the database credentials from a property file. The credentials will
+	 * be stored in a array.
 	 * 
 	 * @param filename
 	 *            - the name of the property file
-	 * @return a array that contains the database credentials
+	 * @return an array that contains the database credentials
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1608,20 +1620,22 @@ public class ManageDB {
 		String[] credentials = {};
 		try {
 			prop.load(new FileInputStream(filename));
+			credentials = new String[prop.size()];
+			credentials[0] = prop.getProperty("dbname");
+			credentials[1] = prop.getProperty("hostname");
+			credentials[2] = prop.getProperty("username");
+			credentials[3] = prop.getProperty("password");
 		} catch (IOException ex) {
-			throw new MobbedException("Could not load property file\n"
-					+ ex.getMessage());
+			throw new MobbedException(
+					"Could not load the database credentials from the property file\n"
+							+ ex.getMessage());
 		}
-		credentials = new String[prop.size()];
-		credentials[0] = prop.getProperty("dbname");
-		credentials[1] = prop.getProperty("hostname");
-		credentials[2] = prop.getProperty("username");
-		credentials[3] = prop.getProperty("password");
 		return credentials;
 	}
 
 	/**
-	 * Creates a database. The database is only created.
+	 * Creates a database. The database must not already exist to create it. The
+	 * database is created without any tables, columns, and data.
 	 * 
 	 * @param dbCon
 	 *            - the connection to the database
@@ -1640,16 +1654,17 @@ public class ManageDB {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException(
+						"Could not close the database connection\n"
+								+ ex2.getNextException().getMessage());
 			}
-			throw new MobbedException("Could not create database " + dbname
+			throw new MobbedException("Could not create the database " + dbname
 					+ "\n" + ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Creates the database tables from a valid SQL file.
+	 * Creates the database tables and populates them from a valid SQL file.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1658,7 +1673,7 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static void createTables(Connection dbCon, String filename)
+	private static void populateTables(Connection dbCon, String filename)
 			throws MobbedException {
 		DataInputStream in;
 		byte[] buffer;
@@ -1668,24 +1683,24 @@ public class ManageDB {
 			in = new DataInputStream(new FileInputStream(file));
 			in.readFully(buffer);
 			in.close();
-		} catch (IOException ioex) {
-			throw new MobbedException("Could not read file\n"
-					+ ioex.getMessage());
-		}
-		String result = new String(buffer);
-		String[] tables = result.split("-- execute");
-		try {
+			String result = new String(buffer);
+			String[] tables = result.split("-- execute");
 			Statement stmt = dbCon.createStatement();
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
+		} catch (IOException ioex) {
+			throw new MobbedException(
+					"Could not read sql file to populate database\n"
+							+ ioex.getMessage());
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not execute sql code\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not execute sql code to populate database\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Deletes the oids in the datadefs table.
+	 * Deletes the objects associated with the oids in the datadefs table.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1707,17 +1722,18 @@ public class ManageDB {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException(
+						"Could not close the database connection\n"
+								+ ex2.getNextException().getMessage());
 			}
 			throw new MobbedException(
-					"Could not delete oids in datadefs table\n"
+					"Could not delete the objects associated with the oids in datadefs table\n"
 							+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Deletes the oids in the datasets table.
+	 * Deletes the objects associated with the oids in the datasets table.
 	 * 
 	 * @param dbCon
 	 *            - a connection to the database
@@ -1738,18 +1754,19 @@ public class ManageDB {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException(
+						"Could not close the database connection\n"
+								+ ex2.getNextException().getMessage());
 			}
 			throw new MobbedException(
-					"Could not delete oids in datasets table\n"
+					"Could not delete the objects associated with the oids in datasets table\n"
 							+ ex1.getNextException().getMessage());
 		}
 	}
 
 	/**
-	 * Drops a database. There must be no active connections to drop the
-	 * database.
+	 * Drops a database. The database must already exist to drop it. There must
+	 * be no active connections to drop the database.
 	 * 
 	 * @param dbCon
 	 *            - connection to a different database
@@ -1777,7 +1794,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Establishes a connection to a database.
+	 * Establishes a connection to a database. The database must exist and allow
+	 * connections for a connection to be established.
 	 * 
 	 * @param dbname
 	 *            - the name of the database
@@ -1812,7 +1830,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if a string is empty.
+	 * Checks if an string is empty.
 	 * 
 	 * @param s
 	 * @return true if the string is empty, false if otherwise
@@ -1827,7 +1845,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if a array is empty.
+	 * Checks if an array is empty.
 	 * 
 	 * @param o
 	 * @return true if the array is empty, false if otherwise
