@@ -133,8 +133,8 @@ public class EventTypes {
 						UUID.fromString(rs.getString(2)));
 		} catch (SQLException ex) {
 			throw new MobbedException(
-					"Could not retrieve event types to put in hash map\n"
-							+ ex.getNextException().getMessage());
+					"Could not retrieve the event types to put in the hashmap\n"
+							+ ex.getMessage());
 		}
 	}
 
@@ -156,8 +156,8 @@ public class EventTypes {
 			pStmt.setString(3, eventTypeDescription);
 			pStmt.executeUpdate();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not save event types\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not save the event types\n"
+					+ ex.getMessage());
 		}
 	}
 

@@ -19,8 +19,8 @@ public class Attributes {
 	private UUID organizationalUuid;
 	private String organizationalClass;
 	private UUID structureUuid;
-	private Double attributeNumericValue;
-	private String attributeValue;
+	private Double numericValue;
+	private String value;
 	private PreparedStatement insertStmt;
 	public static String insertQry = "INSERT INTO ATTRIBUTES "
 			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_ORGANIZATIONAL_UUID, "
@@ -42,13 +42,14 @@ public class Attributes {
 		organizationalUuid = null;
 		organizationalClass = null;
 		structureUuid = null;
-		attributeNumericValue = null;
-		attributeValue = null;
+		numericValue = null;
+		value = null;
 		try {
 			insertStmt = dbCon.prepareStatement(insertQry);
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not create a Attributes object\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not create prepared statement for Attributes object\n"
+							+ ex.getMessage());
 		}
 	}
 
@@ -66,12 +67,12 @@ public class Attributes {
 			insertStmt.setObject(4, organizationalUuid, Types.OTHER);
 			insertStmt.setString(5, organizationalClass);
 			insertStmt.setObject(6, structureUuid, Types.OTHER);
-			insertStmt.setObject(7, attributeNumericValue);
-			insertStmt.setString(8, attributeValue);
+			insertStmt.setObject(7, numericValue);
+			insertStmt.setString(8, value);
 			insertStmt.addBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add attribute to batch\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 	}
 
@@ -91,23 +92,22 @@ public class Attributes {
 	 *            attribute
 	 * @param structureUuid
 	 *            - UUID of the structure associated with the attribute
-	 * @param attributeNumericValue
+	 * @param numericValue
 	 *            - numeric representation of the attribute value
-	 * @param attributeValue
+	 * @param value
 	 *            - string representation of the attribute value
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
 			UUID organizationalUuid, String organizationalClass,
-			UUID structureUuid, Double attributeNumericValue,
-			String attributeValue) {
+			UUID structureUuid, Double numericValue, String value) {
 		this.attributeUuid = attributeUuid;
 		this.entityUuid = entityUuid;
 		this.entityClass = entityClass;
 		this.organizationalUuid = organizationalUuid;
 		this.organizationalClass = organizationalClass;
 		this.structureUuid = structureUuid;
-		this.attributeNumericValue = attributeNumericValue;
-		this.attributeValue = attributeValue;
+		this.numericValue = numericValue;
+		this.value = value;
 	}
 
 	/**
@@ -121,8 +121,8 @@ public class Attributes {
 		try {
 			insertStmt.executeBatch();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not save attributes\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not save the attributes\n"
+					+ ex.getMessage());
 		}
 	}
 }

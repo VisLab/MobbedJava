@@ -172,8 +172,38 @@ public class NumericStreams {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not create a NumericStreams object\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
+	}
+
+	/**
+	 * Finds the length of each array in the numeric stream. The length is equal
+	 * to the number of elements in the stream.
+	 * 
+	 * @param dbCon
+	 *            - a connection to the database
+	 * @param datadefUuid
+	 *            - the UUID of the numeric stream data definition
+	 * @return the length of each array in the numeric stream
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public static int getArrayLength(Connection dbCon, String datadefUuid)
+			throws MobbedException {
+		int elementCount = 0;
+		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
+		try {
+			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
+			pstmt.setObject(1, datadefUuid, Types.OTHER);
+			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
+			if (rs.next())
+				elementCount = rs.getInt(1);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not get the array length\n"
+					+ ex.getMessage());
+		}
+		return elementCount;
 	}
 
 	/**
@@ -203,8 +233,8 @@ public class NumericStreams {
 			if (rs.next())
 				maxPosition = rs.getInt("MAX");
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not retrieve max position\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not retrieve the max position\n"
+					+ ex.getMessage());
 		}
 		return maxPosition;
 	}

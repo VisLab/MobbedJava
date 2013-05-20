@@ -154,7 +154,7 @@ public class ManageDB {
 		} catch (SQLException me) {
 			throw new MobbedException(
 					"Could not insert or update row(s) in the database\n"
-							+ me.getNextException().getMessage());
+							+ me.getMessage());
 		}
 		return keyList;
 	}
@@ -191,7 +191,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not execute query to determine dataset version\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
 		if (isUnique && version > 0)
 			throw new MobbedException("dataset version is not unique");
@@ -210,7 +210,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not close the database connection\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
 	}
 
@@ -225,7 +225,7 @@ public class ManageDB {
 			connection.commit();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not commit transaction\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 	}
 
@@ -299,7 +299,7 @@ public class ManageDB {
 			rs = pstmt.executeQuery();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not extract rows\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		String[][] rows = formatExtracted(populateArray(rs));
 		return rows;
@@ -342,7 +342,7 @@ public class ManageDB {
 			rs = stmt.executeQuery(qry);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not extract unique rows\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		String[][] rows = populateArray(rs);
 		return rows;
@@ -492,7 +492,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not execute query to retrieve rows\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
 		return rows;
 	}
@@ -508,7 +508,7 @@ public class ManageDB {
 			connection.rollback();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not rollback transactions\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 	}
 
@@ -525,7 +525,7 @@ public class ManageDB {
 			connection.setAutoCommit(autoCommit);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not set the auto commit mode\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 	}
 
@@ -834,7 +834,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * * Formats the extracted column
+	 * Formats the extracted column.
 	 * 
 	 * @param extracted
 	 *            - The array that contains the extracted column
@@ -916,7 +916,7 @@ public class ManageDB {
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not retrieve the columns\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		String[] columnNames = columnNameList.toArray(new String[columnNameList
 				.size()]);
@@ -951,7 +951,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not initialize statement objects\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
 	}
 
@@ -975,7 +975,7 @@ public class ManageDB {
 				keyColumnList.add(rs.getString(1));
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not initialize key hashmap\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		String[] keyColumns = keyColumnList.toArray(new String[keyColumnList
 				.size()]);
@@ -1042,7 +1042,7 @@ public class ManageDB {
 			} catch (SQLException ex) {
 				throw new MobbedException(
 						"Could not execute query to find if keys exist\n"
-								+ ex.getNextException().getMessage());
+								+ ex.getMessage());
 			}
 		}
 		return exist;
@@ -1105,7 +1105,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not populate the array with the result set\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 		}
 		return allocatedArray;
 	}
@@ -1166,8 +1166,7 @@ public class ManageDB {
 				}
 			}
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not set value\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not set value\n" + ex.getMessage());
 		}
 	}
 
@@ -1226,7 +1225,7 @@ public class ManageDB {
 				pstmt.setObject(i + 1, columnValues[i], targetType);
 			} catch (SQLException ex) {
 				throw new MobbedException("Could not set value\n"
-						+ ex.getNextException().getMessage());
+						+ ex.getMessage());
 			}
 		}
 	}
@@ -1265,7 +1264,7 @@ public class ManageDB {
 					pstmt.setObject(valueCount, columnValues[i][j], targetType);
 				} catch (SQLException ex) {
 					throw new MobbedException("Could not set value in query\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 				}
 				valueCount++;
 			}
@@ -1298,7 +1297,7 @@ public class ManageDB {
 					pstmt.setObject(valueCount, values[i][j], Types.VARCHAR);
 				} catch (SQLException ex) {
 					throw new MobbedException("Could not set value\n"
-							+ ex.getNextException().getMessage());
+							+ ex.getMessage());
 				}
 				valueCount++;
 			}
@@ -1353,8 +1352,7 @@ public class ManageDB {
 				pstmt.setObject(i + j + 1, keyValues[j], targetType);
 			}
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not set value\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not set value\n" + ex.getMessage());
 		}
 	}
 
@@ -1446,14 +1444,14 @@ public class ManageDB {
 		} catch (SQLException ex1) {
 			throw new MobbedException(
 					"Could not execute query to get active connections\n"
-							+ ex1.getNextException().getMessage());
+							+ ex1.getMessage());
 		}
 		if (otherConnections > 0) {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException("Could not close the connection\n"
+						+ ex2.getMessage());
 			}
 			throw new MobbedException(
 					"Close all connections before dropping the database");
@@ -1517,7 +1515,7 @@ public class ManageDB {
 			String username, String password, String filename, boolean verbose)
 			throws MobbedException {
 		if (isEmpty(filename))
-			throw new MobbedException("SQL file does not exist");
+			throw new MobbedException("The SQL file does not exist");
 		try {
 			Connection templateConnection = establishConnection(templateName,
 					hostname, username, password);
@@ -1531,8 +1529,8 @@ public class ManageDB {
 				System.out.println("Database " + dbname + " created");
 		} catch (SQLException ex) {
 			throw new MobbedException(
-					"Could not create and populate database\n"
-							+ ex.getNextException().getMessage());
+					"Could not create and populate the database\n"
+							+ ex.getMessage());
 		}
 	}
 
@@ -1570,7 +1568,7 @@ public class ManageDB {
 			templateConnection.close();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not delete the database\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		if (verbose)
 			System.out.println("Database " + dbname + " dropped");
@@ -1598,10 +1596,10 @@ public class ManageDB {
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
-								+ ex2.getNextException().getMessage());
+								+ ex2.getMessage());
 			}
 			throw new MobbedException("Could not execute the sql statement\n"
-					+ ex1.getNextException().getMessage());
+					+ ex1.getMessage());
 		}
 	}
 
@@ -1656,10 +1654,10 @@ public class ManageDB {
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
-								+ ex2.getNextException().getMessage());
+								+ ex2.getMessage());
 			}
 			throw new MobbedException("Could not create the database " + dbname
-					+ "\n" + ex1.getNextException().getMessage());
+					+ "\n" + ex1.getMessage());
 		}
 	}
 
@@ -1688,14 +1686,10 @@ public class ManageDB {
 			Statement stmt = dbCon.createStatement();
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
-		} catch (IOException ioex) {
+		} catch (Exception ex) {
 			throw new MobbedException(
-					"Could not read sql file to populate database\n"
-							+ ioex.getMessage());
-		} catch (SQLException ex) {
-			throw new MobbedException(
-					"Could not execute sql code to populate database\n"
-							+ ex.getNextException().getMessage());
+					"Could not populate the database tables\n"
+							+ ex.getMessage());
 		}
 	}
 
@@ -1724,11 +1718,11 @@ public class ManageDB {
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
-								+ ex2.getNextException().getMessage());
+								+ ex2.getMessage());
 			}
 			throw new MobbedException(
 					"Could not delete the objects associated with the oids in datadefs table\n"
-							+ ex1.getNextException().getMessage());
+							+ ex1.getMessage());
 		}
 	}
 
@@ -1756,11 +1750,11 @@ public class ManageDB {
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
-								+ ex2.getNextException().getMessage());
+								+ ex2.getMessage());
 			}
 			throw new MobbedException(
 					"Could not delete the objects associated with the oids in datasets table\n"
-							+ ex1.getNextException().getMessage());
+							+ ex1.getMessage());
 		}
 	}
 
@@ -1785,11 +1779,11 @@ public class ManageDB {
 			try {
 				dbCon.close();
 			} catch (SQLException ex2) {
-				throw new MobbedException("Could not close connection\n"
-						+ ex2.getNextException().getMessage());
+				throw new MobbedException("Could not close the connection\n"
+						+ ex2.getMessage());
 			}
-			throw new MobbedException("Could not drop database" + dbname + "\n"
-					+ ex1.getNextException().getMessage());
+			throw new MobbedException("Could not drop the database" + dbname
+					+ "\n" + ex1.getMessage());
 		}
 	}
 
@@ -1824,7 +1818,7 @@ public class ManageDB {
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not establish a connection to database " + dbname
-							+ "\n" + ex.getNextException().getMessage());
+							+ "\n" + ex.getMessage());
 		}
 		return dbCon;
 	}

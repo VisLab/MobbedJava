@@ -32,7 +32,7 @@ public class Datadefs {
 	 * @param dbCon
 	 *            - a connection to the database
 	 * @param filename
-	 *            - the name of the file that contains the blob
+	 *            - the name of the file that the blob will be written to
 	 * @param entityUuid
 	 *            - the entity UUID that is associated
 	 * @param additional
@@ -73,7 +73,8 @@ public class Datadefs {
 			rs.close();
 			ps.close();
 		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve blob");
+			throw new MobbedException("Could not retrieve the blob\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -99,8 +100,8 @@ public class Datadefs {
 			if (rs.next())
 				numericData = rs.getArray(1).getArray();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not retrieve numeric values\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not retrieve the numeric values\n"
+					+ ex.getMessage());
 		}
 		return numericData;
 	}
@@ -127,8 +128,8 @@ public class Datadefs {
 			if (rs.next())
 				xmlData = rs.getString(1);
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not retrieve xml values\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not retrieve the xml values\n"
+					+ ex.getMessage());
 		}
 		return xmlData;
 	}
@@ -174,7 +175,8 @@ public class Datadefs {
 			else
 				createdatadefOid(dbCon, entityUuid, oid);
 		} catch (Exception ex) {
-			throw new MobbedException("Could not save blob");
+			throw new MobbedException("Could not save the blob\n"
+					+ ex.getMessage());
 		}
 		return oid;
 	}
@@ -201,8 +203,8 @@ public class Datadefs {
 			insertStmt.setArray(2, sqlArray);
 			insertStmt.execute();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not save numeric values\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not save the numeric values\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -227,8 +229,9 @@ public class Datadefs {
 			insertStmt.setObject(1, UUID.fromString(datadefUuid));
 			insertStmt.setString(2, xml);
 			insertStmt.executeUpdate();
-		} catch (Exception ex) {
-			throw new MobbedException("Could not save xml data");
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not save the xml data\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -253,8 +256,8 @@ public class Datadefs {
 			stmt.setObject(2, datadefUuid, Types.OTHER);
 			stmt.executeUpdate();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not update datadef oid\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not update the datadef oid\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -280,8 +283,8 @@ public class Datadefs {
 			stmt.setObject(2, UUID.fromString(datasetUuid), Types.OTHER);
 			stmt.executeUpdate();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not update dataset oid\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not update the dataset oid\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -309,7 +312,7 @@ public class Datadefs {
 						+ "</fakeroot>"));
 			db.parse(is);
 		} catch (Exception ex) {
-			throw new MobbedException("XML is invalid");
+			throw new MobbedException("XML is invalid\n" + ex.getMessage());
 		}
 	}
 

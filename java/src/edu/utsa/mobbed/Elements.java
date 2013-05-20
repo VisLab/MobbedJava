@@ -99,7 +99,6 @@ public class Elements {
 				insertStmt.setObject(7, groupLabel);
 				insertStmt.addBatch();
 			}
-
 			for (int i = 0; i < elementLabels.length; i++) {
 				elementUuids[i] = UUID.randomUUID();
 				stringElementUuids[i] = elementUuids[i].toString();
@@ -114,7 +113,7 @@ public class Elements {
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add elements to the batch\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		return stringElementUuids;
 	}
@@ -166,7 +165,7 @@ public class Elements {
 			insertStmt.executeBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not save elements\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 	}
 
@@ -190,36 +189,6 @@ public class Elements {
 			newChild.save();
 			elementStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
-	}
-
-	/**
-	 * Finds the length of each array in the numeric stream. The length is equal
-	 * to the number of elements in the stream.
-	 * 
-	 * @param dbCon
-	 *            - a connection to the database
-	 * @param datadefUuid
-	 *            - the UUID of the numeric stream data definition
-	 * @return the length of each array in the numeric stream
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public static int getElementCount(Connection dbCon, String datadefUuid)
-			throws MobbedException {
-		int elementCount = 0;
-		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
-		try {
-			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
-			pstmt.setObject(1, datadefUuid, Types.OTHER);
-			ResultSet rs = pstmt.executeQuery();
-			rs = pstmt.executeQuery();
-			if (rs.next())
-				elementCount = rs.getInt("array_length");
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not get element count\n"
-					+ ex.getNextException().getMessage());
-		}
-		return elementCount;
 	}
 
 }

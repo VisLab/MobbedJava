@@ -121,8 +121,8 @@ public class Structures {
 			insertStmt.setString(4, structurePath);
 			insertStmt.execute();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not save structure\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not save the structure\n"
+					+ ex.getMessage());
 		}
 	}
 
@@ -150,7 +150,7 @@ public class Structures {
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not generate the structure path\n"
-					+ ex.getNextException().getMessage());
+					+ ex.getMessage());
 		}
 		return structurePath;
 	}
@@ -173,13 +173,13 @@ public class Structures {
 				children.put(rs.getString(1), UUID.fromString(rs.getString(2)));
 		} catch (SQLException ex) {
 			throw new MobbedException(
-					"Could not retrieve structure's children\n"
-							+ ex.getNextException().getMessage());
+					"Could not retrieve the structure's children\n"
+							+ ex.getMessage());
 		}
 	}
 
 	/**
-	 * Retrieves an structure with its children.
+	 * Retrieves a structure with its children.
 	 * 
 	 * @param dbCon
 	 *            - a connection to a Mobbed database
@@ -212,8 +212,8 @@ public class Structures {
 			if (retrieveChildren)
 				s.retrieveChildren(dbCon);
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not retrieve structure\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not retrieve the structure\n"
+					+ ex.getMessage());
 		}
 		return s;
 	}

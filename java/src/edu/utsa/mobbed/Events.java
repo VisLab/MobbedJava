@@ -109,8 +109,8 @@ public class Events {
 				insertStmt.addBatch();
 			}
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not add events to the batch\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not add the event to the batch\n"
+					+ ex.getMessage());
 		}
 		return stringEventUuids;
 	}
@@ -199,8 +199,8 @@ public class Events {
 		try {
 			insertStmt.executeBatch();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not save events\n"
-					+ ex.getNextException().getMessage());
+			throw new MobbedException("Could not save the events\n"
+					+ ex.getMessage());
 		}
 	}
 
