@@ -22,44 +22,14 @@ import edu.utsa.mobbed.Metadata;
  * 
  */
 public class TestMetadata {
-	private static String tablePath;
-	private static String name = "metadatadb";
 	private static String hostname = "localhost";
-	private static String user = "postgres";
-	private static String password = "admin";
-	private static boolean verbose = false;
 	private static ManageDB md;
 	private static Metadata metadata;
-
-	@BeforeClass
-	public static void setUp() throws Exception {
-		try {
-			tablePath = URLDecoder.decode(
-					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
-							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password, tablePath,
-					verbose);
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} finally {
-			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null,
-					"METADATA_DATASET", null, null, null, "METADATA_DATASET",
-					null, null, null } };
-			String[] datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-			metadata = new Metadata(md.getConnection());
-			metadata.reset("GENERIC", datasetUuids[0], "metadata");
-		}
-
-	}
-
-	@AfterClass
-	public static void closeConnection() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
-	}
+	private static String name = "metadatadb";
+	private static String password = "admin";
+	private static String tablePath;
+	private static String user = "postgres";
+	private static boolean verbose = false;
 
 	@Test
 	public void testAddAttribute() throws Exception {
@@ -87,5 +57,35 @@ public class TestMetadata {
 		System.out.println("--There should be 1 attributes in the database.");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
+	}
+
+	@AfterClass
+	public static void closeConnection() throws Exception {
+		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+	}
+
+	@BeforeClass
+	public static void setUp() throws Exception {
+		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} catch (Exception e) {
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} finally {
+			md.setAutoCommit(true);
+			String datasetValues[][] = { { null, null, null,
+					"METADATA_DATASET", null, null, null, "METADATA_DATASET",
+					null, null, null } };
+			String[] datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
+			metadata = new Metadata(md.getConnection());
+			metadata.reset("GENERIC", datasetUuids[0], "metadata");
+		}
+
 	}
 }

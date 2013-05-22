@@ -21,53 +21,20 @@ import edu.utsa.mobbed.ManageDB;
  * 
  */
 public class TestElements {
-	private static String tablePath;
-	private static String name = "elementdb";
-	private static String hostname = "localhost";
-	private static String user = "postgres";
-	private static String password = "admin";
-	private static boolean verbose = false;
-	private static ManageDB md;
 	private static Elements element;
-
-	@BeforeClass
-	public static void setup() throws Exception {
-		try {
-			tablePath = URLDecoder.decode(
-					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
-							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password, tablePath,
-					verbose);
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} finally {
-			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
-					null, null, null, "ELEMENT DATASET", null, null, null } };
-			String[] datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-			String[] elementLabels = { "channel 1", "channel 2" };
-			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
-			long[] elementPositions = { 1, 2 };
-			element = new Elements(md.getConnection());
-			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
-					elementLabels, elementDescriptions, elementPositions);
-		}
-
-	}
+	private static String hostname = "localhost";
+	private static ManageDB md;
+	private static String name = "elementdb";
+	private static String password = "admin";
+	private static String tablePath;
+	private static String user = "postgres";
+	private static boolean verbose = false;
 
 	@After
 	public void cleanup() throws Exception {
 		Statement stmt = md.getConnection().createStatement();
 		String query = "DELETE FROM ELEMENTS";
 		stmt.execute(query);
-	}
-
-	@AfterClass
-	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 	@Test
@@ -122,6 +89,39 @@ public class TestElements {
 		actual = rs.getInt(1);
 		System.out.println("--There should be 3 elements in the database.");
 		assertEquals("There are no elements in the database", expected, actual);
+	}
+
+	@BeforeClass
+	public static void setup() throws Exception {
+		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} catch (Exception e) {
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} finally {
+			md.setAutoCommit(true);
+			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+					null, null, null, "ELEMENT DATASET", null, null, null } };
+			String[] datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
+			String[] elementLabels = { "channel 1", "channel 2" };
+			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
+			long[] elementPositions = { 1, 2 };
+			element = new Elements(md.getConnection());
+			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
+					elementLabels, elementDescriptions, elementPositions);
+		}
+
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 }

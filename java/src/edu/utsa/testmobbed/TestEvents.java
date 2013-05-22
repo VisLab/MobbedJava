@@ -21,35 +21,22 @@ import edu.utsa.mobbed.*;
  * 
  */
 public class TestEvents {
-	private static String tablePath;
-	private static String name = "eventdb";
-	private static String hostname = "localhost";
-	private static String user = "postgres";
-	private static String password = "admin";
-	private static boolean verbose = false;
-	private static ManageDB md;
-	private static Events urevent;
-	private static Events event;
 	private static String[] datasetUuids;
+	private static Events event;
+	private static String hostname = "localhost";
+	private static ManageDB md;
+	private static String name = "eventdb";
+	private static String password = "admin";
+	private static String tablePath;
+	private static Events urevent;
+	private static String user = "postgres";
+	private static boolean verbose = false;
 
-	@BeforeClass
-	public static void setup() throws Exception {
-		try {
-			tablePath = URLDecoder.decode(
-					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
-							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password, tablePath,
-					verbose);
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} finally {
-			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "EVENT_DATASET",
-					null, null, null, "EVENT DATASET", null, null, null } };
-			datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-		}
+	@After
+	public void cleanup() throws Exception {
+		Statement stmt = md.getConnection().createStatement();
+		String query = "DELETE FROM EVENTS";
+		stmt.execute(query);
 	}
 
 	@Before
@@ -58,8 +45,8 @@ public class TestEvents {
 		long[] positions = { 1, 2 };
 		double[] eventLatencies = { 111, 222 };
 		double[] eventCertainties = { 1.0, 1.0 };
-		String[] ureventParents = { ManageDB.noParentUuid,
-				ManageDB.noParentUuid };
+		String[] ureventParents = { ManageDB.nullParentUuid,
+				ManageDB.nullParentUuid };
 		urevent = new Events(md.getConnection());
 		urevent.reset("EEG", datasetUuids[0], "urevent", eventTypes,
 				eventTypes, positions, eventLatencies, eventLatencies,
@@ -69,19 +56,6 @@ public class TestEvents {
 		event.reset("EEG", datasetUuids[0], "event", eventTypes, eventTypes,
 				positions, eventLatencies, eventLatencies, eventCertainties,
 				null, eventParents);
-	}
-
-	@After
-	public void cleanup() throws Exception {
-		Statement stmt = md.getConnection().createStatement();
-		String query = "DELETE FROM EVENTS";
-		stmt.execute(query);
-	}
-
-	@AfterClass
-	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 	@Test
@@ -138,6 +112,32 @@ public class TestEvents {
 		actual = rs.getInt(1);
 		System.out.println("--There should be 4 events in the database.");
 		assertEquals("There are no events in the database", expected, actual);
+	}
+
+	@BeforeClass
+	public static void setup() throws Exception {
+		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} catch (Exception e) {
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} finally {
+			md.setAutoCommit(true);
+			String datasetValues[][] = { { null, null, null, "EVENT_DATASET",
+					null, null, null, "EVENT DATASET", null, null, null } };
+			datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
+		}
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 
 }

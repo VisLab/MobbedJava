@@ -14,20 +14,65 @@ import java.sql.*;
  */
 
 public class Elements {
+	/**
+	 * A Attributes object used to store attributes
+	 */
 	private Attributes atb;
+	/**
+	 * The dataset UUID of the elements
+	 */
 	private UUID datasetUuid;
-	private Structures modalityStruct;
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
+	/**
+	 * The descriptions of the elements
+	 */
 	private String[] elementDescriptions;
+	/**
+	 * The field name of the elements
+	 */
 	private String elementField;
+	/**
+	 * The labels of the elements
+	 */
 	private String[] elementLabels;
+	/**
+	 * The positions of the elements
+	 */
 	private long[] elementPositions;
+	/**
+	 * The elements structure of the elements
+	 */
 	private Structures elementStruct;
+	/**
+	 * The UUIDs of the elements
+	 */
 	private UUID[] elementUuids;
+	/**
+	 * The group label of the elements
+	 */
 	private String groupLabel;
+	/**
+	 * The group UUID of the elements
+	 */
 	private UUID groupUuid;
+	/**
+	 * A prepared statement object that inserts elements into the database
+	 */
 	private PreparedStatement insertStmt;
+	/**
+	 * The modality name of the elements
+	 */
 	private String modalityName;
+	/**
+	 * The modality structure of the elements
+	 */
+	private Structures modalityStruct;
+	/**
+	 * A query that inserts elements into the database
+	 */
 	private static final String insertElementQry = "INSERT INTO ELEMENTS "
 			+ "(ELEMENT_UUID, ELEMENT_LABEL, ELEMENT_ORGANIZATIONAL_UUID, ELEMENT_ORGANIZATIONAL_CLASS, ELEMENT_PARENT_UUID, ELEMENT_POSITION, ELEMENT_DESCRIPTION) "
 			+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -36,7 +81,7 @@ public class Elements {
 	 * Creates a Elements object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 */
 	public Elements(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -55,11 +100,11 @@ public class Elements {
 	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
-	 *            - the field name of the attribute
+	 *            the field name of the attribute
 	 * @param numericValues
-	 *            - the numeric values of the attribute
+	 *            the numeric values of the attribute
 	 * @param values
-	 *            - the string values of the attribute
+	 *            the string values of the attribute
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -94,8 +139,8 @@ public class Elements {
 				insertStmt.setObject(2, groupLabel);
 				insertStmt.setObject(3, datasetUuid);
 				insertStmt.setString(4, organizationalClass);
-				insertStmt.setObject(5, ManageDB.noParentUuid, Types.OTHER);
-				insertStmt.setInt(6, -1);
+				insertStmt.setObject(5, ManageDB.nullParentUuid, Types.OTHER);
+				insertStmt.setInt(6, 1);
 				insertStmt.setObject(7, groupLabel);
 				insertStmt.addBatch();
 			}
@@ -122,19 +167,19 @@ public class Elements {
 	 * Sets the class fields of a Elements object.
 	 * 
 	 * @param modalityName
-	 *            - the name of the modality associated with the elements
+	 *            the name of the modality associated with the elements
 	 * @param datasetUuid
-	 *            - the UUID of the dataset associated with the elements
+	 *            the UUID of the dataset associated with the elements
 	 * @param elementField
-	 *            - the field that contains the elements
+	 *            the field that contains the elements
 	 * @param groupLabel
-	 *            - the label of the parent element
+	 *            the label of the parent element
 	 * @param elementLabels
-	 *            - the labels of the elements
+	 *            the labels of the elements
 	 * @param elementDescriptions
-	 *            - the descriptions of the elements
+	 *            the descriptions of the elements
 	 * @param elementPositions
-	 *            - the positions of the elements. starting at 1, 2, ...
+	 *            the positions of the elements. starting at 1, 2, ...
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -173,13 +218,13 @@ public class Elements {
 	 * Adds a field to the structures table if it does not already exist.
 	 * 
 	 * @param fieldName
-	 *            - the name of the field
+	 *            the name of the field
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), false);
+				UUID.fromString(ManageDB.nullParentUuid), false);
 		elementStruct = Structures.retrieve(dbCon, elementField,
 				modalityStruct.getStructureUuid(), true);
 		if (!elementStruct.containsChild(fieldName)) {

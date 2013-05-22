@@ -11,19 +11,40 @@ import java.util.UUID;
  */
 public class Metadata {
 
+	/**
+	 * A Attributes object used to store attributes
+	 */
 	private Attributes atb;
+	/**
+	 * The dataset UUID of the metadata
+	 */
 	private UUID datasetUuid;
-	private Structures modalityStruct;
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
+	/**
+	 * The field name of the metadata
+	 */
 	private String metadataField;
-	private Structures metamodalityStruct;
+	/**
+	 * The metadata struct of the metadata
+	 */
+	private Structures metadataStruct;
+	/**
+	 * The modality name of the metadata
+	 */
 	private String modalityName;
+	/**
+	 * The modality structure of the metadata
+	 */
+	private Structures modalityStruct;
 
 	/**
 	 * Creates a Metadata object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 */
 	public Metadata(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -36,18 +57,18 @@ public class Metadata {
 	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
-	 *            - name of the field
+	 *            name of the field
 	 * @param numericValues
-	 *            - the numeric values of the attribute
+	 *            the numeric values of the attribute
 	 * @param values
-	 *            - the string values of the attribute
+	 *            the string values of the attribute
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	public void addAttribute(String fieldName, Double[] numericValues,
 			String[] values) throws MobbedException {
 		addNewStructure(fieldName);
-		UUID structureUUID = metamodalityStruct.getChildStructUuid(fieldName);
+		UUID structureUUID = metadataStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < numericValues.length; i++) {
 			atb.reset(UUID.randomUUID(), null, null, datasetUuid, "datasets",
 					structureUUID, numericValues[i], values[i]);
@@ -59,11 +80,11 @@ public class Metadata {
 	 * Sets the class fields of a Metadata object.
 	 * 
 	 * @param modalityName
-	 *            - the name of the modality
+	 *            the name of the modality
 	 * @param datasetUuid
-	 *            - the UUID of the dataset
+	 *            the UUID of the dataset
 	 * @param metadataField
-	 *            - the name of the field that contains the metadata
+	 *            the name of the field that contains the metadata
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -90,21 +111,21 @@ public class Metadata {
 	 * Adds a field to the structures table if it does not already exist.
 	 * 
 	 * @param fieldName
-	 *            - the name of the field
+	 *            the name of the field
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), true);
-		metamodalityStruct = Structures.retrieve(dbCon, metadataField,
+				UUID.fromString(ManageDB.nullParentUuid), true);
+		metadataStruct = Structures.retrieve(dbCon, metadataField,
 				modalityStruct.getStructureUuid(), true);
-		if (!metamodalityStruct.containsChild(fieldName)) {
+		if (!metadataStruct.containsChild(fieldName)) {
 			Structures newChild = new Structures(dbCon);
 			newChild.reset(UUID.randomUUID(), fieldName,
-					metamodalityStruct.getStructureUuid());
+					metadataStruct.getStructureUuid());
 			newChild.save();
-			metamodalityStruct.addChild(fieldName, newChild.getStructureUuid());
+			metadataStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 }

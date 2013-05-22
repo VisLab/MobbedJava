@@ -16,15 +16,39 @@ import java.sql.*;
 
 public class Structures {
 
-	private Connection dbCon;
+	/**
+	 * A hashmap that contains the children of a structure
+	 */
 	private HashMap<String, UUID> children;
+	/**
+	 * A connection to the database
+	 */
+	private Connection dbCon;
+	/**
+	 * The parent UUID of the structure
+	 */
 	private UUID parentUuid;
+	/**
+	 * The name of the structure
+	 */
 	private String structureName;
-	private UUID structureUuid;
+	/**
+	 * The path of the structure
+	 */
 	private String structurePath;
+	/**
+	 * The UUID of the structure
+	 */
+	private UUID structureUuid;
+	/**
+	 * A query that inserts structures into the database
+	 */
 	private static final String insertQry = "INSERT INTO STRUCTURES "
 			+ " (STRUCTURE_UUID, STRUCTURE_NAME, STRUCTURE_PARENT_UUID, STRUCTURE_PATH)"
 			+ " VALUES (?, ?, ?, ?)";
+	/**
+	 * A query that retrieves structures
+	 */
 	private static final String selectQry = "SELECT STRUCTURE_NAME, STRUCTURE_PARENT_UUID FROM STRUCTURES "
 			+ "WHERE STRUCTURE_UUID = ?";
 
@@ -32,7 +56,7 @@ public class Structures {
 	 * Creates a Structures object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 */
 	public Structures(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -47,9 +71,9 @@ public class Structures {
 	 * Adds a child structure to the hashmap.
 	 * 
 	 * @param childName
-	 *            - the name of the child structure
+	 *            the name of the child structure
 	 * @param childUuid
-	 *            - the UUID of the child structure
+	 *            the UUID of the child structure
 	 */
 	public void addChild(String childName, UUID childUuid) {
 		children.put(childName, childUuid);
@@ -59,7 +83,7 @@ public class Structures {
 	 * Checks if the hashmap contains the child structure.
 	 * 
 	 * @param childName
-	 *            - the name of the child structure
+	 *            the name of the child structure
 	 * @return true if the child structure is in the hashmap, false if otherwise
 	 */
 	public boolean containsChild(String childName) {
@@ -70,7 +94,7 @@ public class Structures {
 	 * Gets the UUID of the child structure.
 	 * 
 	 * @param childName
-	 *            - the name of the child structure
+	 *            the name of the child structure
 	 * @return the UUID of the child structure
 	 */
 	public UUID getChildStructUuid(String childName) {
@@ -90,9 +114,9 @@ public class Structures {
 	 * Sets the class fields of a Structures object.
 	 * 
 	 * @param structureUuid
-	 *            - the UUID of the structure
+	 *            the UUID of the structure
 	 * @param structureName
-	 *            - the name of the structure
+	 *            the name of the structure
 	 * @param parentUuid
 	 *            UUID of the parent structure
 	 * @throws MobbedException
@@ -139,7 +163,7 @@ public class Structures {
 		try {
 			PreparedStatement pstmt = dbCon.prepareStatement(selectQry);
 			ResultSet rs = null;
-			while (!UUID.fromString(ManageDB.noParentUuid).equals(
+			while (!UUID.fromString(ManageDB.nullParentUuid).equals(
 					currentParentUuid)) {
 				pstmt.setObject(1, currentParentUuid);
 				rs = pstmt.executeQuery();
@@ -159,7 +183,7 @@ public class Structures {
 	 * Retrieves the children of the structure from the database.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            a connection to a Mobbed database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -182,13 +206,13 @@ public class Structures {
 	 * Retrieves a structure with its children.
 	 * 
 	 * @param dbCon
-	 *            - a connection to a Mobbed database
+	 *            a connection to a Mobbed database
 	 * @param structureName
-	 *            - the name of the structure
+	 *            the name of the structure
 	 * @param parentUuid
-	 *            - the UUID of the parent structure
+	 *            the UUID of the parent structure
 	 * @param retrieveChildren
-	 *            - retrieves the children of the structure if true
+	 *            retrieves the children of the structure if true
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */

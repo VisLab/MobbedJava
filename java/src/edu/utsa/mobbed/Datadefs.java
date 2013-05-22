@@ -30,13 +30,13 @@ public class Datadefs {
 	 * Retrieves a blob from the database.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param filename
-	 *            - the name of the file that the blob will be written to
+	 *            the name of the file that the blob will be written to
 	 * @param entityUuid
-	 *            - the entity UUID that is associated
+	 *            the entity UUID that is associated
 	 * @param additional
-	 *            - true if the blob is addition data, false if otherwise
+	 *            true if the blob is addition data, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -82,9 +82,9 @@ public class Datadefs {
 	 * Retrieves a numeric value data definition.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datadefUuid
-	 *            - the data definition UUID that is associated
+	 *            the data definition UUID that is associated
 	 * @return a array that contains the numeric value data
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -110,9 +110,9 @@ public class Datadefs {
 	 * Retrieves a xml value data definition.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datadefUuid
-	 *            - the data definition UUID that is associated
+	 *            the data definition UUID that is associated
 	 * @return a string that contains the xml value data
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -138,13 +138,13 @@ public class Datadefs {
 	 * Stores a blob in the database.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param filename
-	 *            - the name of the file that contains the blob
+	 *            the name of the file that contains the blob
 	 * @param entityUuid
-	 *            - the entity UUID that is associated
+	 *            the entity UUID that is associated
 	 * @param additional
-	 *            - true if the blob is addition data, false if otherwise
+	 *            true if the blob is addition data, false if otherwise
 	 * @return a oid associated with the blob stored
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -185,11 +185,11 @@ public class Datadefs {
 	 * Stores a numeric value data definition.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datadefUuid
-	 *            - the data definition UUID that is associated
+	 *            the data definition UUID that is associated
 	 * @param numericValue
-	 *            - the values for the numeric values data definition
+	 *            the values for the numeric values data definition
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -212,11 +212,11 @@ public class Datadefs {
 	 * Stores a xml value data definition.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datadefUuid
-	 *            - the data definition UUID that is associated
+	 *            the data definition UUID that is associated
 	 * @param xml
-	 *            - the xml for the xml value data definition
+	 *            the xml for the xml value data definition
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -239,11 +239,11 @@ public class Datadefs {
 	 * Creates a oid for a data definition.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datadefUuid
-	 *            - the data definition UUID that is associated
+	 *            the data definition UUID that is associated
 	 * @param oid
-	 *            - the oid that was created from storing the blob
+	 *            the oid that was created from storing the blob
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -265,11 +265,11 @@ public class Datadefs {
 	 * Creates a oid for a dataset.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param datasetUuid
-	 *            - the UUID of the dataset that is associated
+	 *            the UUID of the dataset that is associated
 	 * @param oid
-	 *            - the oid that was created from storing the blob
+	 *            the oid that was created from storing the blob
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -292,7 +292,7 @@ public class Datadefs {
 	 * Validates a xml value data definition.
 	 * 
 	 * @param xml
-	 *            - the xml value that will be validated
+	 *            the xml value that will be validated
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */

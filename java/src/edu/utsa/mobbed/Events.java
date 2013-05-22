@@ -13,24 +13,81 @@ import java.util.UUID;
 
 public class Events {
 
+	/**
+	 * A Attributes object used to store attributes
+	 */
 	private Attributes atb;
+	/**
+	 * The certainties of the events
+	 */
 	private double[] certainties;
+	/**
+	 * The dataset UUID of the events
+	 */
 	private UUID datasetUuid;
-	private Structures modalityStruct;
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
-	private String eventField;
-	private Structures eventStruct;
-	private UUID[] eventUuids;
-	private EventTypes evType;
-	private String[] existingUuids;
-	private PreparedStatement insertStmt;
-	private String modalityName;
-	private long[] positions;
-	private double[] startTimes;
+	/**
+	 * The end times of the events
+	 */
 	private double[] endTimes;
-	private String[] types;
-	private String[] uniqueTypes;
+	/**
+	 * The field name of the events
+	 */
+	private String eventField;
+	/**
+	 * The events structure of the events
+	 */
+	private Structures eventStruct;
+	/**
+	 * The UUIDs of the events
+	 */
+	private UUID[] eventUuids;
+	/**
+	 * A EventTypes object used to store event types
+	 */
+	private EventTypes evType;
+	/**
+	 * The existing event type UUIDs in the database
+	 */
+	private String[] existingUuids;
+	/**
+	 * A prepared statement object that inserts events into the database
+	 */
+	private PreparedStatement insertStmt;
+	/**
+	 * The modality name of the events
+	 */
+	private String modalityName;
+	/**
+	 * The modality structure of the events
+	 */
+	private Structures modalityStruct;
+	/**
+	 * The parent UUIDs of the events
+	 */
 	private String[] parentUuids;
+	/**
+	 * The positions of the events
+	 */
+	private long[] positions;
+	/**
+	 * The start times of the events
+	 */
+	private double[] startTimes;
+	/**
+	 * The types of the events
+	 */
+	private String[] types;
+	/**
+	 * The unique types of the events
+	 */
+	private String[] uniqueTypes;
+	/**
+	 * A query that inserts events into the database
+	 */
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_ENTITY_UUID, "
 			+ "EVENT_ENTITY_CLASS, EVENT_TYPE_UUID, EVENT_PARENT_UUID, EVENT_POSITION, EVENT_START_TIME,"
 			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -39,7 +96,7 @@ public class Events {
 	 * Creates a Events object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 */
 	public Events(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -58,11 +115,11 @@ public class Events {
 	 * Add the attribute to a batch.
 	 * 
 	 * @param fieldName
-	 *            - the field name of the attribute
+	 *            the field name of the attribute
 	 * @param numericValues
-	 *            - the numeric values of the attribute
+	 *            the numeric values of the attribute
 	 * @param values
-	 *            - the string values of the attribute
+	 *            the string values of the attribute
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -142,27 +199,27 @@ public class Events {
 	 * Sets class fields of a Events object.
 	 * 
 	 * @param modalityName
-	 *            - the modality name associated with the events
+	 *            the modality name associated with the events
 	 * @param datasetUuid
-	 *            - the UUID of the dataset associated with the events
+	 *            the UUID of the dataset associated with the events
 	 * @param eventField
-	 *            - the name of the field that contains the events
+	 *            the name of the field that contains the events
 	 * @param uniqueTypes
-	 *            - the unique event types
+	 *            the unique event types
 	 * @param types
-	 *            - all of the event types
+	 *            all of the event types
 	 * @param positions
-	 *            - the positions of the events
+	 *            the positions of the events
 	 * @param startTimes
-	 *            - the start times of the events
+	 *            the start times of the events
 	 * @param endTimes
-	 *            - the end times of the events
+	 *            the end times of the events
 	 * @param certainties
-	 *            - the certainties of the events
+	 *            the certainties of the events
 	 * @param existingUuids
-	 *            - the UUIDs of the event types that will be reused
+	 *            the UUIDs of the event types that will be reused
 	 * @param parentUuids
-	 *            - the UUIDs of the original events in which these events were
+	 *            the UUIDs of the original events in which these events were
 	 *            derived from
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -208,13 +265,13 @@ public class Events {
 	 * Adds a field to the structures table if it does not already exist.
 	 * 
 	 * @param fieldName
-	 *            - the name of the field
+	 *            the name of the field
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void addNewStructure(String fieldName) throws MobbedException {
 		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.noParentUuid), false);
+				UUID.fromString(ManageDB.nullParentUuid), false);
 		eventStruct = Structures.retrieve(dbCon, eventField,
 				modalityStruct.getStructureUuid(), true);
 		if (!eventStruct.containsChild(fieldName)) {

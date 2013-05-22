@@ -10,7 +10,7 @@ import org.postgresql.copy.CopyManager;
 /**
  * Handler class for NUMERIC_STREAM table. This class contains functions to
  * store, retrieve or delete records from NUMERIC_DATA table. The insertion and
- * retrieval functions are designed to work in a multi-threaded approach. For
+ * retrieval functions are designed to work in a multithreaded approach. For
  * example, two separate thread are used for writing the data. One thread
  * connects to the database and opens an InputStream connected to the table
  * while another thread opens an OutputStream to write the data in binary to the
@@ -23,22 +23,34 @@ import org.postgresql.copy.CopyManager;
 public class NumericStreams {
 
 	class ReadBinaryData implements Runnable {
+		/**
+		 * The data definition UUID
+		 */
 		UUID datadefUuid;
+		/**
+		 * The end position of the stream
+		 */
 		int endPosition;
+		/**
+		 * PipedOutputStream to write the data
+		 */
 		PipedOutputStream pout;
+		/**
+		 * The start position of the stream
+		 */
 		int startPosition;
 
 		/**
 		 * Creates a ReadBinaryData object.
 		 * 
 		 * @param pout
-		 *            - PipedOutputStream to write the data.
+		 *            PipedOutputStream to write the data
 		 * @param datadefUuid
-		 *            - UUID of the DataDef
+		 *            UUID of the DataDef
 		 * @param startPosition
-		 *            - start time for retrieval
+		 *            start time for retrieval
 		 * @param endPosition
-		 *            - end time for retrieval
+		 *            end time for retrieval
 		 */
 		public ReadBinaryData(PipedOutputStream pout, UUID datadefUuid,
 				int startPosition, int endPosition) {
@@ -73,24 +85,42 @@ public class NumericStreams {
 	}
 
 	class WriteBinaryData implements Runnable {
+		/**
+		 * PipedOutputStream to write the data
+		 */
 		PipedOutputStream pout;
+		/**
+		 * Position of the first signal
+		 */
 		long signalPosition;
+		/**
+		 * Row template as a bytebuffer
+		 */
 		ByteBuffer template;
+		/**
+		 * The size of the template
+		 */
 		int templateSize;
+		/**
+		 * The times of the stream
+		 */
 		double[] times;
+		/**
+		 * The values of the stream
+		 */
 		double[][] values;
 
 		/**
 		 * Creates a new WriteBinaryData object.
 		 * 
 		 * @param pout
-		 *            - PipedOutputStream to write the data
+		 *            PipedOutputStream to write the data
 		 * @param values
-		 *            - values to be written
+		 *            values to be written
 		 * @param signalPosition
-		 *            - position of the first signal
+		 *            position of the first signal
 		 * @param template
-		 *            - row template as a bytebuffer
+		 *            row template as a bytebuffer
 		 */
 		public WriteBinaryData(PipedOutputStream pout, double[][] values,
 				double[] times, long signalPosition, ByteBuffer template) {
@@ -141,7 +171,7 @@ public class NumericStreams {
 					buffer.clear();
 				}
 				/********* TRAILER :: 4 byte ************/
-				// dos.writeInt(-1);
+				// dos.writeInt(1);
 				dos.close();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -149,19 +179,40 @@ public class NumericStreams {
 		}
 	}
 
+	/**
+	 * A CopyManager object used to copy data between a file and a table
+	 */
 	private CopyManager copyMgr;
+	/**
+	 * The UUID of the data definition
+	 */
 	private UUID datadefUuid;
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
-	private static final int INT_BYTES = 4;
+	/**
+	 * The number of bytes used for a DOUBLE
+	 */
 	private static final int DOUBLE_BYTES = 8;
+	/**
+	 * The number of bytes used for a INT
+	 */
+	private static final int INT_BYTES = 4;
+	/**
+	 * The number of bytes used for a LONG
+	 */
 	private static final int LONG_BYTES = 8;
+	/**
+	 * The number of bytes used for a SHORT
+	 */
 	private static final int SHORT_BYTES = 2;
 
 	/**
 	 * Creates a Numeric Streams object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -174,36 +225,6 @@ public class NumericStreams {
 					"Could not create a NumericStreams object\n"
 							+ ex.getMessage());
 		}
-	}
-
-	/**
-	 * Finds the length of each array in the numeric stream. The length is equal
-	 * to the number of elements in the stream.
-	 * 
-	 * @param dbCon
-	 *            - a connection to the database
-	 * @param datadefUuid
-	 *            - the UUID of the numeric stream data definition
-	 * @return the length of each array in the numeric stream
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public static int getArrayLength(Connection dbCon, String datadefUuid)
-			throws MobbedException {
-		int elementCount = 0;
-		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
-		try {
-			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
-			pstmt.setObject(1, datadefUuid, Types.OTHER);
-			ResultSet rs = pstmt.executeQuery();
-			rs = pstmt.executeQuery();
-			if (rs.next())
-				elementCount = rs.getInt(1);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not get the array length\n"
-					+ ex.getMessage());
-		}
-		return elementCount;
 	}
 
 	/**
@@ -231,7 +252,7 @@ public class NumericStreams {
 			selectStmt.setObject(1, datadefUuid, Types.OTHER);
 			ResultSet rs = selectStmt.executeQuery();
 			if (rs.next())
-				maxPosition = rs.getInt("MAX");
+				maxPosition = rs.getInt(1);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not retrieve the max position\n"
 					+ ex.getMessage());
@@ -252,15 +273,15 @@ public class NumericStreams {
 	/**
 	 * Retrieves data samples between a given position range. Creates a separate
 	 * thread to retrieve data from database as binary. The current execution
-	 * thread reads only the required data and put them in a 2D-array.
+	 * thread reads only the required data and put them in a 2Darray.
 	 * 
 	 * @param startPosition
-	 *            - start time for retrieval
+	 *            start time for retrieval
 	 * @param endPosition
-	 *            - end time for retrieval
+	 *            end time for retrieval
 	 * @param elementCount
-	 *            - total number of channels in this dataset
-	 * @return A 2D-array of double values. Each row represents a single time
+	 *            total number of channels in this dataset
+	 * @return A 2Darray of double values. Each row represents a single time
 	 *         point and each values is a sample from each element.
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -287,7 +308,7 @@ public class NumericStreams {
 			/* read only the data bytes and skip everything else */
 			short noOfFields = dis.readShort(); // No. of fields (should be =1)
 			int index = 0;
-			while (noOfFields == 1) { // if noOfFields=-1, end of data reached
+			while (noOfFields == 1) { // if noOfFields=1, end of data reached
 				dis.skipBytes(INT_BYTES * 4);
 				int dimension = dis.readInt(); // should be num of channels
 				dis.skipBytes(INT_BYTES);
@@ -315,12 +336,12 @@ public class NumericStreams {
 	 * data in binary.
 	 * 
 	 * @param values
-	 *            - 2D-array of doubles values. Each row represent samples from
-	 *            an element
+	 *            2Darray of doubles values. Each row represent samples from an
+	 *            element
 	 * @param times
-	 *            - the times of the samples
+	 *            the times of the samples
 	 * @param signalPosition
-	 *            - the position of samples
+	 *            the position of samples
 	 * @return true if the store was successful, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -362,10 +383,10 @@ public class NumericStreams {
 	 * data field is kept empty for insertion.
 	 * 
 	 * @param valueCount
-	 *            - total number of values. Required to estimate the size of a
-	 *            row in bytes
+	 *            total number of values. Required to estimate the size of a row
+	 *            in bytes
 	 * @param datadefUuid
-	 *            - the UUID of the data definition
+	 *            the UUID of the data definition
 	 * @return a row template in a byte buffer
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -404,5 +425,35 @@ public class NumericStreams {
 			throw ex;
 		}
 		return template;
+	}
+
+	/**
+	 * Finds the length of each array in the numeric stream. The length is equal
+	 * to the number of elements in the stream.
+	 * 
+	 * @param dbCon
+	 *            a connection to the database
+	 * @param datadefUuid
+	 *            the UUID of the numeric stream data definition
+	 * @return the length of each array in the numeric stream
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public static int getArrayLength(Connection dbCon, String datadefUuid)
+			throws MobbedException {
+		int elementCount = 0;
+		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
+		try {
+			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
+			pstmt.setObject(1, datadefUuid, Types.OTHER);
+			ResultSet rs = pstmt.executeQuery();
+			rs = pstmt.executeQuery();
+			if (rs.next())
+				elementCount = rs.getInt(1);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not get the array length\n"
+					+ ex.getMessage());
+		}
+		return elementCount;
 	}
 }

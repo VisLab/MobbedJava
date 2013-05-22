@@ -13,16 +13,46 @@ import java.sql.*;
  */
 public class Attributes {
 
+	/**
+	 * The UUID of the attribute
+	 */
 	private UUID attributeUuid;
-	private UUID entityUuid;
+	/**
+	 * The entity class of the attribute
+	 */
 	private String entityClass;
-	private UUID organizationalUuid;
-	private String organizationalClass;
-	private UUID structureUuid;
-	private Double numericValue;
-	private String value;
+	/**
+	 * The entity UUID of the attribute
+	 */
+	private UUID entityUuid;
+	/**
+	 * A prepared statement object that inserts attributes into the database
+	 */
 	private PreparedStatement insertStmt;
-	public static String insertQry = "INSERT INTO ATTRIBUTES "
+	/**
+	 * The numeric value of the attribute
+	 */
+	private Double numericValue;
+	/**
+	 * The organizational class of the attribute
+	 */
+	private String organizationalClass;
+	/**
+	 * The organizational UUID of the attribute
+	 */
+	private UUID organizationalUuid;
+	/**
+	 * The structure UUID of the attribute
+	 */
+	private UUID structureUuid;
+	/**
+	 * The value of the attribute
+	 */
+	private String value;
+	/**
+	 * A query that inserts attributes into the database
+	 */
+	private static String insertQry = "INSERT INTO ATTRIBUTES "
 			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_ORGANIZATIONAL_UUID, "
 			+ "ATTRIBUTE_ORGANIZATIONAL_CLASS, ATTRIBUTE_STRUCTURE_UUID,  ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
 			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -31,7 +61,7 @@ public class Attributes {
 	 * Creates a Attributes object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -80,22 +110,21 @@ public class Attributes {
 	 * Sets the class fields of a Attributes object.
 	 * 
 	 * @param attributeUuid
-	 *            - UUID of the attribute
+	 *            UUID of the attribute
 	 * @param entityUuid
-	 *            - UUID of the entity associated with the attribute
+	 *            UUID of the entity associated with the attribute
 	 * @param entityClass
-	 *            - name of the entity table associated with the attribute
+	 *            name of the entity table associated with the attribute
 	 * @param organizationalUuid
-	 *            - UUID of the organization associated with the attribute
+	 *            UUID of the organization associated with the attribute
 	 * @param organizationalClass
-	 *            - name of the organizational table associated with the
-	 *            attribute
+	 *            name of the organizational table associated with the attribute
 	 * @param structureUuid
-	 *            - UUID of the structure associated with the attribute
+	 *            UUID of the structure associated with the attribute
 	 * @param numericValue
-	 *            - numeric representation of the attribute value
+	 *            numeric representation of the attribute value
 	 * @param value
-	 *            - string representation of the attribute value
+	 *            string representation of the attribute value
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
 			UUID organizationalUuid, String organizationalClass,

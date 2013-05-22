@@ -17,17 +17,32 @@ import java.util.UUID;
  */
 public class EventTypes {
 
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
-	private UUID eventTypeUuid;
-	private String eventType;
-	private String eventTypeDescription;
+	/**
+	 * A hashmap that contains existing event types
+	 */
 	private HashMap<String, UUID> etMap;
+	/**
+	 * The name of the event type
+	 */
+	private String eventType;
+	/**
+	 * The description of the event type
+	 */
+	private String eventTypeDescription;
+	/**
+	 * The UUID of the event type
+	 */
+	private UUID eventTypeUuid;
 
 	/**
 	 * Creates a EventTypes object.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 */
 	public EventTypes(Connection dbCon) {
 		this.dbCon = dbCon;
@@ -41,9 +56,9 @@ public class EventTypes {
 	 * Adds a event type to the hashmap.
 	 * 
 	 * @param eventType
-	 *            - the name of the event type
+	 *            the name of the event type
 	 * @param eventTypeUuid
-	 *            - the UUID of the event type
+	 *            the UUID of the event type
 	 */
 	public void addEventType(String eventType, UUID eventTypeUuid) {
 		etMap.put(eventType.toUpperCase(), eventTypeUuid);
@@ -53,22 +68,11 @@ public class EventTypes {
 	 * Checks if the hashmap contains the event type.
 	 * 
 	 * @param eventType
-	 *            - the name of the event type
+	 *            the name of the event type
 	 * @return true if the hashmap contains the event type, false if otherwise
 	 */
 	public boolean containsEventType(String eventType) {
 		return etMap.containsKey(eventType);
-	}
-
-	/**
-	 * Gets the event type UUID from the hashmap.
-	 * 
-	 * @param eventType
-	 *            - the name of the event type
-	 * @return the UUID of the event type
-	 */
-	public UUID getEventTypeUuid(String eventType) {
-		return etMap.get(eventType);
 	}
 
 	/**
@@ -78,6 +82,17 @@ public class EventTypes {
 	 */
 	public UUID getEventTypeUuid() {
 		return eventTypeUuid;
+	}
+
+	/**
+	 * Gets the event type UUID from the hashmap.
+	 * 
+	 * @param eventType
+	 *            the name of the event type
+	 * @return the UUID of the event type
+	 */
+	public UUID getEventTypeUuid(String eventType) {
+		return etMap.get(eventType);
 	}
 
 	/**
@@ -98,9 +113,9 @@ public class EventTypes {
 	 * Sets the class fields of a Event Type object.
 	 * 
 	 * @param eventType
-	 *            - the name of the event type
+	 *            the name of the event type
 	 * @param eventTypeDescription
-	 *            - the description of the event type
+	 *            the description of the event type
 	 */
 	public void reset(String eventType, String eventTypeDescription) {
 		this.eventTypeUuid = UUID.randomUUID();
@@ -112,7 +127,7 @@ public class EventTypes {
 	 * Retrieves the event types from the database and puts them into a hashmap.
 	 * 
 	 * @param eventTypeUuids
-	 *            - the UUIDs of the event types that exist in the database
+	 *            the UUIDs of the event types that exist in the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */

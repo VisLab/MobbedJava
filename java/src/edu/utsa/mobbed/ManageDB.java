@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
- * A handler to a Mobbed database. This handler can be used to update, insert,
+ * A handler to a MOBBED database. This handler can be used to update, insert,
  * and query the database.
  * 
  * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
@@ -33,36 +33,66 @@ import org.postgresql.largeobject.LargeObjectManager;
  */
 
 public class ManageDB {
+	/**
+	 * A hashmap that contains the column names of each database table
+	 */
 	private HashMap<String, String[]> columnMap;
+	/**
+	 * A connection to the database
+	 */
 	private Connection connection;
+	/**
+	 * A hashmap that contains the default column values of each database table
+	 */
 	private HashMap<String, String> defaultValues;
+	/**
+	 * A hashmap that contains the keys of each database table
+	 */
 	private HashMap<String, String[]> keyMap;
+	/**
+	 * A hashmap that contains the column types of each database table
+	 */
 	private HashMap<String, String> typeMap;
+	/**
+	 * prints informative messages if true
+	 */
 	private boolean verbose;
+	/**
+	 * A null parent UUID
+	 */
+	public static final String nullParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * A query that retrieves column metadata of a database table
+	 */
 	private static final String columnQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
+	/**
+	 * A query that retrieves the keys of a database table
+	 */
 	private static final String keyQuery = "SELECT pg_attribute.attname FROM pg_index, pg_class, pg_attribute"
 			+ " WHERE pg_class.oid = ?::regclass AND"
 			+ " indrelid = pg_class.oid AND"
 			+ " pg_attribute.attrelid = pg_class.oid AND"
 			+ " pg_attribute.attnum = any(pg_index.indkey)"
 			+ " AND indisprimary";
+	/**
+	 * A query that retrieves the tables of a database
+	 */
 	private static final String tableQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
 	private static final String templateName = "template1";
-	public static final String noParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 
 	/**
 	 * Creates a ManageDB object.
 	 * 
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @param hostname
-	 *            - the host name of the database
+	 *            the host name of the database
 	 * @param username
-	 *            - the user name of the database
+	 *            the user name of the database
 	 * @param password
-	 *            - the password of the database
+	 *            the password of the database
 	 * @param verbose
-	 *            - prints informative messages if true
+	 *            prints informative messages if true
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -80,17 +110,17 @@ public class ManageDB {
 	 * columns that already exist in the database.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns in the database table
+	 *            the names of the columns in the database table
 	 * @param columnValues
-	 *            - the values of the columns that are not double precision in
-	 *            the database table
+	 *            the values of the columns that are not double precision in the
+	 *            database table
 	 * @param doubleColumnNames
-	 *            - the names of the columns that are double precision in the
+	 *            the names of the columns that are double precision in the
 	 *            database table
 	 * @param doubleValues
-	 *            - the values of the columns that are double precision in the
+	 *            the values of the columns that are double precision in the
 	 *            database table
 	 * @return the keys of the rows that were inserted or updated
 	 * @throws MobbedException
@@ -166,12 +196,12 @@ public class ManageDB {
 	 * version will be incremented signifying a duplicate dataset.
 	 * 
 	 * @param isUnique
-	 *            - if the dataset namespace and name combination is unique
+	 *            if the dataset namespace and name combination is unique
 	 *            combination
 	 * @param datasetName
-	 *            - the name of the dataset
+	 *            the name of the dataset
 	 * @param datasetNamespace
-	 *            - the namespace of the dataset
+	 *            the namespace of the dataset
 	 * @return the version number of the dataset
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -230,28 +260,28 @@ public class ManageDB {
 	}
 
 	/**
-	 * Extracts inter-related rows.
+	 * Retrieve inter-related items such as events from more complex scenarios.
 	 * 
 	 * @param inTableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param inColumnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param inColumnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @param outTableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param outColumnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param outColumnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @param limit
-	 *            - the maximum number of rows to return
+	 *            the maximum number of rows to return
 	 * @param regExp
-	 *            - rather to allow regular expressions
+	 *            on if regular expressions are allowed, off if otherwise
 	 * @param lower
-	 *            - the lower limit
+	 *            the lower limit
 	 * @param upper
-	 *            - the upper limit
+	 *            the upper limit
 	 * @return the row retrieved from the search
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -306,12 +336,13 @@ public class ManageDB {
 	}
 
 	/**
-	 * Extracts unique inter-related rows.
+	 * Retrieve unique inter-related items such as events from more complex
+	 * scenarios.
 	 * 
 	 * @param extractedRows
-	 *            - the rows that were previously extracted
+	 *            the rows that were previously extracted
 	 * @param limit
-	 *            - the maximum number of rows to return
+	 *            the maximum number of rows to return
 	 * @return the unique rows returned by the search
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -352,7 +383,7 @@ public class ManageDB {
 	 * Gets the column names of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @return the columns of the table
 	 */
 	public String[] getColumnNames(String tableName) {
@@ -363,7 +394,7 @@ public class ManageDB {
 	 * Gets the type of a database column.
 	 * 
 	 * @param columnName
-	 *            - the name of the database column
+	 *            the name of the database column
 	 * @return the type of the column
 	 */
 	public String getColumnType(String columnName) {
@@ -374,7 +405,7 @@ public class ManageDB {
 	 * Gets all of the columns types of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @return the types of the columns in the table
 	 */
 	public String[] getColumnTypes(String tableName) {
@@ -399,7 +430,7 @@ public class ManageDB {
 	 * Gets the default value of a database column.
 	 * 
 	 * @param columnName
-	 *            - the name of the database column
+	 *            the name of the database column
 	 * @return the default value of a column
 	 */
 	public String getDefaultValue(String columnName) {
@@ -410,7 +441,7 @@ public class ManageDB {
 	 * Gets the columns that are double precision of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @return the double precision columns in the table
 	 */
 	public String[] getDoubleColumns(String tableName) {
@@ -429,7 +460,7 @@ public class ManageDB {
 	 * Gets the keys of a database table.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @return the keys in the table
 	 */
 	public String[] getKeys(String tableName) {
@@ -451,20 +482,20 @@ public class ManageDB {
 	 * Retrieves rows from a table based on search criteria.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param limit
-	 *            - the maximum number of rows to return
+	 *            the maximum number of rows to return
 	 * @param regExp
-	 *            - rather to allow regular expressions
+	 *            on if regular expressions are allowed, off if otherwise
 	 * @param tags
-	 *            - the tags search criteria
+	 *            the tags search criteria
 	 * @param attributes
-	 *            - the attributes search criteria
+	 *            the attributes search criteria
 	 * @param columnNames
-	 *            - the name of the database columns
+	 *            the name of the database columns
 	 * @param columnValues
-	 *            - the values of the columns
-	 * @return
+	 *            the values of the columns
+	 * @return the rows that were found based on the search criteria
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -516,7 +547,7 @@ public class ManageDB {
 	 * Sets the auto commit mode of the connection.
 	 * 
 	 * @param autoCommit
-	 *            - true to enable auto-commit mode, false to disable it
+	 *            true to enable autocommit mode, false to disable it
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -533,9 +564,9 @@ public class ManageDB {
 	 * Adds elements to an array by index.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param array
-	 *            - a array that contains the column names
+	 *            a array that contains the column names
 	 * @return a array that contains the key columns
 	 */
 	private String[] addByIndex(ArrayList<Integer> keyIndexes, String[] array) {
@@ -554,9 +585,9 @@ public class ManageDB {
 	 * Adds a key value to a array.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return a key value
 	 */
 	private String addKeyValue(ArrayList<Integer> keyIndexes,
@@ -577,9 +608,9 @@ public class ManageDB {
 	 * Constructs a insert query.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @return a insert query string
 	 */
 	private String constructInsertQuery(String tableName, String[] columnNames) {
@@ -599,19 +630,17 @@ public class ManageDB {
 	 * Constructs a query based on search criteria.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
-	 * @param limit
-	 *            - the maximum number of rows to return
+	 *            the name of the database table
 	 * @param regExp
-	 *            - rather to allow regular expressions
+	 *            on if regular expressions are allowed, off if otherwise
 	 * @param tags
-	 *            - the tag search criteria
+	 *            the tag search criteria
 	 * @param attributes
-	 *            - the attribute search criteria
+	 *            the attribute search criteria
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return a string query
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -650,11 +679,11 @@ public class ManageDB {
 	 * Constructs a select query.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @return a select query string
 	 */
 	private String constructSelectQuery(ArrayList<Integer> keyIndexes,
@@ -672,13 +701,13 @@ public class ManageDB {
 	 * Constructs a query associated with a table in the database.
 	 * 
 	 * @param regExp
-	 *            - rather to allow regular expressions
+	 *            on if regular expressions are allowed, off if otherwise
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return a query string
 	 */
 	private String constructTableQuery(String regExp, String tableName,
@@ -716,11 +745,11 @@ public class ManageDB {
 	 * Constructs a query associated with tags and attributes.
 	 * 
 	 * @param regExp
-	 *            - rather to allow regular expressions
+	 *            on if regular expressions are allowed, off if otherwise
 	 * @param qualification
-	 *            - the type of qualification, tag or attribute
+	 *            the type of qualification, tag or attribute
 	 * @param values
-	 *            - the values used in the query
+	 *            the values used in the query
 	 * @return a query string
 	 */
 	private String constructTagAttributesQuery(String regExp,
@@ -762,11 +791,11 @@ public class ManageDB {
 	 * Constructs a update query.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @return a update query string
 	 */
 	private String constructUpdateQuery(ArrayList<Integer> keyIndexes,
@@ -784,34 +813,12 @@ public class ManageDB {
 	}
 
 	/**
-	 * Finds the indexes that contain key columns.
-	 * 
-	 * @param tableName
-	 *            - the name of the database table
-	 * @param columnNames
-	 *            - the names of the columns
-	 * @return the indexes of the key columns
-	 */
-	private ArrayList<Integer> findKeyIndexes(String tableName,
-			String[] columnNames) {
-		String[] keys = keyMap.get(tableName);
-		ArrayList<Integer> keyIndexes = new ArrayList<Integer>();
-		for (int i = 0; i < columnNames.length; i++) {
-			for (int j = 0; j < keys.length; j++)
-				if (columnNames[i].equalsIgnoreCase(keys[j]))
-					keyIndexes.add(i);
-		}
-		return keyIndexes;
-	}
-
-	/**
 	 * Finds the index of a particular column.
 	 * 
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnName
-	 *            - the name of the database column that the index is searched
-	 *            for
+	 *            the name of the database column that the index is searched for
 	 * @return the index of the column name
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -834,10 +841,31 @@ public class ManageDB {
 	}
 
 	/**
+	 * Finds the indexes that contain key columns.
+	 * 
+	 * @param tableName
+	 *            the name of the database table
+	 * @param columnNames
+	 *            the names of the columns
+	 * @return the indexes of the key columns
+	 */
+	private ArrayList<Integer> findKeyIndexes(String tableName,
+			String[] columnNames) {
+		String[] keys = keyMap.get(tableName);
+		ArrayList<Integer> keyIndexes = new ArrayList<Integer>();
+		for (int i = 0; i < columnNames.length; i++) {
+			for (int j = 0; j < keys.length; j++)
+				if (columnNames[i].equalsIgnoreCase(keys[j]))
+					keyIndexes.add(i);
+		}
+		return keyIndexes;
+	}
+
+	/**
 	 * Formats the extracted column.
 	 * 
 	 * @param extracted
-	 *            - The array that contains the extracted column
+	 *            The array that contains the extracted column
 	 * 
 	 * @return the array with a formatted extracted column
 	 */
@@ -857,13 +885,13 @@ public class ManageDB {
 	 * Generates the keys for insertion.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of key indexes
+	 *            a list of key indexes
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return keys for each row being inserted
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -888,9 +916,9 @@ public class ManageDB {
 	 * Initializes the hashmaps that contain column metadata.
 	 * 
 	 * @param columnStatement
-	 *            - the prepared statement object used for the queries
+	 *            the prepared statement object used for the queries
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -959,9 +987,9 @@ public class ManageDB {
 	 * Initializes a hashmap that contains the keys of each table.
 	 * 
 	 * @param keyStatement
-	 *            - the prepared statement object used for the queries
+	 *            the prepared statement object used for the queries
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -986,9 +1014,9 @@ public class ManageDB {
 	 * Checks if key columns are empty.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of key indexes
+	 *            a list of key indexes
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return true if the key columns are empty, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1013,13 +1041,13 @@ public class ManageDB {
 	 * Checks if the given keys exist in the database.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of key indexes
+	 *            a list of key indexes
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @param columnNames
-	 *            - the column names of the table
+	 *            the column names of the table
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return true if the keys exist in the database, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1052,7 +1080,7 @@ public class ManageDB {
 	 * Looks up the jdbc sql types of a given column.
 	 * 
 	 * @param columnName
-	 *            - the name of the database column
+	 *            the name of the database column
 	 * @return the jdbc sql type of the column
 	 */
 	private int lookupTargetType(Object columnName) {
@@ -1083,7 +1111,7 @@ public class ManageDB {
 	 * Populates an array with a result set.
 	 * 
 	 * @param rs
-	 *            - the result set object that contains the rows from the query
+	 *            the result set object that contains the rows from the query
 	 * @return an array that mirrors the rows in the result set
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1111,16 +1139,16 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates an array of non-index elements.
+	 * Creates an array of nonindex elements.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param array
-	 *            - an array that contains the column names
+	 *            an array that contains the column names
 	 * @return an array that contains non key columns
 	 */
 	private String[] removeByIndex(ArrayList<Integer> keyIndexes, String[] array) {
-		// Used to get non-key column names and values
+		// Used to get nonkey column names and values
 		String[] newArray = new String[array.length - keyIndexes.size()];
 		int j = 0;
 		for (int i = 0; i < array.length; i++) {
@@ -1137,11 +1165,11 @@ public class ManageDB {
 	 * database.
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object used to do the queries
+	 *            the prepared statement object used to do the queries
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1175,17 +1203,17 @@ public class ManageDB {
 	 * the database.
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object used to do the query
+	 *            the prepared statement object used to do the query
 	 * @param qry
-	 *            - the query that will be executed
+	 *            the query that will be executed
 	 * @param tags
-	 *            - the values of the tags search criteria
+	 *            the values of the tags search criteria
 	 * @param attributes
-	 *            - the values of the attributes search criteria
+	 *            the values of the attributes search criteria
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1209,11 +1237,11 @@ public class ManageDB {
 	 * the database.
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object used to do the query
+	 *            the prepared statement object used to do the query
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1235,13 +1263,13 @@ public class ManageDB {
 	 * particular table in the database.
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object used to do the query
+	 *            the prepared statement object used to do the query
 	 * @param valueCount
-	 *            - the number of values passed in so far
+	 *            the number of values that have already been set
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @return the number of values that were set in the query in addition to
 	 *         the ones prior
 	 * @throws MobbedException
@@ -1277,12 +1305,12 @@ public class ManageDB {
 	 * the attributes or tags table in the database.
 	 * 
 	 * @param pstmt
-	 *            - the prepared statement object used to do the query
+	 *            the prepared statement object used to do the query
 	 * @param valueCount
-	 *            - the number of values passed in so far
+	 *            the number of values that have already been set
 	 * @param values
-	 *            - the values of the tags or attributes search criteria
-	 * @return
+	 *            the values of the tags or attributes search criteria
+	 * @return the number of total values that have been set
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1310,15 +1338,15 @@ public class ManageDB {
 	 * database.
 	 * 
 	 * @param keyIndexes
-	 *            - a list of the key indexes
+	 *            a list of the key indexes
 	 * @param pstmt
-	 *            - the prepared statement object used to do the query
+	 *            the prepared statement object used to do the query
 	 * @param columnNames
-	 *            - the names of the columns
+	 *            the names of the columns
 	 * @param columnValues
-	 *            - the values of the columns
+	 *            the values of the columns
 	 * @param doubleValues
-	 *            - the double precision values of the columns
+	 *            the double precision values of the columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1360,7 +1388,7 @@ public class ManageDB {
 	 * Validates the column names of a table in the database.
 	 * 
 	 * @param columnNames
-	 *            - the names of the columns in a table
+	 *            the names of the columns in a table
 	 * @return true if the column names are valid, throws an exception if
 	 *         otherwise
 	 * @throws MobbedException
@@ -1381,9 +1409,9 @@ public class ManageDB {
 	 * Validates a given column value.
 	 * 
 	 * @param columnName
-	 *            - the name of the database column
+	 *            the name of the database column
 	 * @param columnValue
-	 *            - the value of the database column
+	 *            the value of the database column
 	 * @return true if the column value is valid, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1411,7 +1439,7 @@ public class ManageDB {
 	 * Validates a table name in the database.
 	 * 
 	 * @param tableName
-	 *            - the name of the database table
+	 *            the name of the database table
 	 * @return true if the table is a valid database table, throws an exception
 	 *         if otherwise
 	 * @throws MobbedException
@@ -1428,7 +1456,7 @@ public class ManageDB {
 	 * Checks for active connections.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1463,15 +1491,15 @@ public class ManageDB {
 	 * to get the database credentials back.
 	 * 
 	 * @param filename
-	 *            - the filename of the property file
+	 *            the filename of the property file
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @param hostname
-	 *            - the host name of the database
+	 *            the host name of the database
 	 * @param username
-	 *            - the user name of the database
+	 *            the user name of the database
 	 * @param password
-	 *            - the password of the database
+	 *            the password of the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1497,17 +1525,17 @@ public class ManageDB {
 	 * create it. The database will be created from a valid SQL file.
 	 * 
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @param hostname
-	 *            - the host name of the database
+	 *            the host name of the database
 	 * @param username
-	 *            - the user name of the database
+	 *            the user name of the database
 	 * @param password
-	 *            - the password of the database
+	 *            the password of the database
 	 * @param filename
-	 *            - the name of the sql file
+	 *            the name of the sql file
 	 * @param verbose
-	 *            - prints informative messages if true
+	 *            prints informative messages if true
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1540,15 +1568,15 @@ public class ManageDB {
 	 * delete the database.
 	 * 
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @param hostname
-	 *            - the host name of the database
+	 *            the host name of the database
 	 * @param username
-	 *            - the user name of the database
+	 *            the user name of the database
 	 * @param password
-	 *            - the password of the database
+	 *            the password of the database
 	 * @param verbose
-	 *            - prints informative messages if true
+	 *            prints informative messages if true
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1579,9 +1607,9 @@ public class ManageDB {
 	 * will be thrown.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @param statement
-	 *            - the sql statement to be executed
+	 *            the sql statement to be executed
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1608,7 +1636,7 @@ public class ManageDB {
 	 * be stored in a array.
 	 * 
 	 * @param filename
-	 *            - the name of the property file
+	 *            the name of the property file
 	 * @return an array that contains the database credentials
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1636,9 +1664,9 @@ public class ManageDB {
 	 * database is created without any tables, columns, and data.
 	 * 
 	 * @param dbCon
-	 *            - the connection to the database
+	 *            the connection to the database
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1662,42 +1690,10 @@ public class ManageDB {
 	}
 
 	/**
-	 * Creates the database tables and populates them from a valid SQL file.
-	 * 
-	 * @param dbCon
-	 *            - a connection to the database
-	 * @param filename
-	 *            - the name of the SQL file
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	private static void populateTables(Connection dbCon, String filename)
-			throws MobbedException {
-		DataInputStream in;
-		byte[] buffer;
-		try {
-			File file = new File(filename);
-			buffer = new byte[(int) file.length()];
-			in = new DataInputStream(new FileInputStream(file));
-			in.readFully(buffer);
-			in.close();
-			String result = new String(buffer);
-			String[] tables = result.split("-- execute");
-			Statement stmt = dbCon.createStatement();
-			for (int i = 0; i < tables.length; i++)
-				stmt.execute(tables[i]);
-		} catch (Exception ex) {
-			throw new MobbedException(
-					"Could not populate the database tables\n"
-							+ ex.getMessage());
-		}
-	}
-
-	/**
 	 * Deletes the objects associated with the oids in the datadefs table.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1730,7 +1726,7 @@ public class ManageDB {
 	 * Deletes the objects associated with the oids in the datasets table.
 	 * 
 	 * @param dbCon
-	 *            - a connection to the database
+	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1763,9 +1759,9 @@ public class ManageDB {
 	 * be no active connections to drop the database.
 	 * 
 	 * @param dbCon
-	 *            - connection to a different database
+	 *            connection to a different database
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1792,13 +1788,13 @@ public class ManageDB {
 	 * connections for a connection to be established.
 	 * 
 	 * @param dbname
-	 *            - the name of the database
+	 *            the name of the database
 	 * @param hostname
-	 *            - the host name of the database
+	 *            the host name of the database
 	 * @param username
-	 *            - the user name of the database
+	 *            the user name of the database
 	 * @param password
-	 *            - the password of the database
+	 *            the password of the database
 	 * @return a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -1824,6 +1820,21 @@ public class ManageDB {
 	}
 
 	/**
+	 * Checks if an array is empty.
+	 * 
+	 * @param o
+	 * @return true if the array is empty, false if otherwise
+	 */
+	private static boolean isEmpty(Object[] o) {
+		boolean empty = true;
+		if (o != null) {
+			if (o.length > 0)
+				empty = false;
+		}
+		return empty;
+	}
+
+	/**
 	 * Checks if an string is empty.
 	 * 
 	 * @param s
@@ -1839,17 +1850,34 @@ public class ManageDB {
 	}
 
 	/**
-	 * Checks if an array is empty.
+	 * Creates the database tables and populates them from a valid SQL file.
 	 * 
-	 * @param o
-	 * @return true if the array is empty, false if otherwise
+	 * @param dbCon
+	 *            a connection to the database
+	 * @param filename
+	 *            the name of the SQL file
+	 * @throws MobbedException
+	 *             if an error occurs
 	 */
-	private static boolean isEmpty(Object[] o) {
-		boolean empty = true;
-		if (o != null) {
-			if (o.length > 0)
-				empty = false;
+	private static void populateTables(Connection dbCon, String filename)
+			throws MobbedException {
+		DataInputStream in;
+		byte[] buffer;
+		try {
+			File file = new File(filename);
+			buffer = new byte[(int) file.length()];
+			in = new DataInputStream(new FileInputStream(file));
+			in.readFully(buffer);
+			in.close();
+			String result = new String(buffer);
+			String[] tables = result.split(" execute");
+			Statement stmt = dbCon.createStatement();
+			for (int i = 0; i < tables.length; i++)
+				stmt.execute(tables[i]);
+		} catch (Exception ex) {
+			throw new MobbedException(
+					"Could not populate the database tables\n"
+							+ ex.getMessage());
 		}
-		return empty;
 	}
 }

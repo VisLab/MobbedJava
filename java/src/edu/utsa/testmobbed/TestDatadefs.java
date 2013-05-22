@@ -22,35 +22,13 @@ import edu.utsa.mobbed.ManageDB;
  * 
  */
 public class TestDatadefs {
-	private static String tablePath;
-	private static String name = "datadefdb";
 	private static String hostname = "localhost";
-	private static String user = "postgres";
-	private static String password = "admin";
-	private static boolean verbose = false;
 	private static ManageDB md;
-
-	@BeforeClass
-	public static void setup() throws Exception {
-		try {
-			tablePath = URLDecoder.decode(
-					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
-							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password, tablePath,
-					verbose);
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} finally {
-			md.setAutoCommit(true);
-		}
-	}
-
-	@AfterClass
-	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
-	}
+	private static String name = "datadefdb";
+	private static String password = "admin";
+	private static String tablePath;
+	private static String user = "postgres";
+	private static boolean verbose = false;
 
 	@Test
 	public void testStoreNumericValue() throws Exception {
@@ -92,5 +70,27 @@ public class TestDatadefs {
 		System.out
 				.println("--It should retrieve a xml value data definition that is equal");
 		assertEquals("Data definition returned in not equal", expected, actual);
+	}
+
+	@BeforeClass
+	public static void setup() throws Exception {
+		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} catch (Exception e) {
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} finally {
+			md.setAutoCommit(true);
+		}
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 }

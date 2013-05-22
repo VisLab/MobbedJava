@@ -26,64 +26,17 @@ import edu.utsa.mobbed.Structures;
  * 
  */
 public class TestAttributes {
-	private static String tablePath;
-	private static String name = "attributedb";
-	private static String hostname = "localhost";
-	private static String user = "postgres";
-	private static String password = "admin";
-	private static boolean verbose = false;
-	private static ManageDB md;
-	private static String[] elementUuids;
-	private static String[] datasetUuids;
-	private static UUID structureUuid;
 	private static Attributes attribute;
-
-	@BeforeClass
-	public static void setup() throws Exception {
-		try {
-			tablePath = URLDecoder.decode(
-					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
-							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
-			ManageDB.createDatabase(name, hostname, user, password, tablePath,
-					verbose);
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} finally {
-			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
-					null, null, null, "ELEMENT DATASET", null, null, null } };
-			datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-			String[] elementLabels = { "channel 1", "channel 2" };
-			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
-			long[] elementPositions = { 1, 2 };
-			Elements element = new Elements(md.getConnection());
-			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
-					elementLabels, elementDescriptions, elementPositions);
-			elementUuids = element.addElements();
-			UUID parentStructUuid = UUID.randomUUID();
-			Structures structure = new Structures(md.getConnection());
-			structure.reset(parentStructUuid, "EEG",
-					UUID.fromString(ManageDB.noParentUuid));
-			structure.save();
-			UUID elementStructUuid = UUID.randomUUID();
-			structure.reset(elementStructUuid, "element", parentStructUuid);
-			structure.save();
-			structureUuid = UUID.randomUUID();
-			structure.reset(structureUuid, "X", elementStructUuid);
-			structure.save();
-			attribute = new Attributes(md.getConnection());
-
-		}
-
-	}
-
-	@AfterClass
-	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
-	}
+	private static String[] datasetUuids;
+	private static String[] elementUuids;
+	private static String hostname = "localhost";
+	private static ManageDB md;
+	private static String name = "attributedb";
+	private static String password = "admin";
+	private static UUID structureUuid;
+	private static String tablePath;
+	private static String user = "postgres";
+	private static boolean verbose = false;
 
 	@Test
 	public void testAddToBatch() throws Exception {
@@ -113,5 +66,52 @@ public class TestAttributes {
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 
+	}
+
+	@BeforeClass
+	public static void setup() throws Exception {
+		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} catch (Exception e) {
+			ManageDB.createDatabase(name, hostname, user, password, tablePath,
+					verbose);
+			md = new ManageDB(name, hostname, user, password, verbose);
+		} finally {
+			md.setAutoCommit(true);
+			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+					null, null, null, "ELEMENT DATASET", null, null, null } };
+			datasetUuids = md.addRows("datasets",
+					md.getColumnNames("datasets"), datasetValues, null, null);
+			String[] elementLabels = { "channel 1", "channel 2" };
+			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
+			long[] elementPositions = { 1, 2 };
+			Elements element = new Elements(md.getConnection());
+			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
+					elementLabels, elementDescriptions, elementPositions);
+			elementUuids = element.addElements();
+			UUID parentStructUuid = UUID.randomUUID();
+			Structures structure = new Structures(md.getConnection());
+			structure.reset(parentStructUuid, "EEG",
+					UUID.fromString(ManageDB.nullParentUuid));
+			structure.save();
+			UUID elementStructUuid = UUID.randomUUID();
+			structure.reset(elementStructUuid, "element", parentStructUuid);
+			structure.save();
+			structureUuid = UUID.randomUUID();
+			structure.reset(structureUuid, "X", elementStructUuid);
+			structure.save();
+			attribute = new Attributes(md.getConnection());
+
+		}
+
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		md.close();
+		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
 	}
 }
