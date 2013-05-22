@@ -2,6 +2,7 @@ package edu.utsa.testmobbed;
 
 import static org.junit.Assert.*;
 
+import java.net.URLDecoder;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -20,8 +21,7 @@ import edu.utsa.mobbed.ManageDB;
  * 
  */
 public class TestElements {
-	private static String tablePath = Class.class.getResource(
-			"/edu/utsa/testmobbed/mobbed.sql").getPath();
+	private static String tablePath;
 	private static String name = "elementdb";
 	private static String hostname = "localhost";
 	private static String user = "postgres";
@@ -33,6 +33,9 @@ public class TestElements {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,

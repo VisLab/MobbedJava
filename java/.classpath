@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="C:/Users/JCockfield/Desktop/MobbedJava/java/lib/postgresql-9.2-1002.jdbc4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/JCockfield/Desktop/MOBBED Development/MobbedJava/java/lib/postgresql-9.2-1002.jdbc4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

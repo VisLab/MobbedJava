@@ -5,6 +5,7 @@ package edu.utsa.testmobbed;
 
 import static org.junit.Assert.assertEquals;
 
+import java.net.URLDecoder;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import org.junit.AfterClass;
@@ -21,8 +22,7 @@ import edu.utsa.mobbed.Metadata;
  * 
  */
 public class TestMetadata {
-	private static String tablePath = Class.class.getResource(
-			"/edu/utsa/testmobbed/mobbed.sql").getPath();
+	private static String tablePath;
 	private static String name = "metadatadb";
 	private static String hostname = "localhost";
 	private static String user = "postgres";
@@ -34,6 +34,9 @@ public class TestMetadata {
 	@BeforeClass
 	public static void setUp() throws Exception {
 		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,

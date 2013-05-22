@@ -5,6 +5,7 @@ package edu.utsa.testmobbed;
 
 import static org.junit.Assert.assertTrue;
 
+import java.net.URLDecoder;
 import java.util.Arrays;
 
 import org.junit.AfterClass;
@@ -21,8 +22,7 @@ import edu.utsa.mobbed.NumericStreams;
  * 
  */
 public class TestNumericStreams {
-	private static String tablePath = Class.class.getResource(
-			"/edu/utsa/testmobbed/mobbed.sql").getPath();
+	private static String tablePath;
 	private static String name = "numericstreamdb";
 	private static String hostname = "localhost";
 	private static String user = "postgres";
@@ -33,6 +33,9 @@ public class TestNumericStreams {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
+			tablePath = URLDecoder.decode(
+					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
+							.getPath(), "UTF-8");
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,
