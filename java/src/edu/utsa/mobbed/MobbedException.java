@@ -1,5 +1,6 @@
 package edu.utsa.mobbed;
 
+
 /**
  * Handles exceptions thrown in Mobbed. MobbedException extends Exception.
  * 

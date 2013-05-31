@@ -42,13 +42,29 @@ public class ManageDB {
 	 */
 	private Connection connection;
 	/**
+	 * The cursor generation count
+	 */
+	private int cursorGenCount;
+	/**
 	 * A hashmap that contains the default column values of each database table
 	 */
 	private HashMap<String, String> defaultValues;
 	/**
+	 * The fetch size of the cursor
+	 */
+	private int fetchSize;
+	/**
+	 * The table of the rows fetched by the cursor
+	 */
+	private String fetchTable;
+	/**
 	 * A hashmap that contains the keys of each database table
 	 */
 	private HashMap<String, String[]> keyMap;
+	/**
+	 * The name of the cursor that was last created
+	 */
+	private String lastCursorName;
 	/**
 	 * A hashmap that contains the column types of each database table
 	 */
@@ -100,6 +116,8 @@ public class ManageDB {
 			String password, boolean verbose) throws MobbedException {
 		connection = establishConnection(dbname, hostname, username, password);
 		this.verbose = verbose;
+		cursorGenCount = 1;
+		setFetchSize(0);
 		setAutoCommit(false);
 		initializeHashMaps();
 	}
@@ -478,52 +496,131 @@ public class ManageDB {
 		return tables;
 	}
 
-	/**
-	 * Retrieves rows from a table based on search criteria.
-	 * 
-	 * @param tableName
-	 *            the name of the database table
-	 * @param limit
-	 *            the maximum number of rows to return
-	 * @param regExp
-	 *            on if regular expressions are allowed, off if otherwise
-	 * @param tags
-	 *            the tags search criteria
-	 * @param attributes
-	 *            the attributes search criteria
-	 * @param columnNames
-	 *            the name of the database columns
-	 * @param columnValues
-	 *            the values of the columns
-	 * @return the rows that were found based on the search criteria
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
+	public void setFetchSize(int fetchSize) {
+		this.fetchSize = fetchSize;
+	}
+
+	public int getFetchSize() {
+		return fetchSize;
+	}
+
+	public String getFetchTable() {
+		return fetchTable;
+	}
+
+	// Cursor Code
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
-			String[] columnNames, String[][] columnValues)
+			String[] columnNames, String[][] columnValues, String cursorName)
 			throws MobbedException {
 		validateTableName(tableName);
+		String[][] rows = null;
 		String qry = "SELECT * FROM " + tableName;
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
 				columnNames, columnValues);
 		if (limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + limit;
-		String[][] rows;
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(qry,
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 					columnValues);
-			ResultSet rs = pstmt.executeQuery();
-			rows = populateArray(rs);
-			if (verbose)
-				System.out.println(pstmt);
+			if (getFetchSize() > 0) {
+				if (isEmpty(cursorName))
+					cursorName = generateCursor();
+				qry = pstmt.toString();
+				String cursorQuery = "DECLARE " + cursorName
+						+ " SCROLL CURSOR WITH HOLD FOR " + qry;
+				Statement stmt = connection.createStatement();
+				stmt.execute(cursorQuery);
+				rows = next(cursorName);
+				lastCursorName = cursorName;
+			} else {
+				rows = populateArray(pstmt.executeQuery());
+			}
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not execute query to retrieve rows\n"
 							+ ex.getMessage());
+		}
+		return rows;
+	}
+
+	public void closeCursor(String cursorName) throws MobbedException {
+		if (isEmpty(cursorName)) {
+			cursorName = lastCursorName;
+		}
+		try {
+			String query = "CLOSE " + cursorName;
+			Statement stmt = connection.createStatement();
+			stmt.execute(query);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not close the cursor\n"
+					+ ex.getMessage());
+		}
+	}
+
+	private String generateCursor() {
+		String cursorName = "cursor" + cursorGenCount;
+		cursorGenCount++;
+		return cursorName;
+	}
+
+	public String[][] getCursors() throws MobbedException {
+		String[][] rows = null;
+		String query = "SELECT name, substring(statement, '(SELECT.*)') from pg_cursors";
+		try {
+			Statement stmt = connection.createStatement();
+			rows = populateArray(stmt.executeQuery(query));
+		} catch (Exception ex) {
+			throw new MobbedException("Could not retrieve all cursors\n"
+					+ ex.getMessage());
+		}
+		return rows;
+	}
+
+	public String[][] next(String cursorName) throws MobbedException {
+		String[][] rows = null;
+		if (isEmpty(cursorName))
+			cursorName = lastCursorName;
+		String query = "FETCH FORWARD " + getFetchSize() + " FROM "
+				+ cursorName;
+		try {
+			Statement stmt = connection.createStatement(
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery(query);
+			ResultSetMetaData rsMeta = rs.getMetaData();
+			fetchTable = rsMeta.getTableName(1);
+			rows = populateArray(rs);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not fetch the next set of rows\n"
+					+ ex.getMessage());
+		}
+		return rows;
+	}
+
+	public String[][] previous(String cursorName) throws MobbedException {
+		String[][] rows = null;
+		if (isEmpty(cursorName))
+			cursorName = lastCursorName;
+		String query1 = "MOVE BACKWARD " + getFetchSize() + " IN " + cursorName;
+		String query2 = "FETCH FORWARD " + getFetchSize() + " FROM "
+				+ cursorName;
+		try {
+			Statement stmt1 = connection.createStatement();
+			stmt1.execute(query1);
+			Statement stmt2 = connection.createStatement(
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt2.executeQuery(query2);
+			ResultSetMetaData rsMeta = rs.getMetaData();
+			fetchTable = rsMeta.getTableName(1);
+			rows = populateArray(rs);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not fetch the next set of rows\n"
+					+ ex.getMessage());
 		}
 		return rows;
 	}
@@ -1117,18 +1214,22 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	private String[][] populateArray(ResultSet rs) throws MobbedException {
-		String[][] allocatedArray;
+		String[][] allocatedArray = null;
 		try {
 			ResultSetMetaData rsMeta = rs.getMetaData();
 			rs.last();
 			int rowCount = rs.getRow();
+			System.out.println("\nThe number of rows in the ResultSet is "
+					+ rowCount);
 			int colCount = rsMeta.getColumnCount();
 			allocatedArray = new String[rowCount][colCount];
 			rs.beforeFirst();
-			for (int i = 0; i < rowCount; i++) {
-				rs.next();
+			int i = 0;
+			// This is a while loop and will retrieve all rows in the ResultSet
+			while (rs.next()) {
 				for (int j = 0; j < colCount; j++)
 					allocatedArray[i][j] = rs.getString(j + 1);
+				i++;
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException(
