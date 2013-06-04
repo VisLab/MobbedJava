@@ -21,7 +21,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
@@ -42,29 +41,13 @@ public class ManageDB {
 	 */
 	private Connection connection;
 	/**
-	 * The cursor generation count
-	 */
-	private int cursorGenCount;
-	/**
 	 * A hashmap that contains the default column values of each database table
 	 */
 	private HashMap<String, String> defaultValues;
 	/**
-	 * The fetch size of the cursor
-	 */
-	private int fetchSize;
-	/**
-	 * The table of the rows fetched by the cursor
-	 */
-	private String fetchTable;
-	/**
 	 * A hashmap that contains the keys of each database table
 	 */
 	private HashMap<String, String[]> keyMap;
-	/**
-	 * The name of the cursor that was last created
-	 */
-	private String lastCursorName;
 	/**
 	 * A hashmap that contains the column types of each database table
 	 */
@@ -94,6 +77,9 @@ public class ManageDB {
 	 * A query that retrieves the tables of a database
 	 */
 	private static final String tableQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
+	/**
+	 * The name of the template database
+	 */
 	private static final String templateName = "template1";
 
 	/**
@@ -116,8 +102,6 @@ public class ManageDB {
 			String password, boolean verbose) throws MobbedException {
 		connection = establishConnection(dbname, hostname, username, password);
 		this.verbose = verbose;
-		cursorGenCount = 1;
-		setFetchSize(0);
 		setAutoCommit(false);
 		initializeHashMaps();
 	}
@@ -496,16 +480,12 @@ public class ManageDB {
 		return tables;
 	}
 
-	public void setFetchSize(int fetchSize) {
-		this.fetchSize = fetchSize;
-	}
-
-	public int getFetchSize() {
-		return fetchSize;
-	}
-
-	public String getFetchTable() {
-		return fetchTable;
+	public boolean getAutoCommit() throws MobbedException {
+		try {
+			return connection.getAutoCommit();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not get auto commit mode");
+		}
 	}
 
 	// Cursor Code
@@ -519,23 +499,20 @@ public class ManageDB {
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
 				columnNames, columnValues);
 		if (limit != Double.POSITIVE_INFINITY)
-			qry += " LIMIT " + limit;
+			qry += " LIMIT " + (int) limit;
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(qry,
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 					columnValues);
-			if (getFetchSize() > 0) {
-				if (isEmpty(cursorName))
-					cursorName = generateCursor();
+			if (!isEmpty(cursorName)) {
 				qry = pstmt.toString();
 				String cursorQuery = "DECLARE " + cursorName
 						+ " SCROLL CURSOR WITH HOLD FOR " + qry;
 				Statement stmt = connection.createStatement();
 				stmt.execute(cursorQuery);
-				rows = next(cursorName);
-				lastCursorName = cursorName;
+				rows = next(cursorName, (int) limit);
 			} else {
 				rows = populateArray(pstmt.executeQuery());
 			}
@@ -548,11 +525,8 @@ public class ManageDB {
 	}
 
 	public void closeCursor(String cursorName) throws MobbedException {
-		if (isEmpty(cursorName)) {
-			cursorName = lastCursorName;
-		}
+		String query = "CLOSE " + cursorName;
 		try {
-			String query = "CLOSE " + cursorName;
 			Statement stmt = connection.createStatement();
 			stmt.execute(query);
 		} catch (SQLException ex) {
@@ -561,62 +535,15 @@ public class ManageDB {
 		}
 	}
 
-	private String generateCursor() {
-		String cursorName = "cursor" + cursorGenCount;
-		cursorGenCount++;
-		return cursorName;
-	}
-
-	public String[][] getCursors() throws MobbedException {
+	private String[][] next(String cursorName, int fetchSize)
+			throws MobbedException {
 		String[][] rows = null;
-		String query = "SELECT name, substring(statement, '(SELECT.*)') from pg_cursors";
-		try {
-			Statement stmt = connection.createStatement();
-			rows = populateArray(stmt.executeQuery(query));
-		} catch (Exception ex) {
-			throw new MobbedException("Could not retrieve all cursors\n"
-					+ ex.getMessage());
-		}
-		return rows;
-	}
-
-	public String[][] next(String cursorName) throws MobbedException {
-		String[][] rows = null;
-		if (isEmpty(cursorName))
-			cursorName = lastCursorName;
-		String query = "FETCH FORWARD " + getFetchSize() + " FROM "
-				+ cursorName;
+		String query = "FETCH FORWARD " + fetchSize + " FROM " + cursorName;
 		try {
 			Statement stmt = connection.createStatement(
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
 			ResultSet rs = stmt.executeQuery(query);
-			ResultSetMetaData rsMeta = rs.getMetaData();
-			fetchTable = rsMeta.getTableName(1);
-			rows = populateArray(rs);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not fetch the next set of rows\n"
-					+ ex.getMessage());
-		}
-		return rows;
-	}
-
-	public String[][] previous(String cursorName) throws MobbedException {
-		String[][] rows = null;
-		if (isEmpty(cursorName))
-			cursorName = lastCursorName;
-		String query1 = "MOVE BACKWARD " + getFetchSize() + " IN " + cursorName;
-		String query2 = "FETCH FORWARD " + getFetchSize() + " FROM "
-				+ cursorName;
-		try {
-			Statement stmt1 = connection.createStatement();
-			stmt1.execute(query1);
-			Statement stmt2 = connection.createStatement(
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = stmt2.executeQuery(query2);
-			ResultSetMetaData rsMeta = rs.getMetaData();
-			fetchTable = rsMeta.getTableName(1);
 			rows = populateArray(rs);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not fetch the next set of rows\n"
@@ -1219,13 +1146,10 @@ public class ManageDB {
 			ResultSetMetaData rsMeta = rs.getMetaData();
 			rs.last();
 			int rowCount = rs.getRow();
-			System.out.println("\nThe number of rows in the ResultSet is "
-					+ rowCount);
 			int colCount = rsMeta.getColumnCount();
 			allocatedArray = new String[rowCount][colCount];
 			rs.beforeFirst();
 			int i = 0;
-			// This is a while loop and will retrieve all rows in the ResultSet
 			while (rs.next()) {
 				for (int j = 0; j < colCount; j++)
 					allocatedArray[i][j] = rs.getString(j + 1);
