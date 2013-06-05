@@ -554,7 +554,8 @@ public class ManageDB {
 			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 					columnValues);
 			if (!isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY) {
-				createDataCursor(cursorName, pstmt.toString());
+				if (!dataCursorExists(cursorName))
+					createDataCursor(cursorName, pstmt.toString());
 				rows = next(cursorName, (int) limit);
 			} else {
 				rows = populateArray(pstmt.executeQuery());
@@ -873,6 +874,30 @@ public class ManageDB {
 					+ ex.getMessage());
 		}
 
+	}
+
+	/**
+	 * 
+	 * @param cursorName
+	 *            the name of the data cursor
+	 * @return true if the data cursor exists
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	private boolean dataCursorExists(String cursorName) throws MobbedException {
+		String query = "SELECT EXISTS (SELECT 1 FROM PG_CURSORS WHERE NAME = ?)";
+		boolean cursorExists;
+		try {
+			PreparedStatement pstmt = connection.prepareStatement(query);
+			pstmt.setString(1, cursorName);
+			ResultSet rs = pstmt.executeQuery();
+			rs.next();
+			cursorExists = rs.getBoolean(1);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not check if data cursor exists\n"
+					+ ex.getMessage());
+		}
+		return cursorExists;
 	}
 
 	/**
