@@ -247,6 +247,25 @@ public class ManageDB {
 	}
 
 	/**
+	 * Closes a data cursor
+	 * 
+	 * @param cursorName
+	 *            the name of the data cursor
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public void closeCursor(String cursorName) throws MobbedException {
+		String query = "CLOSE " + cursorName;
+		try {
+			Statement stmt = connection.createStatement();
+			stmt.execute(query);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not close the cursor\n"
+					+ ex.getMessage());
+		}
+	}
+
+	/**
 	 * Commits the database transaction.
 	 * 
 	 * @throws MobbedException
@@ -382,6 +401,21 @@ public class ManageDB {
 	}
 
 	/**
+	 * Gets the auto commit mode
+	 * 
+	 * @return the state of auto commit mode
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public boolean getAutoCommit() throws MobbedException {
+		try {
+			return connection.getAutoCommit();
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not get auto commit mode");
+		}
+	}
+
+	/**
 	 * Gets the column names of a database table.
 	 * 
 	 * @param tableName
@@ -480,15 +514,28 @@ public class ManageDB {
 		return tables;
 	}
 
-	public boolean getAutoCommit() throws MobbedException {
-		try {
-			return connection.getAutoCommit();
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not get auto commit mode");
-		}
-	}
-
-	// Cursor Code
+	/**
+	 * Retrieves rows from the database based on search criteria
+	 * 
+	 * @param tableName
+	 *            the name of the database table
+	 * @param limit
+	 *            the maximum number of rows to retrieve
+	 * @param regExp
+	 * @param tags
+	 *            the tag search criteria
+	 * @param attributes
+	 *            the attribute search criteria
+	 * @param columnNames
+	 *            the names of the database columns
+	 * @param columnValues
+	 *            the database column values
+	 * @param cursorName
+	 *            the name of the data cursor
+	 * @return the rows found by the search criteria
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
 			String[] columnNames, String[][] columnValues, String cursorName)
@@ -506,12 +553,8 @@ public class ManageDB {
 					ResultSet.CONCUR_READ_ONLY);
 			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
 					columnValues);
-			if (!isEmpty(cursorName)) {
-				qry = pstmt.toString();
-				String cursorQuery = "DECLARE " + cursorName
-						+ " SCROLL CURSOR WITH HOLD FOR " + qry;
-				Statement stmt = connection.createStatement();
-				stmt.execute(cursorQuery);
+			if (!isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY) {
+				createDataCursor(cursorName, pstmt.toString());
 				rows = next(cursorName, (int) limit);
 			} else {
 				rows = populateArray(pstmt.executeQuery());
@@ -520,34 +563,6 @@ public class ManageDB {
 			throw new MobbedException(
 					"Could not execute query to retrieve rows\n"
 							+ ex.getMessage());
-		}
-		return rows;
-	}
-
-	public void closeCursor(String cursorName) throws MobbedException {
-		String query = "CLOSE " + cursorName;
-		try {
-			Statement stmt = connection.createStatement();
-			stmt.execute(query);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not close the cursor\n"
-					+ ex.getMessage());
-		}
-	}
-
-	private String[][] next(String cursorName, int fetchSize)
-			throws MobbedException {
-		String[][] rows = null;
-		String query = "FETCH FORWARD " + fetchSize + " FROM " + cursorName;
-		try {
-			Statement stmt = connection.createStatement(
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			ResultSet rs = stmt.executeQuery(query);
-			rows = populateArray(rs);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not fetch the next set of rows\n"
-					+ ex.getMessage());
 		}
 		return rows;
 	}
@@ -834,6 +849,30 @@ public class ManageDB {
 		for (int j = 1; j < keyColumns.length; j++)
 			qry += " AND " + keyColumns[j] + " = ?";
 		return qry;
+	}
+
+	/**
+	 * Creates a data cursor
+	 * 
+	 * @param cursorName
+	 *            the name of the data cursor
+	 * @param query
+	 *            the query the data cursor will be bounded to
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	private void createDataCursor(String cursorName, String query)
+			throws MobbedException {
+		String cursorQuery = "DECLARE " + cursorName
+				+ " SCROLL CURSOR WITH HOLD FOR " + query;
+		try {
+			Statement stmt = connection.createStatement();
+			stmt.execute(cursorQuery);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not create data cursor\n"
+					+ ex.getMessage());
+		}
+
 	}
 
 	/**
@@ -1129,6 +1168,35 @@ public class ManageDB {
 			targetType = Types.INTEGER;
 		}
 		return targetType;
+	}
+
+	/**
+	 * Fetches the next set of rows that a data cursor points to
+	 * 
+	 * @param cursorName
+	 *            the name of the data cursor
+	 * @param fetchSize
+	 *            the fetch size of the data cursor
+	 * @return a set of rows that the data cursor fetches
+	 * @throws MobbedException
+	 */
+	private String[][] next(String cursorName, int fetchSize)
+			throws MobbedException {
+		String[][] rows = null;
+		String query = "FETCH FORWARD " + fetchSize + " FROM " + cursorName;
+		try {
+			Statement stmt = connection.createStatement(
+					ResultSet.TYPE_SCROLL_INSENSITIVE,
+					ResultSet.CONCUR_READ_ONLY);
+			ResultSet rs = stmt.executeQuery(query);
+			rows = populateArray(rs);
+			if (isEmpty(rows))
+				closeCursor(cursorName);
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not fetch the next set of rows\n"
+					+ ex.getMessage());
+		}
+		return rows;
 	}
 
 	/**
