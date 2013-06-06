@@ -129,6 +129,11 @@ public class TestManageDB {
 		md.closeCursor("close_cursor");
 	}
 
+	@Test(expected = MobbedException.class)
+	public void testCloseInvalidCursor() throws Exception {
+		md.closeCursor("invalid_cursor");
+	}
+
 	@Test
 	public void testGetColumnNames() throws Exception {
 		System.out.println("Unit test for getColumnNames:");
