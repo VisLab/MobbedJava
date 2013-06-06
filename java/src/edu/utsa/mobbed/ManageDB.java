@@ -545,7 +545,7 @@ public class ManageDB {
 		String qry = "SELECT * FROM " + tableName;
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
 				columnNames, columnValues);
-		if (limit != Double.POSITIVE_INFINITY)
+		if (isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + (int) limit;
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(qry,

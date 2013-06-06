@@ -101,6 +101,35 @@ public class TestManageDB {
 	}
 
 	@Test
+	public void testCloseCursor() throws Exception {
+		String query = "INSERT INTO DATASETS (DATASET_NAME) VALUES (?)";
+		PreparedStatement pstmt = md.getConnection().prepareStatement(query);
+		for (int i = 0; i < 50; i++) {
+			pstmt.setString(1, "close_dataset" + (i + 1));
+			pstmt.addBatch();
+		}
+		pstmt.executeBatch();
+		String[] columnNames = { "dataset_name" };
+		String[][] columnValues = { { "close_dataset*" } };
+		String[][] rows = md.retrieveRows("datasets", 30, "on", null, null,
+				columnNames, columnValues, "close_cursor");
+		int expected = 30;
+		int actual = rows.length;
+		assertEquals(
+				"Number of rows returned is not equal to the expected rows",
+				expected, actual);
+		md.closeCursor("close_cursor");
+		rows = md.retrieveRows("datasets", 30, "on", null, null, columnNames,
+				columnValues, "close_cursor");
+		expected = 30;
+		actual = rows.length;
+		assertEquals(
+				"Number of rows returned is not equal to the expected rows",
+				expected, actual);
+		md.closeCursor("close_cursor");
+	}
+
+	@Test
 	public void testGetColumnNames() throws Exception {
 		System.out.println("Unit test for getColumnNames:");
 		System.out
@@ -290,7 +319,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -316,7 +345,34 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
+				expected, actual);
+	}
+
+	@Test
+	public void testRetrieveRowsCursor() throws Exception {
+		String query = "INSERT INTO DATASETS (DATASET_NAME) VALUES (?)";
+		PreparedStatement pstmt = md.getConnection().prepareStatement(query);
+		for (int i = 0; i < 50; i++) {
+			pstmt.setString(1, "cursor_dataset" + (i + 1));
+			pstmt.addBatch();
+		}
+		pstmt.executeBatch();
+		String[] columnNames = { "dataset_name" };
+		String[][] columnValues = { { "cursor_dataset*" } };
+		String[][] rows = md.retrieveRows("datasets", 30, "on", null, null,
+				columnNames, columnValues, "retrieve_rows_cursor");
+		int expected = 30;
+		int actual = rows.length;
+		assertEquals(
+				"Number of rows returned is not equal to the expected rows",
+				expected, actual);
+		rows = md.retrieveRows("datasets", 30, "on", null, null, columnNames,
+				columnValues, "retrieve_rows_cursor");
+		expected = 20;
+		actual = rows.length;
+		assertEquals(
+				"Number of rows returned is not equal to the expected rows",
 				expected, actual);
 	}
 
@@ -384,7 +440,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -413,7 +469,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -439,7 +495,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -466,7 +522,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -491,7 +547,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 
 	}
@@ -517,7 +573,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the contacts table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -544,7 +600,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -575,7 +631,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -607,7 +663,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -634,7 +690,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -660,7 +716,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -685,7 +741,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
@@ -710,7 +766,7 @@ public class TestManageDB {
 		System.out
 				.println("--It should return the expected rows from the datasets table given the search criteria");
 		assertEquals(
-				"Number of rows returned is not equal to the excpected row",
+				"Number of rows returned is not equal to the expected row",
 				expected, actual);
 	}
 
