@@ -220,13 +220,13 @@ public class ManageDB {
 			ResultSet rs = selStmt.executeQuery();
 			rs.next();
 			version = rs.getInt(1);
+			if (isUnique && version > 0)
+				throw new MobbedException("dataset version is not unique");
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not execute query to determine dataset version\n"
 							+ ex.getMessage());
 		}
-		if (isUnique && version > 0)
-			throw new MobbedException("dataset version is not unique");
 		return version + 1;
 	}
 
@@ -247,7 +247,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Closes a data cursor
+	 * Closes a data cursor. The data cursor must be open prior to closing it.
 	 * 
 	 * @param cursorName
 	 *            the name of the data cursor
@@ -260,13 +260,13 @@ public class ManageDB {
 			Statement stmt = connection.createStatement();
 			stmt.execute(query);
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not close the cursor\n"
+			throw new MobbedException("Could not close the data cursor\n"
 					+ ex.getMessage());
 		}
 	}
 
 	/**
-	 * Commits the database transaction.
+	 * Commits the current database transaction.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -401,7 +401,7 @@ public class ManageDB {
 	}
 
 	/**
-	 * Gets the auto commit mode
+	 * Gets the auto commit mode.
 	 * 
 	 * @return the state of auto commit mode
 	 * @throws MobbedException
@@ -541,6 +541,7 @@ public class ManageDB {
 			String[] columnNames, String[][] columnValues, String cursorName)
 			throws MobbedException {
 		validateTableName(tableName);
+		validateColumnNames(columnNames);
 		String[][] rows = null;
 		String qry = "SELECT * FROM " + tableName;
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
@@ -569,7 +570,8 @@ public class ManageDB {
 	}
 
 	/**
-	 * Rollback the transaction.
+	 * Rollback the current transaction. Auto commit mode needs to be set to
+	 * false to create a transaction.
 	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
@@ -578,8 +580,9 @@ public class ManageDB {
 		try {
 			connection.rollback();
 		} catch (SQLException ex) {
-			throw new MobbedException("Could not rollback transactions\n"
-					+ ex.getMessage());
+			throw new MobbedException(
+					"Could not rollback current transaction\n"
+							+ ex.getMessage());
 		}
 	}
 
@@ -758,7 +761,6 @@ public class ManageDB {
 		int numColumns = columnNames.length;
 		for (int i = 0; i < numColumns; i++) {
 			type = typeMap.get(columnNames[i]);
-			// Case insensitive fix
 			if (type.equalsIgnoreCase("character varying"))
 				columnName = " UPPER(" + columnNames[i] + ")";
 			else
@@ -813,9 +815,7 @@ public class ManageDB {
 				qry += " ~* ?";
 				for (int j = 1; j < numValues; j++)
 					qry += " OR " + columnName + " ~* ?";
-			}
-			// Without regexp (works for everything)
-			else {
+			} else {
 				qry += " IN (?";
 				for (int j = 1; j < numValues; j++)
 					qry += ",?";
@@ -1514,11 +1514,13 @@ public class ManageDB {
 	 */
 	private boolean validateColumnNames(String[] columnNames)
 			throws MobbedException {
-		int numColumns = columnNames.length;
-		for (int i = 0; i < numColumns; i++) {
-			if (getColumnType(columnNames[i].toLowerCase()) == null)
-				throw new MobbedException("column " + columnNames[i]
-						+ " is an invalid column type");
+		if (!isEmpty(columnNames)) {
+			int numColumns = columnNames.length;
+			for (int i = 0; i < numColumns; i++) {
+				if (getColumnType(columnNames[i].toLowerCase()) == null)
+					throw new MobbedException("column " + columnNames[i]
+							+ " is an invalid column type");
+			}
 		}
 		return true;
 	}
