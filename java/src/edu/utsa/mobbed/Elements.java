@@ -31,10 +31,6 @@ public class Elements {
 	 */
 	private String[] elementDescriptions;
 	/**
-	 * The field name of the elements
-	 */
-	private String elementField;
-	/**
 	 * The labels of the elements
 	 */
 	private String[] elementLabels;
@@ -42,10 +38,6 @@ public class Elements {
 	 * The positions of the elements
 	 */
 	private long[] elementPositions;
-	/**
-	 * The elements structure of the elements
-	 */
-	private Structures elementStruct;
 	/**
 	 * The UUIDs of the elements
 	 */
@@ -63,19 +55,11 @@ public class Elements {
 	 */
 	private PreparedStatement insertStmt;
 	/**
-	 * The modality name of the elements
-	 */
-	private String modalityName;
-	/**
-	 * The modality structure of the elements
-	 */
-	private Structures modalityStruct;
-	/**
 	 * A query that inserts elements into the database
 	 */
 	private static final String insertElementQry = "INSERT INTO ELEMENTS "
-			+ "(ELEMENT_UUID, ELEMENT_LABEL, ELEMENT_ORGANIZATIONAL_UUID, ELEMENT_ORGANIZATIONAL_CLASS, ELEMENT_PARENT_UUID, ELEMENT_POSITION, ELEMENT_DESCRIPTION) "
-			+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
+			+ "(ELEMENT_UUID, ELEMENT_LABEL, ELEMENT_DATASET_UUID, ELEMENT_PARENT_UUID, ELEMENT_POSITION, ELEMENT_DESCRIPTION) "
+			+ "VALUES (?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Creates a Elements object.
@@ -86,21 +70,18 @@ public class Elements {
 	public Elements(Connection dbCon) {
 		this.dbCon = dbCon;
 		this.datasetUuid = null;
-		this.modalityName = null;
 		this.groupLabel = null;
 		this.groupUuid = null;
-		this.elementField = null;
 		this.elementLabels = null;
 		this.elementDescriptions = null;
 		this.elementPositions = null;
-		this.modalityStruct = null;
 	}
 
 	/**
 	 * Add the attribute to a batch.
 	 * 
-	 * @param fieldName
-	 *            the field name of the attribute
+	 * @param path
+	 *            the path of the attribute
 	 * @param numericValues
 	 *            the numeric values of the attribute
 	 * @param values
@@ -108,14 +89,11 @@ public class Elements {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void addAttribute(String fieldName, Double[] numericValues,
+	public void addAttribute(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
-		addNewStructure(fieldName);
-		UUID structureUUID = elementStruct.getChildStructUuid(fieldName);
 		for (int i = 0; i < elementLabels.length; i++) {
-			atb.reset(UUID.randomUUID(), elementUuids[i], "elements",
-					datasetUuid, "datasets", structureUUID, numericValues[i],
-					values[i]);
+			atb.reset(UUID.randomUUID(), elementUuids[i], "elements", path,
+					numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
@@ -128,7 +106,6 @@ public class Elements {
 	 * @throws MobbedException
 	 */
 	public String[] addElements() throws MobbedException {
-		String organizationalClass = "datasets";
 		elementUuids = new UUID[elementLabels.length];
 		String[] stringElementUuids = new String[elementLabels.length];
 		try {
@@ -138,10 +115,9 @@ public class Elements {
 				insertStmt.setObject(1, groupUuid, Types.OTHER);
 				insertStmt.setObject(2, groupLabel);
 				insertStmt.setObject(3, datasetUuid);
-				insertStmt.setString(4, organizationalClass);
-				insertStmt.setObject(5, ManageDB.nullParentUuid, Types.OTHER);
-				insertStmt.setInt(6, 1);
-				insertStmt.setObject(7, groupLabel);
+				insertStmt.setObject(4, ManageDB.nullParentUuid, Types.OTHER);
+				insertStmt.setInt(5, 1);
+				insertStmt.setObject(6, groupLabel);
 				insertStmt.addBatch();
 			}
 			for (int i = 0; i < elementLabels.length; i++) {
@@ -150,10 +126,9 @@ public class Elements {
 				insertStmt.setObject(1, elementUuids[i], Types.OTHER);
 				insertStmt.setObject(2, elementLabels[i]);
 				insertStmt.setObject(3, datasetUuid);
-				insertStmt.setString(4, organizationalClass);
-				insertStmt.setObject(5, groupUuid, Types.OTHER);
-				insertStmt.setLong(6, elementPositions[i]);
-				insertStmt.setObject(7, elementDescriptions[i]);
+				insertStmt.setObject(4, groupUuid, Types.OTHER);
+				insertStmt.setLong(5, elementPositions[i]);
+				insertStmt.setObject(6, elementDescriptions[i]);
 				insertStmt.addBatch();
 			}
 		} catch (SQLException ex) {
@@ -183,14 +158,11 @@ public class Elements {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void reset(String modalityName, String datasetUuid,
-			String elementField, String groupLabel, String[] elementLabels,
-			String[] elementDescriptions, long[] elementPositions)
-			throws MobbedException {
-		this.modalityName = modalityName;
+	public void reset(String datasetUuid, String groupLabel,
+			String[] elementLabels, String[] elementDescriptions,
+			long[] elementPositions) throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.groupLabel = groupLabel;
-		this.elementField = elementField;
 		this.elementLabels = elementLabels;
 		this.elementDescriptions = elementDescriptions;
 		this.elementPositions = elementPositions;
@@ -211,28 +183,6 @@ public class Elements {
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not save elements\n"
 					+ ex.getMessage());
-		}
-	}
-
-	/**
-	 * Adds a field to the structures table if it does not already exist.
-	 * 
-	 * @param fieldName
-	 *            the name of the field
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	private void addNewStructure(String fieldName) throws MobbedException {
-		modalityStruct = Structures.retrieve(dbCon, modalityName,
-				UUID.fromString(ManageDB.nullParentUuid), false);
-		elementStruct = Structures.retrieve(dbCon, elementField,
-				modalityStruct.getStructureUuid(), true);
-		if (!elementStruct.containsChild(fieldName)) {
-			Structures newChild = new Structures(dbCon);
-			newChild.reset(UUID.randomUUID(), fieldName,
-					elementStruct.getStructureUuid());
-			newChild.save();
-			elementStruct.addChild(fieldName, newChild.getStructureUuid());
 		}
 	}
 

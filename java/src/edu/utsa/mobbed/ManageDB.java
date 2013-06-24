@@ -1994,10 +1994,15 @@ public class ManageDB {
 			Statement stmt = dbCon.createStatement();
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
-		} catch (Exception ex) {
+		} catch (IOException ex) {
 			throw new MobbedException(
-					"Could not populate the database tables\n"
+					"Could not read file to populate the database tables\n"
 							+ ex.getMessage());
+		} catch (SQLException ex) {
+			System.out.println(ex.getNextException().getMessage());
+			throw new MobbedException(
+					"Could not execute sql command to populate the database tables\n"
+							+ ex.getNextException().getMessage());
 		}
 	}
 }

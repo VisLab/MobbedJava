@@ -14,6 +14,10 @@ import java.sql.*;
 public class Attributes {
 
 	/**
+	 * String path specifying structure for attribute on retrieval
+	 */
+	private String attributePath;
+	/**
 	 * The UUID of the attribute
 	 */
 	private UUID attributeUuid;
@@ -34,18 +38,6 @@ public class Attributes {
 	 */
 	private Double numericValue;
 	/**
-	 * The organizational class of the attribute
-	 */
-	private String organizationalClass;
-	/**
-	 * The organizational UUID of the attribute
-	 */
-	private UUID organizationalUuid;
-	/**
-	 * The structure UUID of the attribute
-	 */
-	private UUID structureUuid;
-	/**
 	 * The value of the attribute
 	 */
 	private String value;
@@ -53,9 +45,9 @@ public class Attributes {
 	 * A query that inserts attributes into the database
 	 */
 	private static String insertQry = "INSERT INTO ATTRIBUTES "
-			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_ORGANIZATIONAL_UUID, "
-			+ "ATTRIBUTE_ORGANIZATIONAL_CLASS, ATTRIBUTE_STRUCTURE_UUID,  ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
-			+ " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_PATH, "
+			+ "ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
+			+ " VALUES (?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Creates a Attributes object.
@@ -69,9 +61,7 @@ public class Attributes {
 		attributeUuid = null;
 		entityUuid = null;
 		entityClass = null;
-		organizationalUuid = null;
-		organizationalClass = null;
-		structureUuid = null;
+		attributePath = null;
 		numericValue = null;
 		value = null;
 		try {
@@ -94,11 +84,9 @@ public class Attributes {
 			insertStmt.setObject(1, attributeUuid, Types.OTHER);
 			insertStmt.setObject(2, entityUuid, Types.OTHER);
 			insertStmt.setString(3, entityClass);
-			insertStmt.setObject(4, organizationalUuid, Types.OTHER);
-			insertStmt.setString(5, organizationalClass);
-			insertStmt.setObject(6, structureUuid, Types.OTHER);
-			insertStmt.setObject(7, numericValue);
-			insertStmt.setString(8, value);
+			insertStmt.setString(4, attributePath);
+			insertStmt.setObject(5, numericValue);
+			insertStmt.setString(6, value);
 			insertStmt.addBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add attribute to batch\n"
@@ -119,22 +107,19 @@ public class Attributes {
 	 *            UUID of the organization associated with the attribute
 	 * @param organizationalClass
 	 *            name of the organizational table associated with the attribute
-	 * @param structureUuid
-	 *            UUID of the structure associated with the attribute
+	 * @param attributePath
+	 *            string path specifying structure for attribute on retrieval
 	 * @param numericValue
 	 *            numeric representation of the attribute value
 	 * @param value
 	 *            string representation of the attribute value
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
-			UUID organizationalUuid, String organizationalClass,
-			UUID structureUuid, Double numericValue, String value) {
+			String attributePath, Double numericValue, String value) {
 		this.attributeUuid = attributeUuid;
 		this.entityUuid = entityUuid;
 		this.entityClass = entityClass;
-		this.organizationalUuid = organizationalUuid;
-		this.organizationalClass = organizationalClass;
-		this.structureUuid = structureUuid;
+		this.attributePath = attributePath;
 		this.numericValue = numericValue;
 		this.value = value;
 	}

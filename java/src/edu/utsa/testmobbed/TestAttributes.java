@@ -17,7 +17,6 @@ import org.junit.Test;
 import edu.utsa.mobbed.Attributes;
 import edu.utsa.mobbed.Elements;
 import edu.utsa.mobbed.ManageDB;
-import edu.utsa.mobbed.Structures;
 
 /**
  * Unit tests for Attributes class
@@ -33,7 +32,6 @@ public class TestAttributes {
 	private static ManageDB md;
 	private static String name = "attributedb";
 	private static String password = "admin";
-	private static UUID structureUuid;
 	private static String tablePath;
 	private static String user = "postgres";
 	private static boolean verbose = false;
@@ -54,8 +52,7 @@ public class TestAttributes {
 		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
 		attribute.reset(UUID.randomUUID(), UUID.fromString(elementUuids[0]),
-				"elements", UUID.fromString(datasetUuids[0]), "datasets",
-				structureUuid, 0.123, "0.123");
+				"elements", "/EEG/chanlocs", 0.123, "0.123");
 		attribute.addToBatch();
 		attribute.save();
 		rs = stmt.executeQuery(query);
@@ -89,20 +86,9 @@ public class TestAttributes {
 			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
 			long[] elementPositions = { 1, 2 };
 			Elements element = new Elements(md.getConnection());
-			element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
-					elementLabels, elementDescriptions, elementPositions);
+			element.reset(datasetUuids[0], "EEG CAP", elementLabels,
+					elementDescriptions, elementPositions);
 			elementUuids = element.addElements();
-			UUID parentStructUuid = UUID.randomUUID();
-			Structures structure = new Structures(md.getConnection());
-			structure.reset(parentStructUuid, "EEG",
-					UUID.fromString(ManageDB.nullParentUuid));
-			structure.save();
-			UUID elementStructUuid = UUID.randomUUID();
-			structure.reset(elementStructUuid, "element", parentStructUuid);
-			structure.save();
-			structureUuid = UUID.randomUUID();
-			structure.reset(structureUuid, "X", elementStructUuid);
-			structure.save();
 			attribute = new Attributes(md.getConnection());
 
 		}
