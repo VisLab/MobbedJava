@@ -57,10 +57,6 @@ public class ManageDB {
 	 */
 	private boolean verbose;
 	/**
-	 * A null parent UUID
-	 */
-	public static final String nullParentUuid = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
-	/**
 	 * A query that retrieves column metadata of a database table
 	 */
 	private static final String columnQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
@@ -1990,19 +1986,14 @@ public class ManageDB {
 			in.readFully(buffer);
 			in.close();
 			String result = new String(buffer);
-			String[] tables = result.split(" execute");
+			String[] tables = result.split("-- execute");
 			Statement stmt = dbCon.createStatement();
 			for (int i = 0; i < tables.length; i++)
 				stmt.execute(tables[i]);
-		} catch (IOException ex) {
+		} catch (Exception ex) {
 			throw new MobbedException(
-					"Could not read file to populate the database tables\n"
+					"Could not populate the database tables\n"
 							+ ex.getMessage());
-		} catch (SQLException ex) {
-			System.out.println(ex.getNextException().getMessage());
-			throw new MobbedException(
-					"Could not execute sql command to populate the database tables\n"
-							+ ex.getNextException().getMessage());
 		}
 	}
 }

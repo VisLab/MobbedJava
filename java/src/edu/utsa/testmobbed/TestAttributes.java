@@ -52,7 +52,8 @@ public class TestAttributes {
 		System.out.println("--There should be no attributes in the database.");
 		assertEquals("There are attributes in the database", expected, actual);
 		attribute.reset(UUID.randomUUID(), UUID.fromString(elementUuids[0]),
-				"elements", "/EEG/chanlocs", 0.123, "0.123");
+				"elements", UUID.fromString(datasetUuids[0]), "/chanlocs",
+				0.123, "0.123");
 		attribute.addToBatch();
 		attribute.save();
 		rs = stmt.executeQuery(query);
@@ -90,7 +91,6 @@ public class TestAttributes {
 					elementDescriptions, elementPositions);
 			elementUuids = element.addElements();
 			attribute = new Attributes(md.getConnection());
-
 		}
 
 	}

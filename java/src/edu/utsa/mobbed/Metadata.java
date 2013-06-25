@@ -15,6 +15,8 @@ public class Metadata {
 	 * A Attributes object used to store attributes
 	 */
 	private Attributes atb;
+	private UUID datasetUuid;
+	private Connection dbCon;
 
 	/**
 	 * Creates a Metadata object.
@@ -22,8 +24,8 @@ public class Metadata {
 	 * @param dbCon
 	 *            a connection to the database
 	 */
-	public Metadata(Connection dbCon) throws MobbedException {
-		atb = new Attributes(dbCon);
+	public Metadata(Connection dbCon) {
+		this.dbCon = dbCon;
 	}
 
 	/**
@@ -41,10 +43,15 @@ public class Metadata {
 	public void addAttribute(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
 		for (int i = 0; i < numericValues.length; i++) {
-			atb.reset(UUID.randomUUID(), null, null, path, numericValues[i],
-					values[i]);
+			atb.reset(UUID.randomUUID(), null, null, datasetUuid, path,
+					numericValues[i], values[i]);
 			atb.addToBatch();
 		}
+	}
+
+	public void reset(String datasetUuid) throws MobbedException {
+		this.datasetUuid = UUID.fromString(datasetUuid);
+		atb = new Attributes(dbCon);
 	}
 
 	/**

@@ -44,15 +44,11 @@ public class Events {
 	/**
 	 * The existing event type UUIDs in the database
 	 */
-	private String[] existingUuids;
+	private String[] existingEvents;
 	/**
 	 * A prepared statement object that inserts events into the database
 	 */
 	private PreparedStatement insertStmt;
-	/**
-	 * The parent UUIDs of the events
-	 */
-	private String[] parentUuids;
 	/**
 	 * The positions of the events
 	 */
@@ -73,8 +69,8 @@ public class Events {
 	 * A query that inserts events into the database
 	 */
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_DATASET_UUID, "
-			+ " EVENT_TYPE_UUID, EVENT_POSITION, EVENT_START_TIME,"
-			+ " EVENT_END_TIME, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?)";
+			+ " EVENT_TYPE_UUID, EVENT_START_TIME,"
+			+ " EVENT_END_TIME, EVENT_POSITION, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Creates a Events object.
@@ -108,8 +104,8 @@ public class Events {
 	public void addAttribute(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
 		for (int i = 0; i < types.length; i++) {
-			atb.reset(UUID.randomUUID(), eventUuids[i], "events", path,
-					numericValues[i], values[i]);
+			atb.reset(UUID.randomUUID(), eventUuids[i], "events", datasetUuid,
+					path, numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
@@ -124,7 +120,6 @@ public class Events {
 	 */
 	public String[] addEvents() throws MobbedException {
 		addNewTypes();
-		String entityClass = "datasets";
 		eventUuids = new UUID[types.length];
 		String[] stringEventUuids = new String[types.length];
 		try {
@@ -134,15 +129,13 @@ public class Events {
 				stringEventUuids[i] = eventUuids[i].toString();
 				insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 				insertStmt.setObject(2, datasetUuid, Types.OTHER);
-				insertStmt.setString(3, entityClass);
-				insertStmt.setObject(4,
+				insertStmt.setObject(3,
 						evType.getEventTypeUuid(types[i].toUpperCase()),
 						Types.OTHER);
-				insertStmt.setObject(5, parentUuids[i], Types.OTHER);
+				insertStmt.setDouble(4, startTimes[i]);
+				insertStmt.setDouble(5, endTimes[i]);
 				insertStmt.setLong(6, positions[i]);
-				insertStmt.setDouble(7, startTimes[i]);
-				insertStmt.setDouble(8, endTimes[i]);
-				insertStmt.setDouble(9, certainties[i]);
+				insertStmt.setDouble(7, certainties[i]);
 				insertStmt.addBatch();
 			}
 		} catch (SQLException ex) {
@@ -161,8 +154,8 @@ public class Events {
 	 *             if an error occurs
 	 */
 	public String[] addNewTypes() throws MobbedException {
-		if (existingUuids != null)
-			evType.retrieveMap(existingUuids);
+		if (existingEvents != null)
+			evType.retrieveMap(existingEvents);
 		EventTypes newEventType = new EventTypes(dbCon);
 		for (int i = 0; i < uniqueTypes.length; i++) {
 			if (!evType.containsEventType(uniqueTypes[i].toUpperCase())) {
@@ -196,7 +189,7 @@ public class Events {
 	 *            the end times of the events
 	 * @param certainties
 	 *            the certainties of the events
-	 * @param existingUuids
+	 * @param existingEvents
 	 *            the UUIDs of the event types that will be reused
 	 * @param parentUuids
 	 *            the UUIDs of the original events in which these events were
@@ -204,19 +197,18 @@ public class Events {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void reset(String datasetUuid, String uniqueTypes[], String[] types,
-			long[] positions, double[] startTimes, double[] endTimes,
-			double[] certainties, String[] existingUuids, String[] parentUuids)
+	public void reset(String datasetUuid, double[] startTimes,
+			double[] endTimes, long[] positions, double[] certainties,
+			String uniqueTypes[], String[] types, String[] existingEvents)
 			throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
-		this.types = types;
-		this.positions = positions;
 		this.startTimes = startTimes;
 		this.endTimes = endTimes;
+		this.positions = positions;
 		this.certainties = certainties;
 		this.uniqueTypes = uniqueTypes;
-		this.existingUuids = existingUuids;
-		this.parentUuids = parentUuids;
+		this.types = types;
+		this.existingEvents = existingEvents;
 		atb = new Attributes(dbCon);
 		evType = new EventTypes(dbCon);
 	}

@@ -84,7 +84,7 @@ public class TestMetadata {
 			String[] datasetUuids = md.addRows("datasets",
 					md.getColumnNames("datasets"), datasetValues, null, null);
 			metadata = new Metadata(md.getConnection());
-			metadata.reset("GENERIC", datasetUuids[0], "metadata");
+			metadata.reset(datasetUuids[0]);
 		}
 
 	}

@@ -92,8 +92,8 @@ public class Elements {
 	public void addAttribute(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
 		for (int i = 0; i < elementLabels.length; i++) {
-			atb.reset(UUID.randomUUID(), elementUuids[i], "elements", path,
-					numericValues[i], values[i]);
+			atb.reset(UUID.randomUUID(), elementUuids[i], "elements",
+					datasetUuid, path, numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
@@ -115,8 +115,8 @@ public class Elements {
 				insertStmt.setObject(1, groupUuid, Types.OTHER);
 				insertStmt.setObject(2, groupLabel);
 				insertStmt.setObject(3, datasetUuid);
-				insertStmt.setObject(4, ManageDB.nullParentUuid, Types.OTHER);
-				insertStmt.setInt(5, 1);
+				insertStmt.setObject(4, null, Types.OTHER);
+				insertStmt.setInt(5, -1);
 				insertStmt.setObject(6, groupLabel);
 				insertStmt.addBatch();
 			}

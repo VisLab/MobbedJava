@@ -805,16 +805,16 @@ public class TestManageDB {
 		String[] elementDescriptions = { "EEG channel: 1" };
 		long[] elementPositions = { 1 };
 		Elements element = new Elements(md.getConnection());
-		element.reset("EEG", datasetUuids[0], "chanlocs", "EEG CAP",
-				elementLabels, elementDescriptions, elementPositions);
+		element.reset(datasetUuids[0], "EEG CAP", elementLabels,
+				elementDescriptions, elementPositions);
 		String[] elementUuids = element.addElements();
 		String[][] attributeValues = {
 				{ null, elementUuids[0], "elements", datasetUuids[0],
-						"datasets", null, null, "Alpha" },
+						"/chanlocs/metadata", null, "Alpha" },
 				{ null, elementUuids[0], "elements", datasetUuids[0],
-						"datasets", null, null, "Beta" },
+						"/chanlocs/metadata", null, "Beta" },
 				{ null, elementUuids[0], "elements", datasetUuids[0],
-						"datasets", null, null, "Omega" } };
+						"/chanlocs/metadata", null, "Omega" } };
 		md.addRows("attributes", md.getColumnNames("attributes"),
 				attributeValues, null, null);
 		String[][] tagValues = { { "EyeTrack", datasetUuids[0], "datasets" },

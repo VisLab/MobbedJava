@@ -13,6 +13,7 @@ import java.sql.*;
  */
 public class Attributes {
 
+	private UUID attributeOrganizationalUuid;
 	/**
 	 * String path specifying structure for attribute on retrieval
 	 */
@@ -45,9 +46,9 @@ public class Attributes {
 	 * A query that inserts attributes into the database
 	 */
 	private static String insertQry = "INSERT INTO ATTRIBUTES "
-			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_PATH, "
+			+ "(ATTRIBUTE_UUID, ATTRIBUTE_ENTITY_UUID, ATTRIBUTE_ENTITY_CLASS, ATTRIBUTE_ORGANIZATIONAL_UUID, ATTRIBUTE_PATH, "
 			+ "ATTRIBUTE_NUMERIC_VALUE, ATTRIBUTE_VALUE)"
-			+ " VALUES (?, ?, ?, ?, ?, ?)";
+			+ " VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 	/**
 	 * Creates a Attributes object.
@@ -61,6 +62,7 @@ public class Attributes {
 		attributeUuid = null;
 		entityUuid = null;
 		entityClass = null;
+		attributeOrganizationalUuid = null;
 		attributePath = null;
 		numericValue = null;
 		value = null;
@@ -84,9 +86,10 @@ public class Attributes {
 			insertStmt.setObject(1, attributeUuid, Types.OTHER);
 			insertStmt.setObject(2, entityUuid, Types.OTHER);
 			insertStmt.setString(3, entityClass);
-			insertStmt.setString(4, attributePath);
-			insertStmt.setObject(5, numericValue);
-			insertStmt.setString(6, value);
+			insertStmt.setObject(4, attributeOrganizationalUuid, Types.OTHER);
+			insertStmt.setString(5, attributePath);
+			insertStmt.setObject(6, numericValue);
+			insertStmt.setString(7, value);
 			insertStmt.addBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add attribute to batch\n"
@@ -115,10 +118,12 @@ public class Attributes {
 	 *            string representation of the attribute value
 	 */
 	public void reset(UUID attributeUuid, UUID entityUuid, String entityClass,
-			String attributePath, Double numericValue, String value) {
+			UUID attributeOrganizationalUuid, String attributePath,
+			Double numericValue, String value) {
 		this.attributeUuid = attributeUuid;
 		this.entityUuid = entityUuid;
 		this.entityClass = entityClass;
+		this.attributeOrganizationalUuid = attributeOrganizationalUuid;
 		this.attributePath = attributePath;
 		this.numericValue = numericValue;
 		this.value = value;

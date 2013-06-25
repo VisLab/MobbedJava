@@ -45,17 +45,12 @@ public class TestEvents {
 		long[] positions = { 1, 2 };
 		double[] eventLatencies = { 111, 222 };
 		double[] eventCertainties = { 1.0, 1.0 };
-		String[] ureventParents = { ManageDB.nullParentUuid,
-				ManageDB.nullParentUuid };
 		urevent = new Events(md.getConnection());
-		urevent.reset("EEG", datasetUuids[0], "urevent", eventTypes,
-				eventTypes, positions, eventLatencies, eventLatencies,
-				eventCertainties, null, ureventParents);
-		String[] eventParents = urevent.addEvents();
+		urevent.reset(datasetUuids[0], eventLatencies, eventLatencies,
+				positions, eventCertainties, eventTypes, eventTypes, null);
 		event = new Events(md.getConnection());
-		event.reset("EEG", datasetUuids[0], "event", eventTypes, eventTypes,
-				positions, eventLatencies, eventLatencies, eventCertainties,
-				null, eventParents);
+		event.reset(datasetUuids[0], eventLatencies, eventLatencies, positions,
+				eventCertainties, eventTypes, eventTypes, null);
 	}
 
 	@Test
@@ -75,6 +70,7 @@ public class TestEvents {
 		String fieldName = "urevent";
 		Double[] numAttrValues = { 1.0, 2.0 };
 		String[] attrValues = { "1.0", "2.0" };
+		urevent.addEvents();
 		urevent.save();
 		event.addEvents();
 		event.addAttribute(fieldName, numAttrValues, attrValues);
@@ -103,6 +99,7 @@ public class TestEvents {
 		actual = rs.getInt(1);
 		System.out.println("--There should be no events in the database.");
 		assertEquals("There are events in the database", expected, actual);
+		urevent.addEvents();
 		urevent.save();
 		event.addEvents();
 		event.save();
