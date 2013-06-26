@@ -314,7 +314,7 @@ public class ManageDB {
 		String[] columns = getColumnNames(inTableName);
 		for (int i = 0; i < columns.length; i++)
 			qry += columns[i] + " " + typeMap.get(columns[i]) + ",";
-		qry += "extracted uuid[]) ORDER BY EVENT_ENTITY_UUID, EVENT_START_TIME";
+		qry += "extracted uuid[]) ORDER BY EVENT_DATASET_UUID, EVENT_START_TIME";
 		if (limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + limit;
 		String inQry = "SELECT * FROM " + inTableName;
