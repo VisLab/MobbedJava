@@ -555,6 +555,8 @@ public class ManageDB {
 					createDataCursor(cursorName, pstmt.toString());
 				rows = next(cursorName, (int) limit);
 			} else {
+				if (verbose)
+					System.out.println(pstmt.toString());
 				rows = populateArray(pstmt.executeQuery());
 			}
 		} catch (SQLException ex) {
@@ -865,6 +867,8 @@ public class ManageDB {
 		try {
 			Statement stmt = connection.createStatement();
 			stmt.execute(cursorQuery);
+			if (verbose)
+				System.out.println(cursorQuery);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not create data cursor\n"
 					+ ex.getMessage());
@@ -1213,6 +1217,8 @@ public class ManageDB {
 			rows = populateArray(rs);
 			if (isEmpty(rows))
 				closeCursor(cursorName);
+			if (verbose)
+				System.out.println(query);
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not fetch the next set of rows\n"
 					+ ex.getMessage());
