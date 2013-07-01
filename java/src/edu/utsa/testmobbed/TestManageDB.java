@@ -102,10 +102,11 @@ public class TestManageDB {
 
 	@Test
 	public void testCloseCursor() throws Exception {
-		String query = "INSERT INTO DATASETS (DATASET_NAME) VALUES (?)";
+		String query = "INSERT INTO DATASETS (DATASET_UUID, DATASET_NAME) VALUES (?, ?)";
 		PreparedStatement pstmt = md.getConnection().prepareStatement(query);
 		for (int i = 0; i < 50; i++) {
-			pstmt.setString(1, "close_dataset" + (i + 1));
+			pstmt.setObject(1, UUID.randomUUID());
+			pstmt.setString(2, "close_dataset" + (i + 1));
 			pstmt.addBatch();
 		}
 		pstmt.executeBatch();
@@ -356,10 +357,11 @@ public class TestManageDB {
 
 	@Test
 	public void testRetrieveRowsCursor() throws Exception {
-		String query = "INSERT INTO DATASETS (DATASET_NAME) VALUES (?)";
+		String query = "INSERT INTO DATASETS (DATASET_UUID, DATASET_NAME) VALUES (?, ?)";
 		PreparedStatement pstmt = md.getConnection().prepareStatement(query);
 		for (int i = 0; i < 50; i++) {
-			pstmt.setString(1, "cursor_dataset" + (i + 1));
+			pstmt.setObject(1, UUID.randomUUID());
+			pstmt.setString(2, "cursor_dataset" + (i + 1));
 			pstmt.addBatch();
 		}
 		pstmt.executeBatch();
