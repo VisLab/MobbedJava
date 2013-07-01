@@ -15,7 +15,13 @@ public class Metadata {
 	 * A Attributes object used to store attributes
 	 */
 	private Attributes atb;
+	/**
+	 * The dataset UUID of the attribute
+	 */
 	private UUID datasetUuid;
+	/**
+	 * A connection to the database
+	 */
 	private Connection dbCon;
 
 	/**
@@ -49,6 +55,13 @@ public class Metadata {
 		}
 	}
 
+	/**
+	 * Sets the class fields of a Metadata object.
+	 * 
+	 * @param datasetUuid
+	 *            the dataset UUID of the metadata
+	 * @throws MobbedException
+	 */
 	public void reset(String datasetUuid) throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		atb = new Attributes(dbCon);

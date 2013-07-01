@@ -171,29 +171,23 @@ public class Events {
 	/**
 	 * Sets class fields of a Events object.
 	 * 
-	 * @param modalityName
-	 *            the modality name associated with the events
 	 * @param datasetUuid
 	 *            the UUID of the dataset associated with the events
-	 * @param eventField
-	 *            the name of the field that contains the events
-	 * @param uniqueTypes
-	 *            the unique event types
-	 * @param types
-	 *            all of the event types
-	 * @param positions
-	 *            the positions of the events
 	 * @param startTimes
 	 *            the start times of the events
 	 * @param endTimes
 	 *            the end times of the events
+	 * @param positions
+	 *            the positions of the events
 	 * @param certainties
 	 *            the certainties of the events
+	 * @param uniqueTypes
+	 *            the unique event types
+	 * @param types
+	 *            all of the event types
 	 * @param existingEvents
 	 *            the UUIDs of the event types that will be reused
-	 * @param parentUuids
-	 *            the UUIDs of the original events in which these events were
-	 *            derived from
+	 * 
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */

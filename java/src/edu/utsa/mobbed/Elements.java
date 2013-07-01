@@ -141,16 +141,12 @@ public class Elements {
 	/**
 	 * Sets the class fields of a Elements object.
 	 * 
-	 * @param modalityName
-	 *            the name of the modality associated with the elements
 	 * @param datasetUuid
 	 *            the UUID of the dataset associated with the elements
-	 * @param elementField
-	 *            the field that contains the elements
 	 * @param groupLabel
 	 *            the label of the parent element
 	 * @param elementLabels
-	 *            the labels of the elements
+	 *            the labels of the child elements
 	 * @param elementDescriptions
 	 *            the descriptions of the elements
 	 * @param elementPositions

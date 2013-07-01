@@ -12,10 +12,12 @@ import java.sql.*;
  * 
  */
 public class Attributes {
-
+	/**
+	 * The organizational UUID of the attribute
+	 */
 	private UUID attributeOrganizationalUuid;
 	/**
-	 * String path specifying structure for attribute on retrieval
+	 * A string path specifying structure for attribute on retrieval
 	 */
 	private String attributePath;
 	/**
@@ -39,7 +41,7 @@ public class Attributes {
 	 */
 	private Double numericValue;
 	/**
-	 * The value of the attribute
+	 * The string value of the attribute
 	 */
 	private String value;
 	/**
@@ -106,10 +108,8 @@ public class Attributes {
 	 *            UUID of the entity associated with the attribute
 	 * @param entityClass
 	 *            name of the entity table associated with the attribute
-	 * @param organizationalUuid
+	 * @param attributeOrganizationalUuid
 	 *            UUID of the organization associated with the attribute
-	 * @param organizationalClass
-	 *            name of the organizational table associated with the attribute
 	 * @param attributePath
 	 *            string path specifying structure for attribute on retrieval
 	 * @param numericValue
