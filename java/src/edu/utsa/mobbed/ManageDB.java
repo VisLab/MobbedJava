@@ -1621,8 +1621,11 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	public static synchronized void closeAll() throws MobbedException {
-		for (ManageDB key : dbMap.keySet()) {
-			key.close();
+		Set<ManageDB> keySet = dbMap.keySet();
+		ManageDB[] mds = keySet.toArray(new ManageDB[keySet.size()]);
+		int numKeys = mds.length;
+		for (int i = 0; i < numKeys; i++) {
+			mds[i].close();
 		}
 		dbMap = null;
 	}
