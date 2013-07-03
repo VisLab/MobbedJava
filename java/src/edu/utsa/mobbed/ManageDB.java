@@ -70,6 +70,10 @@ public class ManageDB {
 			+ " pg_attribute.attnum = any(pg_index.indkey)"
 			+ " AND indisprimary";
 	/**
+	 * A hashmap that contains instances of ManageDB objects
+	 */
+	private static HashMap<ManageDB, String> dbMap;
+	/**
 	 * A query that retrieves the tables of a database
 	 */
 	private static final String tableQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
@@ -100,6 +104,7 @@ public class ManageDB {
 		this.verbose = verbose;
 		setAutoCommit(false);
 		initializeHashMaps();
+		put(this);
 	}
 
 	/**
@@ -235,6 +240,7 @@ public class ManageDB {
 	public void close() throws MobbedException {
 		try {
 			connection.close();
+			remove(this);
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not close the database connection\n"
@@ -1609,6 +1615,19 @@ public class ManageDB {
 	}
 
 	/**
+	 * Closes the database connections of the ManageDB objects in the hashmap
+	 * 
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public static synchronized void closeAll() throws MobbedException {
+		for (ManageDB key : dbMap.keySet()) {
+			key.close();
+		}
+		dbMap = null;
+	}
+
+	/**
 	 * Stores the database credentials in a property file. Call loadCredentials
 	 * to get the database credentials back.
 	 * 
@@ -2002,4 +2021,30 @@ public class ManageDB {
 							+ ex.getMessage());
 		}
 	}
+
+	/**
+	 * Puts the ManageDB object in the hashmap
+	 * 
+	 * @param obj
+	 *            the ManageDB object
+	 */
+	private static synchronized void put(ManageDB obj) {
+		if (dbMap == null) {
+			dbMap = new HashMap<ManageDB, String>();
+		}
+		dbMap.put(obj, null);
+	}
+
+	/**
+	 * Removes the ManageDB object from the hashmap
+	 * 
+	 * @param obj
+	 */
+	private static synchronized void remove(ManageDB obj) {
+		dbMap.remove(obj);
+		if (dbMap.isEmpty()) {
+			dbMap = null;
+		}
+	}
+
 }
