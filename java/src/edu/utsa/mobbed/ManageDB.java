@@ -2039,6 +2039,7 @@ public class ManageDB {
 	 * Removes the ManageDB object from the hashmap
 	 * 
 	 * @param obj
+	 *            the MangeDB object
 	 */
 	private static synchronized void remove(ManageDB obj) {
 		dbMap.remove(obj);
