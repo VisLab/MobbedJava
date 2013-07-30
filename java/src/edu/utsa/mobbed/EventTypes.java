@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Types;
 import java.util.HashMap;
 import java.util.UUID;
@@ -24,7 +25,7 @@ public class EventTypes {
 	/**
 	 * A hashmap that contains existing event types
 	 */
-	private HashMap<String, UUID> etMap;
+	private HashMap<String, EventTypeModel> etMap;
 	/**
 	 * The name of the event type
 	 */
@@ -49,7 +50,7 @@ public class EventTypes {
 		this.eventTypeUuid = null;
 		this.eventType = null;
 		this.eventTypeDescription = null;
-		etMap = new HashMap<String, UUID>();
+		etMap = new HashMap<String, EventTypeModel>();
 	}
 
 	/**
@@ -92,7 +93,8 @@ public class EventTypes {
 	 * @return the UUID of the event type
 	 */
 	public UUID getEventTypeUuid(String eventType) {
-		return etMap.get(eventType);
+		EventTypeModel etm = etMap.get(eventType);
+		return etm.getEventTypeUuid();
 	}
 
 	/**
@@ -123,34 +125,84 @@ public class EventTypes {
 		this.eventTypeDescription = eventTypeDescription;
 	}
 
+	// /**
+	// * Retrieves the event types from the database and puts them into a
+	// hashmap.
+	// *
+	// * @param eventTypeUuids
+	// * the UUIDs of the event types that exist in the database
+	// * @throws MobbedException
+	// * if an error occurs
+	// */
+	// public void retrieveMap(String[] eventTypeUuids) throws MobbedException {
+	// String query =
+	// "SELECT EVENT_TYPE, EVENT_TYPE_UUID FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN (";
+	// int numUuids = eventTypeUuids.length;
+	// for (int i = 0; i < numUuids - 1; i++)
+	// query += "?,";
+	// query += "?)";
+	// try {
+	// PreparedStatement pStmt = dbCon.prepareStatement(query);
+	// for (int i = 0; i < numUuids; i++)
+	// pStmt.setObject(i + 1, UUID.fromString(eventTypeUuids[i]),
+	// Types.OTHER);
+	// ResultSet rs = pStmt.executeQuery();
+	// while (rs.next())
+	// etMap.put(rs.getString(1).toUpperCase(),
+	// UUID.fromString(rs.getString(2)));
+	// } catch (SQLException ex) {
+	// throw new MobbedException(
+	// "Could not retrieve the event types to put in the hashmap\n"
+	// + ex.getMessage());
+	// }
+	// }
+
 	/**
 	 * Retrieves the event types from the database and puts them into a hashmap.
 	 * 
-	 * @param eventTypeUuids
-	 *            the UUIDs of the event types that exist in the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void retrieveMap(String[] eventTypeUuids) throws MobbedException {
-		String query = "SELECT EVENT_TYPE, EVENT_TYPE_UUID FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN (";
-		int numUuids = eventTypeUuids.length;
-		for (int i = 0; i < numUuids - 1; i++)
-			query += "?,";
-		query += "?)";
+	public void retrieveMap() throws MobbedException {
+		String eventType = null;
+		UUID eventTypeUuid = null;
+		HashMap<String, String> eventTypeTags;
+		String query = "SELECT EVENT_TYPE, EVENT_TYPE_UUID FROM EVENT_TYPES";
 		try {
-			PreparedStatement pStmt = dbCon.prepareStatement(query);
-			for (int i = 0; i < numUuids; i++)
-				pStmt.setObject(i + 1, UUID.fromString(eventTypeUuids[i]),
-						Types.OTHER);
-			ResultSet rs = pStmt.executeQuery();
-			while (rs.next())
-				etMap.put(rs.getString(1).toUpperCase(),
-						UUID.fromString(rs.getString(2)));
+			Statement stmt = dbCon.createStatement();
+			ResultSet rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				eventType = rs.getString(1).toUpperCase();
+				eventTypeUuid = UUID.fromString(rs.getString(2));
+				eventTypeTags = retrieveEventTypeTags(eventTypeUuid);
+				EventTypeModel etm = new EventTypeModel(eventTypeUuid,
+						eventTypeTags);
+				etMap.put(eventType, etm);
+			}
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not retrieve the event types to put in the hashmap\n"
 							+ ex.getMessage());
 		}
+	}
+
+	public HashMap<String, String> retrieveEventTypeTags(UUID eventTypeUuid)
+			throws MobbedException {
+		HashMap<String, String> eventTypeTags = new HashMap<String, String>();
+		String query = "SELECT TAG_NAME FROM TAGS WHERE TAG_ENTITY_UUID = ?";
+		try {
+			PreparedStatement pStmt = dbCon.prepareStatement(query);
+			pStmt.setObject(1, eventTypeUuid, Types.OTHER);
+			ResultSet rs = pStmt.executeQuery();
+			while (rs.next()) {
+				eventTypeTags.put(rs.getString(1).toUpperCase(), null);
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not retrieve the event types to put in the hashmap\n"
+							+ ex.getMessage());
+		}
+		return eventTypeTags;
 	}
 
 	/**

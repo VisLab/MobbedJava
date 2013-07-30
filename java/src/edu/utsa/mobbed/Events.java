@@ -155,7 +155,7 @@ public class Events {
 	 */
 	public String[] addNewTypes() throws MobbedException {
 		if (existingEvents != null)
-			evType.retrieveMap(existingEvents);
+			evType.retrieveMap();
 		EventTypes newEventType = new EventTypes(dbCon);
 		for (int i = 0; i < uniqueTypes.length; i++) {
 			if (!evType.containsEventType(uniqueTypes[i].toUpperCase())) {
