@@ -119,7 +119,7 @@ public class Events {
 	 *             if an error occurs
 	 */
 	public String[] addEvents() throws MobbedException {
-		addNewTypes();
+		EventTypes.addNewEventTypes(dbCon, existingEvents, uniqueTypes);
 		eventUuids = new UUID[types.length];
 		String[] stringEventUuids = new String[types.length];
 		try {
@@ -143,29 +143,6 @@ public class Events {
 					+ ex.getMessage());
 		}
 		return stringEventUuids;
-	}
-
-	/**
-	 * Adds a new event type if it does not already exist. Event types should be
-	 * reused when storing datasets that have event types with the same meaning.
-	 * 
-	 * @return the UUIDs of the event types
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public String[] addNewTypes() throws MobbedException {
-		if (existingEvents != null)
-			evType.retrieveMap();
-		EventTypes newEventType = new EventTypes(dbCon);
-		for (int i = 0; i < uniqueTypes.length; i++) {
-			if (!evType.containsEventType(uniqueTypes[i].toUpperCase())) {
-				newEventType.reset(uniqueTypes[i], null);
-				newEventType.save();
-				evType.addEventType(uniqueTypes[i].toUpperCase(),
-						newEventType.getEventTypeUuid());
-			}
-		}
-		return evType.getStringValues();
 	}
 
 	/**
