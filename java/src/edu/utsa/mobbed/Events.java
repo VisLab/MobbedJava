@@ -1,6 +1,7 @@
 package edu.utsa.mobbed;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -38,9 +39,9 @@ public class Events {
 	 */
 	private UUID[] eventUuids;
 	/**
-	 * A EventTypes object used to store event types
+	 * A EventTypeTagModel object used to store event types
 	 */
-	private EventTypes evType;
+	private HashMap<String, EventTypeModel> eventTypeTagMap;
 	/**
 	 * The existing event type UUIDs in the database
 	 */
@@ -68,6 +69,10 @@ public class Events {
 	/**
 	 * A query that inserts events into the database
 	 */
+	/**
+	 * Event type tags
+	 */
+	String[][] eventTypeTags;
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_DATASET_UUID, "
 			+ " EVENT_TYPE_UUID, EVENT_START_TIME,"
 			+ " EVENT_END_TIME, EVENT_POSITION, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -119,7 +124,6 @@ public class Events {
 	 *             if an error occurs
 	 */
 	public String[] addEvents() throws MobbedException {
-		EventTypes.addNewEventTypes(dbCon, existingEvents, uniqueTypes);
 		eventUuids = new UUID[types.length];
 		String[] stringEventUuids = new String[types.length];
 		try {
@@ -129,9 +133,11 @@ public class Events {
 				stringEventUuids[i] = eventUuids[i].toString();
 				insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 				insertStmt.setObject(2, datasetUuid, Types.OTHER);
-				insertStmt.setObject(3,
-						evType.getEventTypeUuid(types[i].toUpperCase()),
-						Types.OTHER);
+				insertStmt
+						.setObject(
+								3,
+								eventTypeTagMap.get(types[i].toUpperCase()).eventTypeUuid,
+								Types.OTHER);
 				insertStmt.setDouble(4, startTimes[i]);
 				insertStmt.setDouble(5, endTimes[i]);
 				insertStmt.setLong(6, positions[i]);
@@ -143,6 +149,22 @@ public class Events {
 					+ ex.getMessage());
 		}
 		return stringEventUuids;
+	}
+
+	/**
+	 * Adds a new event type if it does not already exist. Event types should be
+	 * reused when storing datasets that have event types with the same meaning.
+	 * 
+	 * @return the UUIDs of the event types
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public String[] addNewTypes() throws MobbedException {
+		String[] eventTypeUuids = null;
+		eventTypeTagMap = EventTypes.addNewEventTypes(dbCon, existingEvents,
+				uniqueTypes, eventTypeTags);
+		eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
+		return eventTypeUuids;
 	}
 
 	/**
@@ -170,8 +192,8 @@ public class Events {
 	 */
 	public void reset(String datasetUuid, double[] startTimes,
 			double[] endTimes, long[] positions, double[] certainties,
-			String uniqueTypes[], String[] types, String[] existingEvents)
-			throws MobbedException {
+			String uniqueTypes[], String[] types, String[] existingEvents,
+			String[][] eventTypeTags) throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.startTimes = startTimes;
 		this.endTimes = endTimes;
@@ -180,8 +202,9 @@ public class Events {
 		this.uniqueTypes = uniqueTypes;
 		this.types = types;
 		this.existingEvents = existingEvents;
+		this.eventTypeTags = eventTypeTags;
 		atb = new Attributes(dbCon);
-		evType = new EventTypes(dbCon);
+		eventTypeTagMap = new HashMap<String, EventTypeModel>();
 	}
 
 	/**
