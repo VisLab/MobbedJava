@@ -1969,7 +1969,7 @@ public class ManageDB {
 	 * @param o
 	 * @return true if the array is empty, false if otherwise
 	 */
-	private static boolean isEmpty(Object[] o) {
+	public static boolean isEmpty(Object[] o) {
 		boolean empty = true;
 		if (o != null) {
 			if (o.length > 0)
@@ -1984,7 +1984,7 @@ public class ManageDB {
 	 * @param s
 	 * @return true if the string is empty, false if otherwise
 	 */
-	private static boolean isEmpty(String s) {
+	public static boolean isEmpty(String s) {
 		boolean empty = true;
 		if (s != null) {
 			if (s.length() > 0)

@@ -69,7 +69,7 @@ public class EventTypes {
 	 * @return the UUID of the event type
 	 */
 	public UUID getEventTypeUuid(String eventType) {
-		EventTypeModel etm = etMap.get(eventType);
+		EventTypeModel etm = etMap.get(eventType.toUpperCase());
 		return etm.getEventTypeUuid();
 	}
 
@@ -173,11 +173,8 @@ public class EventTypes {
 				newEventType.reset(uniqueTypes[i], null);
 				newEventType.save();
 				eventTypeUuid = newEventType.getEventTypeUuid();
-				System.out
-						.println("unique types length: " + uniqueTypes.length);
-				System.out.println("event type tags length : "
-						+ eventTypeTags.length);
-				if (eventTypeTags[i][0] != null)
+				if (eventTypeTags != null
+						&& !ManageDB.isEmpty(eventTypeTags[i][0]))
 					tagMap = addAllTags(dbCon, eventTypeUuid, eventTypeTags[i]);
 				EventTypeModel etm = new EventTypeModel(eventTypeUuid, tagMap);
 				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
@@ -186,14 +183,14 @@ public class EventTypes {
 						.getEventTypeUuid();
 				tagMap = eventTypeMap.get(uniqueTypes[i].toUpperCase())
 						.getTagMap();
-				if (eventTypeTags[i][0] != null)
+				if (eventTypeTags != null
+						&& !ManageDB.isEmpty(eventTypeTags[i][0]))
 					tagMap = addNewTags(dbCon, tagMap, eventTypeUuid,
 							eventTypeTags[i]);
 				EventTypeModel etm = new EventTypeModel(eventTypeUuid, tagMap);
 				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
 			}
 		}
-		eventTypeUuids = getStringValues(eventTypeMap);
 		return eventTypeMap;
 	}
 
@@ -209,7 +206,7 @@ public class EventTypes {
 				pStmt.setObject(2, eventTypeUuid, Types.OTHER);
 				pStmt.setString(3, "event_types");
 				pStmt.addBatch();
-				eventTypeTagMap.put(eventTypeTags[i], null);
+				eventTypeTagMap.put(eventTypeTags[i].toUpperCase(), null);
 			}
 			pStmt.executeBatch();
 		} catch (SQLException ex) {
@@ -233,7 +230,7 @@ public class EventTypes {
 					pStmt.setObject(2, eventTypeUuid, Types.OTHER);
 					pStmt.setString(3, "event_types");
 					pStmt.addBatch();
-					tagMap.put(eventTypeTags[i], null);
+					tagMap.put(eventTypeTags[i].toUpperCase(), null);
 				}
 			}
 			pStmt.executeBatch();
