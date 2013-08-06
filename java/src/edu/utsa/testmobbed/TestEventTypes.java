@@ -6,11 +6,13 @@ package edu.utsa.testmobbed;
 import static org.junit.Assert.*;
 
 import java.net.URLDecoder;
+import java.util.HashMap;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import edu.utsa.mobbed.EventTypeTags;
 import edu.utsa.mobbed.EventTypes;
 import edu.utsa.mobbed.ManageDB;
 
@@ -36,14 +38,18 @@ public class TestEventTypes {
 		System.out.println("Unit test for retrieveMap");
 		System.out
 				.println("It should retrieve event types from the database and put them in a hash map");
-		etype.retrieveMap(eventTypeUuids);
+		String[] uniqueTypes = {};
+		String[][] eventTypeTags = { {} };
+		HashMap<String, EventTypeTags> eventTypeTagMap = EventTypes
+				.addNewEventTypes(md.getConnection(), eventTypeUuids,
+						uniqueTypes, eventTypeTags);
 		System.out.println("--The event type map should contain etype1");
 		assertTrue("The event type map does not contain etype1",
-				etype.containsEventType("etype1".toUpperCase()));
+				eventTypeTagMap.containsKey("etype1".toUpperCase()));
 		System.out
 				.println("--The event type map should return the uuid of etype1");
 		assertNotNull("The event type map does not return the uuid of etype1",
-				etype.getEventTypeUuid("etype1".toUpperCase()));
+				eventTypeTagMap.get("etype1".toUpperCase()).eventTypeUuid);
 	}
 
 	@BeforeClass

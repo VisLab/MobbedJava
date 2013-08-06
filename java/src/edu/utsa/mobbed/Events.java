@@ -41,7 +41,7 @@ public class Events {
 	/**
 	 * A EventTypeTagModel object used to store event types
 	 */
-	private HashMap<String, EventTypeModel> eventTypeTagMap;
+	private HashMap<String, EventTypeTags> eventTypeTagMap;
 	/**
 	 * The existing event type UUIDs in the database
 	 */
@@ -204,7 +204,7 @@ public class Events {
 		this.existingEvents = existingEvents;
 		this.eventTypeTags = eventTypeTags;
 		atb = new Attributes(dbCon);
-		eventTypeTagMap = new HashMap<String, EventTypeModel>();
+		eventTypeTagMap = new HashMap<String, EventTypeTags>();
 	}
 
 	/**

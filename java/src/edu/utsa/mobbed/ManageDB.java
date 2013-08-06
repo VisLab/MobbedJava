@@ -282,81 +282,82 @@ public class ManageDB {
 		}
 	}
 
-	/**
-	 * Retrieve inter-related items such as events from more complex scenarios.
-	 * 
-	 * @param inTableName
-	 *            the name of the database table
-	 * @param inColumnNames
-	 *            the names of the columns
-	 * @param inColumnValues
-	 *            the values of the columns
-	 * @param outTableName
-	 *            the name of the database table
-	 * @param outColumnNames
-	 *            the names of the columns
-	 * @param outColumnValues
-	 *            the values of the columns
-	 * @param limit
-	 *            the maximum number of rows to return
-	 * @param regExp
-	 *            on if regular expressions are allowed, off if otherwise
-	 * @param lower
-	 *            the lower limit
-	 * @param upper
-	 *            the upper limit
-	 * @return the row retrieved from the search
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public String[][] extractRows(String inTableName, String[] inColumnNames,
-			String[][] inColumnValues, String outTableName,
-			String[] outColumnNames, String[][] outColumnValues, double limit,
-			String regExp, double lower, double upper) throws MobbedException {
-		validateTableName(inTableName);
-		validateTableName(outTableName);
-		ResultSet rs;
-		String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
-		String[] columns = getColumnNames(inTableName);
-		for (int i = 0; i < columns.length; i++)
-			qry += columns[i] + " " + typeMap.get(columns[i]) + ",";
-		qry += "extracted uuid[]) ORDER BY EVENT_DATASET_UUID, EVENT_START_TIME";
-		if (limit != Double.POSITIVE_INFINITY)
-			qry += " LIMIT " + limit;
-		String inQry = "SELECT * FROM " + inTableName;
-		try {
-			if (inColumnNames != null) {
-				inQry += constructQualificationQuery(inTableName, regExp, null,
-						null, inColumnNames, inColumnValues);
-				PreparedStatement inStmt = connection.prepareStatement(inQry);
-				setTableStatementValues(inStmt, 1, inColumnNames,
-						inColumnValues);
-				inQry = inStmt.toString();
-			}
-			String outQry = "SELECT * FROM " + inTableName;
-			if (outColumnNames != null) {
-				outQry += constructQualificationQuery(outTableName, regExp,
-						null, null, outColumnNames, outColumnValues);
-				PreparedStatement outStmt = connection.prepareStatement(outQry);
-				setTableStatementValues(outStmt, 1, outColumnNames,
-						outColumnValues);
-				outQry = outStmt.toString();
-			}
-			PreparedStatement pstmt = connection.prepareStatement(qry,
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			pstmt.setString(1, inQry);
-			pstmt.setString(2, outQry);
-			pstmt.setDouble(3, lower);
-			pstmt.setDouble(4, upper);
-			rs = pstmt.executeQuery();
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not extract rows\n"
-					+ ex.getMessage());
-		}
-		String[][] rows = formatExtracted(populateArray(rs));
-		return rows;
-	}
+	// /**
+	// * Retrieve inter-related items such as events from more complex
+	// scenarios.
+	// *
+	// * @param inTableName
+	// * the name of the database table
+	// * @param inColumnNames
+	// * the names of the columns
+	// * @param inColumnValues
+	// * the values of the columns
+	// * @param outTableName
+	// * the name of the database table
+	// * @param outColumnNames
+	// * the names of the columns
+	// * @param outColumnValues
+	// * the values of the columns
+	// * @param limit
+	// * the maximum number of rows to return
+	// * @param regExp
+	// * on if regular expressions are allowed, off if otherwise
+	// * @param lower
+	// * the lower limit
+	// * @param upper
+	// * the upper limit
+	// * @return the row retrieved from the search
+	// * @throws MobbedException
+	// * if an error occurs
+	// */
+	// public String[][] extractRows(String inTableName, String[] inColumnNames,
+	// String[][] inColumnValues, String outTableName,
+	// String[] outColumnNames, String[][] outColumnValues, double limit,
+	// String regExp, double lower, double upper) throws MobbedException {
+	// validateTableName(inTableName);
+	// validateTableName(outTableName);
+	// ResultSet rs;
+	// String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
+	// String[] columns = getColumnNames(inTableName);
+	// for (int i = 0; i < columns.length; i++)
+	// qry += columns[i] + " " + typeMap.get(columns[i]) + ",";
+	// qry += "extracted uuid[]) ORDER BY EVENT_DATASET_UUID, EVENT_START_TIME";
+	// if (limit != Double.POSITIVE_INFINITY)
+	// qry += " LIMIT " + limit;
+	// String inQry = "SELECT * FROM " + inTableName;
+	// try {
+	// if (inColumnNames != null) {
+	// inQry += constructQualificationQuery(inTableName, regExp, null,
+	// null, inColumnNames, inColumnValues);
+	// PreparedStatement inStmt = connection.prepareStatement(inQry);
+	// setTableStatementValues(inStmt, 1, inColumnNames,
+	// inColumnValues);
+	// inQry = inStmt.toString();
+	// }
+	// String outQry = "SELECT * FROM " + inTableName;
+	// if (outColumnNames != null) {
+	// outQry += constructQualificationQuery(outTableName, regExp,
+	// null, null, outColumnNames, outColumnValues);
+	// PreparedStatement outStmt = connection.prepareStatement(outQry);
+	// setTableStatementValues(outStmt, 1, outColumnNames,
+	// outColumnValues);
+	// outQry = outStmt.toString();
+	// }
+	// PreparedStatement pstmt = connection.prepareStatement(qry,
+	// ResultSet.TYPE_SCROLL_INSENSITIVE,
+	// ResultSet.CONCUR_READ_ONLY);
+	// pstmt.setString(1, inQry);
+	// pstmt.setString(2, outQry);
+	// pstmt.setDouble(3, lower);
+	// pstmt.setDouble(4, upper);
+	// rs = pstmt.executeQuery();
+	// } catch (SQLException ex) {
+	// throw new MobbedException("Could not extract rows\n"
+	// + ex.getMessage());
+	// }
+	// String[][] rows = formatExtracted(populateArray(rs));
+	// return rows;
+	// }
 
 	/**
 	 * Retrieve unique inter-related items such as events from more complex
@@ -540,22 +541,24 @@ public class ManageDB {
 	 */
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
-			String[] columnNames, String[][] columnValues, String cursorName)
+			String[] columns, String[][] values, String[] doubleColumns,
+			Double[][] doubleValues, Double[] range, String cursorName)
 			throws MobbedException {
 		validateTableName(tableName);
-		validateColumnNames(columnNames);
+		validateColumnNames(columns);
+		validateColumnNames(doubleColumns);
 		String[][] rows = null;
 		String qry = "SELECT * FROM " + tableName;
 		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
-				columnNames, columnValues);
+				columns, values, doubleColumns, doubleValues, range);
 		if (isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + (int) limit;
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(qry,
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
 					ResultSet.CONCUR_READ_ONLY);
-			setQaulificationValues(pstmt, qry, tags, attributes, columnNames,
-					columnValues);
+			setQaulificationValues(pstmt, qry, tags, attributes, columns,
+					values, doubleColumns, doubleValues);
 			if (!isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY) {
 				if (!dataCursorExists(cursorName))
 					createDataCursor(cursorName, pstmt.toString());
@@ -693,8 +696,9 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	private String constructQualificationQuery(String tableName, String regExp,
-			String[][] tags, String[][] attributes, String[] columnNames,
-			String[][] columnValues) throws MobbedException {
+			String[][] tags, String[][] attributes, String[] columns,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues,
+			Double[] range) throws MobbedException {
 		String qry = "";
 		String closer = "";
 		String[] keys = keyMap.get(tableName);
@@ -709,14 +713,14 @@ public class ManageDB {
 				qry += " INTERSECT ";
 			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
 		}
-		if (columnNames != null) {
+		if (columns != null || doubleColumns != null) {
 			if (tags != null || attributes != null)
 				qry += " INTERSECT SELECT " + keys[0] + " FROM " + tableName
 						+ " WHERE ";
 			else
 				qry += " WHERE ";
-			qry += constructTableQuery(regExp, tableName, columnNames,
-					columnValues);
+			qry += constructTableQuery(regExp, tableName, columns, values,
+					doubleColumns, doubleValues, range);
 		}
 		qry += closer;
 		return qry;
@@ -758,33 +762,65 @@ public class ManageDB {
 	 * @return a query string
 	 */
 	private String constructTableQuery(String regExp, String tableName,
-			String[] columnNames, String[][] columnValues) {
+			String[] columns, String[][] values, String[] doubleColumns,
+			Double[][] doubleValues, Double[] range) {
+		String query = "";
+		if (columns != null)
+			query += constructNonDoubleQuery(regExp, columns, values);
+		if (doubleColumns != null)
+			query += constructDoubleQuery(doubleColumns, doubleValues, range);
+		return query;
+	}
+
+	private String constructNonDoubleQuery(String regExp, String[] columns,
+			String[][] values) {
 		String type;
 		String columnName;
-		String qry = "";
-		int numColumns = columnNames.length;
+		int numValues;
+		String query = "";
+		int numColumns = columns.length;
 		for (int i = 0; i < numColumns; i++) {
-			type = typeMap.get(columnNames[i]);
+			type = typeMap.get(columns[i]);
+			numValues = values[i].length;
 			if (type.equalsIgnoreCase("character varying"))
-				columnName = " UPPER(" + columnNames[i] + ")";
+				columnName = " UPPER(" + columns[i] + ")";
 			else
-				columnName = columnNames[i];
-			int numValues = columnValues[i].length;
+				columnName = columns[i];
 			if (type.equalsIgnoreCase("character varying")
 					&& regExp.equalsIgnoreCase("on")) {
-				qry += columnName + " ~* ?";
+				query += columnName + " ~* ?";
 				for (int j = 1; j < numValues; j++)
-					qry += " OR " + columnName + " ~* ?";
+					query += " OR " + columnName + " ~* ?";
 			} else {
-				qry += columnName + " IN (?";
+				query += columnName + " IN (?";
 				for (int j = 1; j < numValues; j++)
-					qry += ",?";
-				qry += ")";
+					query += ",?";
+				query += ")";
 			}
 			if (i != numColumns - 1)
-				qry += " AND ";
+				query += " AND ";
 		}
-		return qry;
+		return query;
+	}
+
+	private String constructDoubleQuery(String[] doubleColumns,
+			Double[][] doubleValues, Double[] range) {
+		String query = "";
+		String columnName;
+		int numColumns = doubleColumns.length;
+		int numValues;
+		for (int i = 0; i < numColumns; i++) {
+			numValues = doubleValues[i].length;
+			columnName = doubleColumns[i];
+			query += columnName + " BETWEEN ?-" + range[0] + " AND " + "?+"
+					+ range[1];
+			for (int j = 1; j < numValues; j++)
+				query += " OR " + columnName + " BETWEEN ?-" + range[0]
+						+ " AND " + "?+" + range[1];
+			if (i != numColumns - 1)
+				query += " AND ";
+		}
+		return query;
 	}
 
 	/**
@@ -955,25 +991,25 @@ public class ManageDB {
 		return keyIndexes;
 	}
 
-	/**
-	 * Formats the extracted column.
-	 * 
-	 * @param extracted
-	 *            The array that contains the extracted column
-	 * 
-	 * @return the array with a formatted extracted column
-	 */
-	private String[][] formatExtracted(String[][] extracted) {
-		int extractedCol = extracted[0].length - 1;
-		for (int i = 0; i < extracted.length; i++) {
-			Pattern uuidPattern = Pattern.compile("(?<=\\{)([^}]*)(?=\\})");
-			Matcher uuidMatcher = uuidPattern
-					.matcher(extracted[i][extractedCol]);
-			uuidMatcher.find();
-			extracted[i][extractedCol] = uuidMatcher.group();
-		}
-		return extracted;
-	}
+	// /**
+	// * Formats the extracted column.
+	// *
+	// * @param extracted
+	// * The array that contains the extracted column
+	// *
+	// * @return the array with a formatted extracted column
+	// */
+	// private String[][] formatExtracted(String[][] extracted) {
+	// int extractedCol = extracted[0].length - 1;
+	// for (int i = 0; i < extracted.length; i++) {
+	// Pattern uuidPattern = Pattern.compile("(?<=\\{)([^}]*)(?=\\})");
+	// Matcher uuidMatcher = uuidPattern
+	// .matcher(extracted[i][extractedCol]);
+	// uuidMatcher.find();
+	// extracted[i][extractedCol] = uuidMatcher.group();
+	// }
+	// return extracted;
+	// }
 
 	/**
 	 * Generates the keys for insertion.
@@ -1344,8 +1380,9 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	private void setQaulificationValues(PreparedStatement pstmt, String qry,
-			String[][] tags, String[][] attributes, String[] columnNames,
-			String[][] columnValues) throws MobbedException {
+			String[][] tags, String[][] attributes, String[] columns,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues)
+			throws MobbedException {
 		int valueCount = 1;
 		if (tags != null)
 			valueCount = setTagAttributesStatementValues(pstmt, valueCount,
@@ -1353,9 +1390,12 @@ public class ManageDB {
 		if (attributes != null)
 			valueCount = setTagAttributesStatementValues(pstmt, valueCount,
 					attributes);
-		if (columnNames != null)
-			valueCount = setTableStatementValues(pstmt, valueCount,
-					columnNames, columnValues);
+		if (columns != null)
+			valueCount = setNonDoubleTableStatementValues(pstmt, valueCount,
+					columns, values);
+		if (doubleColumns != null)
+			valueCount = setDoubleTableStatementValues(pstmt, valueCount,
+					doubleColumns, doubleValues);
 	}
 
 	/**
@@ -1401,7 +1441,8 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private int setTableStatementValues(PreparedStatement pstmt,
+
+	private int setNonDoubleTableStatementValues(PreparedStatement pstmt,
 			int valueCount, String[] columnNames, String[][] columnValues)
 			throws MobbedException {
 		int numColumns = columnNames.length;
@@ -1424,6 +1465,27 @@ public class ManageDB {
 			}
 		}
 		return valueCount;
+	}
+
+	private int setDoubleTableStatementValues(PreparedStatement pstmt,
+			int valueCount, String[] doubleColumns, Double[][] doubleValues)
+			throws MobbedException {
+		int numColumns = doubleColumns.length;
+		int numValues;
+		for (int i = 0; i < numColumns; i++) {
+			numValues = doubleValues[i].length;
+			for (int j = 0; j < numValues; j++) {
+				try {
+					pstmt.setDouble(valueCount, doubleValues[i][j]);
+				} catch (SQLException ex) {
+					throw new MobbedException("Could not set value in query\n"
+							+ ex.getMessage());
+				}
+				valueCount++;
+			}
+		}
+		return valueCount;
+
 	}
 
 	/**

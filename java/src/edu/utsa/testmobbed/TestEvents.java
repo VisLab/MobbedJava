@@ -45,12 +45,16 @@ public class TestEvents {
 		long[] positions = { 1, 2 };
 		double[] eventLatencies = { 111, 222 };
 		double[] eventCertainties = { 1.0, 1.0 };
+		String[][] eventTypeTags = null;
 		urevent = new Events(md.getConnection());
 		urevent.reset(datasetUuids[0], eventLatencies, eventLatencies,
-				positions, eventCertainties, eventTypes, eventTypes, null);
+				positions, eventCertainties, eventTypes, eventTypes, null,
+				eventTypeTags);
+		urevent.addNewTypes();
 		event = new Events(md.getConnection());
 		event.reset(datasetUuids[0], eventLatencies, eventLatencies, positions,
-				eventCertainties, eventTypes, eventTypes, null);
+				eventCertainties, eventTypes, eventTypes, null, eventTypeTags);
+		event.addNewTypes();
 	}
 
 	@Test

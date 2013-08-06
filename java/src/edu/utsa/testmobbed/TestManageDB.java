@@ -113,7 +113,7 @@ public class TestManageDB {
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "close_dataset*" } };
 		String[][] rows = md.retrieveRows("datasets", 30, "on", null, null,
-				columnNames, columnValues, "close_cursor");
+				columnNames, columnValues, null, null, null, "close_cursor");
 		int expected = 30;
 		int actual = rows.length;
 		assertEquals(
@@ -121,7 +121,7 @@ public class TestManageDB {
 				expected, actual);
 		md.closeCursor("close_cursor");
 		rows = md.retrieveRows("datasets", 30, "on", null, null, columnNames,
-				columnValues, "close_cursor");
+				columnValues, null, null, null, "close_cursor");
 		expected = 30;
 		actual = rows.length;
 		assertEquals(
@@ -310,7 +310,8 @@ public class TestManageDB {
 				.println("It should retrieve all datasets that have atrritubes ALPHA or BETA and Omega");
 		String[][] attributeValues = { { "ALPHA", "BETA" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", null, attributeValues, null, null, null);
+				"off", null, attributeValues, null, null, null, null, null,
+				null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -336,8 +337,9 @@ public class TestManageDB {
 		String[][] attributeValues = { { "A*", "B*" } };
 		System.out
 				.println("It should retrieve all datasets that have attributes that begin with A and B");
-		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", null, attributeValues, null, null, null);
+		String[][] rows = md
+				.retrieveRows("datasets", Double.POSITIVE_INFINITY, "on", null,
+						attributeValues, null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -368,14 +370,15 @@ public class TestManageDB {
 		String[] columnNames = { "dataset_name" };
 		String[][] columnValues = { { "cursor_dataset*" } };
 		String[][] rows = md.retrieveRows("datasets", 30, "on", null, null,
-				columnNames, columnValues, "retrieve_rows_cursor");
+				columnNames, columnValues, null, null, null,
+				"retrieve_rows_cursor");
 		int expected = 30;
 		int actual = rows.length;
 		assertEquals(
 				"Number of rows returned is not equal to the expected rows",
 				expected, actual);
 		rows = md.retrieveRows("datasets", 30, "on", null, null, columnNames,
-				columnValues, "retrieve_rows_cursor");
+				columnValues, null, null, null, "retrieve_rows_cursor");
 		expected = 20;
 		actual = rows.length;
 		assertEquals(
@@ -389,7 +392,7 @@ public class TestManageDB {
 		System.out
 				.println("It should retrieve at most 1 contact from the database");
 		String[][] rows = md.retrieveRows("contacts", 1, "off", null, null,
-				null, null, null);
+				null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		int expected = 1;
@@ -406,7 +409,7 @@ public class TestManageDB {
 		System.out
 				.println("It should retrieve all the contacts in the database");
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
-				"off", null, null, null, null, null);
+				"off", null, null, null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -432,7 +435,8 @@ public class TestManageDB {
 		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] attributeValues = { { "Alpha", "Beta" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", null, attributeValues, columnNames, columnValues, null);
+				"off", null, attributeValues, columnNames, columnValues, null,
+				null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -461,7 +465,8 @@ public class TestManageDB {
 		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", null, attributeValues, columnNames, columnValues, null);
+				"on", null, attributeValues, columnNames, columnValues, null,
+				null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -489,7 +494,8 @@ public class TestManageDB {
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues = { { "John", "Jane" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
-				"off", null, null, columnNames, columnValues, null);
+				"off", null, null, columnNames, columnValues, null, null, null,
+				null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -516,7 +522,8 @@ public class TestManageDB {
 		String[] columnNames = { "contact_first_name", "contact_last_name" };
 		String[][] columnValues = { { "Jo*", "Ja*" }, { "Doe" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
-				"on", null, null, columnNames, columnValues, null);
+				"on", null, null, columnNames, columnValues, null, null, null,
+				null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -542,7 +549,8 @@ public class TestManageDB {
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "john" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
-				"off", null, null, columnNames, columnValues, null);
+				"off", null, null, columnNames, columnValues, null, null, null,
+				null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -568,7 +576,8 @@ public class TestManageDB {
 		String[] columnNames = { "contact_first_name" };
 		String[][] columnValues = { { "jo*" } };
 		String[][] rows = md.retrieveRows("contacts", Double.POSITIVE_INFINITY,
-				"on", null, null, columnNames, columnValues, null);
+				"on", null, null, columnNames, columnValues, null, null, null,
+				null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -594,7 +603,8 @@ public class TestManageDB {
 		String[][] columnValues = { { "MANAGEDB_DATASET" } };
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", tagValues, null, columnNames, columnValues, null);
+				"off", tagValues, null, columnNames, columnValues, null, null,
+				null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -623,7 +633,7 @@ public class TestManageDB {
 		String[][] attributeValues = { { "Alpha", "Beta" }, { "Omega" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"off", tagValues, attributeValues, columnNames, columnValues,
-				null);
+				null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -655,7 +665,7 @@ public class TestManageDB {
 		String[][] attributeValues = { { "A*", "B*" }, { "O*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
 				"on", tagValues, attributeValues, columnNames, columnValues,
-				null);
+				null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -684,7 +694,8 @@ public class TestManageDB {
 		String[][] columnValues = { { "MANAGEDB*" } };
 		String[][] tagValues = { { "Eye*", "Visual*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", tagValues, null, columnNames, columnValues, null);
+				"on", tagValues, null, columnNames, columnValues, null, null,
+				null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -710,7 +721,7 @@ public class TestManageDB {
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" },
 				{ "AudioLeft" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", tagValues, null, null, null, null);
+				"off", tagValues, null, null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -735,7 +746,7 @@ public class TestManageDB {
 				.println("It should retrieve all datasets that have the tag EyeTrack or VisualTarget");
 		String[][] tagValues = { { "EyeTrack", "VisualTarget" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"off", tagValues, null, null, null, null);
+				"off", tagValues, null, null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();
@@ -760,7 +771,7 @@ public class TestManageDB {
 				.println("It should retrieve all datasets that have a tag that begins with Eye");
 		String[][] tagValues = { { "Eye*" } };
 		String[][] rows = md.retrieveRows("datasets", Double.POSITIVE_INFINITY,
-				"on", tagValues, null, null, null, null);
+				"on", tagValues, null, null, null, null, null, null, null);
 		assertNotNull(rows);
 		int actual = rows.length;
 		Statement st = md.getConnection().createStatement();

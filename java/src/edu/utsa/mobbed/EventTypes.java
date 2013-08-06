@@ -24,7 +24,7 @@ public class EventTypes {
 	/**
 	 * A hashmap that contains existing event types
 	 */
-	private HashMap<String, EventTypeModel> etMap;
+	private HashMap<String, EventTypeTags> etMap;
 	/**
 	 * The name of the event type
 	 */
@@ -49,7 +49,7 @@ public class EventTypes {
 		this.eventTypeUuid = null;
 		this.eventType = null;
 		this.eventTypeDescription = null;
-		etMap = new HashMap<String, EventTypeModel>();
+		etMap = new HashMap<String, EventTypeTags>();
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class EventTypes {
 	 * @return the UUID of the event type
 	 */
 	public UUID getEventTypeUuid(String eventType) {
-		EventTypeModel etm = etMap.get(eventType.toUpperCase());
+		EventTypeTags etm = etMap.get(eventType.toUpperCase());
 		return etm.getEventTypeUuid();
 	}
 
@@ -79,11 +79,11 @@ public class EventTypes {
 	 * @return the string representation of the event type UUIDs
 	 */
 	public static String[] getStringValues(
-			HashMap<String, EventTypeModel> hashmap) {
+			HashMap<String, EventTypeTags> hashmap) {
 		int numElements = hashmap.size();
 		int i = 0;
 		String[] eventTypeUuids = new String[numElements];
-		for (EventTypeModel value : hashmap.values()) {
+		for (EventTypeTags value : hashmap.values()) {
 			eventTypeUuids[i] = value.getEventTypeUuid().toString();
 			i++;
 		}
@@ -113,12 +113,12 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static HashMap<String, EventTypeModel> retrieveEventTypeMap(
+	private static HashMap<String, EventTypeTags> retrieveEventTypeMap(
 			Connection dbCon, String[] eventTypeUuids) throws MobbedException {
 		String eventType = null;
 		UUID eventTypeUuid = null;
 		HashMap<String, String> eventTypeTags;
-		HashMap<String, EventTypeModel> eventTypeMap = new HashMap<String, EventTypeModel>();
+		HashMap<String, EventTypeTags> eventTypeTagMap = new HashMap<String, EventTypeTags>();
 		String query = "SELECT EVENT_TYPE, EVENT_TYPE_UUID FROM EVENT_TYPES WHERE EVENT_TYPE_UUID IN (";
 		int numUuids = eventTypeUuids.length;
 		for (int i = 0; i < numUuids - 1; i++)
@@ -134,16 +134,16 @@ public class EventTypes {
 				eventType = rs.getString(1).toUpperCase();
 				eventTypeUuid = UUID.fromString(rs.getString(2));
 				eventTypeTags = retrieveEventTypeTags(dbCon, eventTypeUuid);
-				EventTypeModel etm = new EventTypeModel(eventTypeUuid,
+				EventTypeTags ett = new EventTypeTags(eventTypeUuid,
 						eventTypeTags);
-				eventTypeMap.put(eventType, etm);
+				eventTypeTagMap.put(eventType, ett);
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not retrieve the event types to put in the hashmap\n"
 							+ ex.getMessage());
 		}
-		return eventTypeMap;
+		return eventTypeTagMap;
 	}
 
 	/**
@@ -159,13 +159,13 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public static HashMap<String, EventTypeModel> addNewEventTypes(
+	public static HashMap<String, EventTypeTags> addNewEventTypes(
 			Connection dbCon, String[] eventTypeUuids, String uniqueTypes[],
 			String[][] eventTypeTags) throws MobbedException {
-		HashMap<String, EventTypeModel> eventTypeMap = new HashMap<String, EventTypeModel>();
+		HashMap<String, EventTypeTags> eventTypeMap = new HashMap<String, EventTypeTags>();
 		HashMap<String, String> tagMap = null;
 		UUID eventTypeUuid = null;
-		if (eventTypeUuids != null)
+		if (!ManageDB.isEmpty(eventTypeUuids))
 			eventTypeMap = retrieveEventTypeMap(dbCon, eventTypeUuids);
 		EventTypes newEventType = new EventTypes(dbCon);
 		for (int i = 0; i < uniqueTypes.length; i++) {
@@ -173,21 +173,21 @@ public class EventTypes {
 				newEventType.reset(uniqueTypes[i], null);
 				newEventType.save();
 				eventTypeUuid = newEventType.getEventTypeUuid();
-				if (eventTypeTags != null
+				if (!ManageDB.isEmpty(eventTypeTags)
 						&& !ManageDB.isEmpty(eventTypeTags[i][0]))
 					tagMap = addAllTags(dbCon, eventTypeUuid, eventTypeTags[i]);
-				EventTypeModel etm = new EventTypeModel(eventTypeUuid, tagMap);
+				EventTypeTags etm = new EventTypeTags(eventTypeUuid, tagMap);
 				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
 			} else {
 				eventTypeUuid = eventTypeMap.get(uniqueTypes[i].toUpperCase())
 						.getEventTypeUuid();
 				tagMap = eventTypeMap.get(uniqueTypes[i].toUpperCase())
-						.getTagMap();
+						.getTags();
 				if (eventTypeTags != null
 						&& !ManageDB.isEmpty(eventTypeTags[i][0]))
 					tagMap = addNewTags(dbCon, tagMap, eventTypeUuid,
 							eventTypeTags[i]);
-				EventTypeModel etm = new EventTypeModel(eventTypeUuid, tagMap);
+				EventTypeTags etm = new EventTypeTags(eventTypeUuid, tagMap);
 				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
 			}
 		}
