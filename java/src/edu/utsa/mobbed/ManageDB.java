@@ -542,7 +542,7 @@ public class ManageDB {
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
 			String[] columns, String[][] values, String[] doubleColumns,
-			Double[][] doubleValues, Double[] range, String cursorName)
+			double[][] doubleValues, double[] range, String cursorName)
 			throws MobbedException {
 		validateTableName(tableName);
 		validateColumnNames(columns);
@@ -697,8 +697,8 @@ public class ManageDB {
 	 */
 	private String constructQualificationQuery(String tableName, String regExp,
 			String[][] tags, String[][] attributes, String[] columns,
-			String[][] values, String[] doubleColumns, Double[][] doubleValues,
-			Double[] range) throws MobbedException {
+			String[][] values, String[] doubleColumns, double[][] doubleValues,
+			double[] range) throws MobbedException {
 		String qry = "";
 		String closer = "";
 		String[] keys = keyMap.get(tableName);
@@ -763,12 +763,14 @@ public class ManageDB {
 	 */
 	private String constructTableQuery(String regExp, String tableName,
 			String[] columns, String[][] values, String[] doubleColumns,
-			Double[][] doubleValues, Double[] range) {
+			double[][] doubleValues, double[] range) {
 		String query = "";
 		if (columns != null)
 			query += constructNonDoubleQuery(regExp, columns, values);
 		if (doubleColumns != null)
-			query += constructDoubleQuery(doubleColumns, doubleValues, range);
+			if (columns != null)
+				query += " AND ";
+		query += constructDoubleQuery(doubleColumns, doubleValues, range);
 		return query;
 	}
 
@@ -804,7 +806,7 @@ public class ManageDB {
 	}
 
 	private String constructDoubleQuery(String[] doubleColumns,
-			Double[][] doubleValues, Double[] range) {
+			double[][] doubleValues, double[] range) {
 		String query = "";
 		String columnName;
 		int numColumns = doubleColumns.length;
@@ -1381,7 +1383,7 @@ public class ManageDB {
 	 */
 	private void setQaulificationValues(PreparedStatement pstmt, String qry,
 			String[][] tags, String[][] attributes, String[] columns,
-			String[][] values, String[] doubleColumns, Double[][] doubleValues)
+			String[][] values, String[] doubleColumns, double[][] doubleValues)
 			throws MobbedException {
 		int valueCount = 1;
 		if (tags != null)
@@ -1468,7 +1470,7 @@ public class ManageDB {
 	}
 
 	private int setDoubleTableStatementValues(PreparedStatement pstmt,
-			int valueCount, String[] doubleColumns, Double[][] doubleValues)
+			int valueCount, String[] doubleColumns, double[][] doubleValues)
 			throws MobbedException {
 		int numColumns = doubleColumns.length;
 		int numValues;
@@ -1477,11 +1479,12 @@ public class ManageDB {
 			for (int j = 0; j < numValues; j++) {
 				try {
 					pstmt.setDouble(valueCount, doubleValues[i][j]);
+					pstmt.setDouble(valueCount + 1, doubleValues[i][j]);
 				} catch (SQLException ex) {
 					throw new MobbedException("Could not set value in query\n"
 							+ ex.getMessage());
 				}
-				valueCount++;
+				valueCount = valueCount + 2;
 			}
 		}
 		return valueCount;
