@@ -141,6 +141,7 @@ public class ManageDB {
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
 		String insertQry = constructInsertQuery(tableName, columnNames);
+		System.out.println(insertQry);
 		String updateQry = constructUpdateQuery(keyIndexes, tableName,
 				columnNames);
 		try {
@@ -542,7 +543,7 @@ public class ManageDB {
 	public String[][] retrieveRows(String tableName, double limit,
 			String regExp, String[][] tags, String[][] attributes,
 			String[] columns, String[][] values, String[] doubleColumns,
-			double[][] doubleValues, double[] range, String cursorName)
+			Double[][] doubleValues, double[] range, String cursorName)
 			throws MobbedException {
 		validateTableName(tableName);
 		validateColumnNames(columns);
@@ -697,7 +698,7 @@ public class ManageDB {
 	 */
 	private String constructQualificationQuery(String tableName, String regExp,
 			String[][] tags, String[][] attributes, String[] columns,
-			String[][] values, String[] doubleColumns, double[][] doubleValues,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues,
 			double[] range) throws MobbedException {
 		String qry = "";
 		String closer = "";
@@ -713,7 +714,7 @@ public class ManageDB {
 				qry += " INTERSECT ";
 			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
 		}
-		if (columns != null || doubleColumns != null) {
+		if (!isEmpty(columns) || !isEmpty(doubleColumns)) {
 			if (tags != null || attributes != null)
 				qry += " INTERSECT SELECT " + keys[0] + " FROM " + tableName
 						+ " WHERE ";
@@ -763,14 +764,15 @@ public class ManageDB {
 	 */
 	private String constructTableQuery(String regExp, String tableName,
 			String[] columns, String[][] values, String[] doubleColumns,
-			double[][] doubleValues, double[] range) {
+			Double[][] doubleValues, double[] range) {
 		String query = "";
-		if (columns != null)
+		if (!isEmpty(columns))
 			query += constructNonDoubleQuery(regExp, columns, values);
-		if (doubleColumns != null)
-			if (columns != null)
+		if (!isEmpty(doubleColumns)) {
+			if (!isEmpty(columns))
 				query += " AND ";
-		query += constructDoubleQuery(doubleColumns, doubleValues, range);
+			query += constructDoubleQuery(doubleColumns, doubleValues, range);
+		}
 		return query;
 	}
 
@@ -778,16 +780,15 @@ public class ManageDB {
 			String[][] values) {
 		String type;
 		String columnName;
-		int numValues;
 		String query = "";
 		int numColumns = columns.length;
 		for (int i = 0; i < numColumns; i++) {
 			type = typeMap.get(columns[i]);
-			numValues = values[i].length;
 			if (type.equalsIgnoreCase("character varying"))
 				columnName = " UPPER(" + columns[i] + ")";
 			else
 				columnName = columns[i];
+			int numValues = values[i].length;
 			if (type.equalsIgnoreCase("character varying")
 					&& regExp.equalsIgnoreCase("on")) {
 				query += columnName + " ~* ?";
@@ -806,7 +807,7 @@ public class ManageDB {
 	}
 
 	private String constructDoubleQuery(String[] doubleColumns,
-			double[][] doubleValues, double[] range) {
+			Double[][] doubleValues, double[] range) {
 		String query = "";
 		String columnName;
 		int numColumns = doubleColumns.length;
@@ -814,10 +815,10 @@ public class ManageDB {
 		for (int i = 0; i < numColumns; i++) {
 			numValues = doubleValues[i].length;
 			columnName = doubleColumns[i];
-			query += columnName + " BETWEEN ?-" + range[0] + " AND " + "?+"
+			query += columnName + " BETWEEN ?+" + range[0] + " AND " + "?+"
 					+ range[1];
 			for (int j = 1; j < numValues; j++)
-				query += " OR " + columnName + " BETWEEN ?-" + range[0]
+				query += " OR " + columnName + " BETWEEN ?+" + range[0]
 						+ " AND " + "?+" + range[1];
 			if (i != numColumns - 1)
 				query += " AND ";
@@ -1346,7 +1347,7 @@ public class ManageDB {
 		try {
 			for (int k = 0; k < numColumns; k++) {
 				int targetType = lookupTargetType(columnNames[k]);
-				if (doubleValues != null && targetType == Types.DOUBLE) {
+				if (!isEmpty(doubleValues) && targetType == Types.DOUBLE) {
 					if (doubleValues[i] != null)
 						pstmt.setDouble(k + 1, doubleValues[i]);
 					else
@@ -1383,7 +1384,7 @@ public class ManageDB {
 	 */
 	private void setQaulificationValues(PreparedStatement pstmt, String qry,
 			String[][] tags, String[][] attributes, String[] columns,
-			String[][] values, String[] doubleColumns, double[][] doubleValues)
+			String[][] values, String[] doubleColumns, Double[][] doubleValues)
 			throws MobbedException {
 		int valueCount = 1;
 		if (tags != null)
@@ -1392,10 +1393,10 @@ public class ManageDB {
 		if (attributes != null)
 			valueCount = setTagAttributesStatementValues(pstmt, valueCount,
 					attributes);
-		if (columns != null)
+		if (!isEmpty(columns))
 			valueCount = setNonDoubleTableStatementValues(pstmt, valueCount,
 					columns, values);
-		if (doubleColumns != null)
+		if (!isEmpty(doubleColumns))
 			valueCount = setDoubleTableStatementValues(pstmt, valueCount,
 					doubleColumns, doubleValues);
 	}
@@ -1470,7 +1471,7 @@ public class ManageDB {
 	}
 
 	private int setDoubleTableStatementValues(PreparedStatement pstmt,
-			int valueCount, String[] doubleColumns, double[][] doubleValues)
+			int valueCount, String[] doubleColumns, Double[][] doubleValues)
 			throws MobbedException {
 		int numColumns = doubleColumns.length;
 		int numValues;
