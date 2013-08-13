@@ -35,13 +35,20 @@ public class Events {
 	 */
 	private double[] endTimes;
 	/**
-	 * The UUIDs of the events
-	 */
-	private UUID[] eventUuids;
-	/**
 	 * A EventTypeTagModel object used to store event types
 	 */
 	private HashMap<String, EventTypeTags> eventTypeTagMap;
+	/**
+	 * A query that inserts events into the database
+	 */
+	/**
+	 * Event type tags
+	 */
+	private String[][] eventTypeTags;
+	/**
+	 * The UUIDs of the events
+	 */
+	private UUID[] eventUuids;
 	/**
 	 * The existing event type UUIDs in the database
 	 */
@@ -66,13 +73,6 @@ public class Events {
 	 * The unique types of the events
 	 */
 	private String[] uniqueTypes;
-	/**
-	 * A query that inserts events into the database
-	 */
-	/**
-	 * Event type tags
-	 */
-	String[][] eventTypeTags;
 	private static final String insertQry = "INSERT INTO EVENTS (EVENT_UUID, EVENT_DATASET_UUID, "
 			+ " EVENT_TYPE_UUID, EVENT_START_TIME,"
 			+ " EVENT_END_TIME, EVENT_POSITION, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?)";
@@ -186,7 +186,8 @@ public class Events {
 	 *            all of the event types
 	 * @param existingEvents
 	 *            the UUIDs of the event types that will be reused
-	 * 
+	 * @param eventTypeTags
+	 *            the tags that are associated with the event types
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */

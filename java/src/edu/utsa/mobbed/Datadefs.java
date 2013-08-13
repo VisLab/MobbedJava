@@ -92,7 +92,7 @@ public class Datadefs {
 	public static Object retrieveNumericValue(Connection dbCon,
 			String datadefUuid) throws MobbedException {
 		Object numericData = null;
-		String selectQry = "SELECT NUMERIC_VALUE_DATA_VALUE FROM NUMERIC_VALUES WHERE NUMERIC_VALUE_DEF_UUID = ?";
+		String selectQry = "SELECT NUMERIC_VALUE FROM NUMERIC_VALUES WHERE NUMERIC_VALUE_DATADEF_UUID = ?";
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(selectQry);
 			insertStmt.setObject(1, UUID.fromString(datadefUuid));
@@ -120,7 +120,7 @@ public class Datadefs {
 	public static String retrieveXMLValue(Connection dbCon, String datadefUuid)
 			throws MobbedException {
 		String xmlData = null;
-		String selectQry = "SELECT XML_VALUE_DATA_VALUE FROM XML_VALUES WHERE XML_VALUE_DEF_UUID = ?";
+		String selectQry = "SELECT XML_VALUE FROM XML_VALUES WHERE XML_VALUE_DATADEF_UUID = ?";
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(selectQry);
 			insertStmt.setObject(1, UUID.fromString(datadefUuid));
@@ -195,7 +195,7 @@ public class Datadefs {
 	 */
 	public static void storeNumericValue(Connection dbCon, String datadefUuid,
 			Object[] numericValue) throws MobbedException {
-		String insertQry = "INSERT INTO NUMERIC_VALUES (NUMERIC_VALUE_DEF_UUID, NUMERIC_VALUE_DATA_VALUE) VALUES (?,?)";
+		String insertQry = "INSERT INTO NUMERIC_VALUES (NUMERIC_VALUE_DATADEF_UUID, NUMERIC_VALUE) VALUES (?,?)";
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);
 			Array sqlArray = dbCon.createArrayOf("float8", numericValue);
@@ -222,7 +222,7 @@ public class Datadefs {
 	 */
 	public static void storeXMLValue(Connection dbCon, String datadefUuid,
 			String xml) throws MobbedException {
-		String insertQry = "INSERT INTO XML_VALUES (XML_VALUE_DEF_UUID, XML_VALUE_DATA_VALUE) VALUES (?,?)";
+		String insertQry = "INSERT INTO XML_VALUES (XML_VALUE_DATADEF_UUID, XML_VALUE) VALUES (?,?)";
 		validateXMLValue(xml);
 		try {
 			PreparedStatement insertStmt = dbCon.prepareStatement(insertQry);

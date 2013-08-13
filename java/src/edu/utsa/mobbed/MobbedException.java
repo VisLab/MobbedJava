@@ -1,6 +1,5 @@
 package edu.utsa.mobbed;
 
-
 /**
  * Handles exceptions thrown in Mobbed. MobbedException extends Exception.
  * 
@@ -9,8 +8,14 @@ package edu.utsa.mobbed;
  */
 public class MobbedException extends Exception {
 
-	private static final long serialVersionUID = 1L;
+	/**
+	 * The exception message
+	 */
 	private String message;
+	/**
+	 * The serial version UID
+	 */
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * Creates a MobbedException object

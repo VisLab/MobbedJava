@@ -22,6 +22,56 @@ import org.postgresql.copy.CopyManager;
  */
 public class NumericStreams {
 
+	/**
+	 * A CopyManager object used to copy data between a file and a table
+	 */
+	private CopyManager copyMgr;
+
+	/**
+	 * The UUID of the data definition
+	 */
+	private UUID datadefUuid;
+
+	/**
+	 * A connection to the database
+	 */
+	private Connection dbCon;
+	/**
+	 * The number of bytes used for a DOUBLE
+	 */
+	private static final int DOUBLE_BYTES = 8;
+	/**
+	 * The number of bytes used for a INT
+	 */
+	private static final int INT_BYTES = 4;
+	/**
+	 * The number of bytes used for a LONG
+	 */
+	private static final int LONG_BYTES = 8;
+	/**
+	 * The number of bytes used for a SHORT
+	 */
+	private static final int SHORT_BYTES = 2;
+
+	/**
+	 * Creates a Numeric Streams object.
+	 * 
+	 * @param dbCon
+	 *            a connection to the database
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public NumericStreams(Connection dbCon) throws MobbedException {
+		this.dbCon = dbCon;
+		try {
+			copyMgr = ((org.postgresql.PGConnection) dbCon).getCopyAPI();
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not create a NumericStreams object\n"
+							+ ex.getMessage());
+		}
+	}
+
 	class ReadBinaryData implements Runnable {
 		/**
 		 * The data definition UUID
@@ -68,8 +118,8 @@ public class NumericStreams {
 				CopyManager copy = ((org.postgresql.PGConnection) dbCon)
 						.getCopyAPI();
 				DataOutputStream dos = new DataOutputStream(pout);
-				String copyQry = "COPY (select NUMERIC_STREAM_DATA_VALUE from NUMERIC_STREAMS"
-						+ " WHERE NUMERIC_STREAM_DEF_UUID = '"
+				String copyQry = "COPY (SELECT NUMERIC_STREAM from NUMERIC_STREAMS"
+						+ " WHERE NUMERIC_STREAM_DATADEF_UUID = '"
 						+ datadefUuid.toString()
 						+ "' "
 						+ " AND NUMERIC_STREAM_RECORD_POSITION>="
@@ -180,54 +230,6 @@ public class NumericStreams {
 	}
 
 	/**
-	 * A CopyManager object used to copy data between a file and a table
-	 */
-	private CopyManager copyMgr;
-	/**
-	 * The UUID of the data definition
-	 */
-	private UUID datadefUuid;
-	/**
-	 * A connection to the database
-	 */
-	private Connection dbCon;
-	/**
-	 * The number of bytes used for a DOUBLE
-	 */
-	private static final int DOUBLE_BYTES = 8;
-	/**
-	 * The number of bytes used for a INT
-	 */
-	private static final int INT_BYTES = 4;
-	/**
-	 * The number of bytes used for a LONG
-	 */
-	private static final int LONG_BYTES = 8;
-	/**
-	 * The number of bytes used for a SHORT
-	 */
-	private static final int SHORT_BYTES = 2;
-
-	/**
-	 * Creates a Numeric Streams object.
-	 * 
-	 * @param dbCon
-	 *            a connection to the database
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public NumericStreams(Connection dbCon) throws MobbedException {
-		this.dbCon = dbCon;
-		try {
-			copyMgr = ((org.postgresql.PGConnection) dbCon).getCopyAPI();
-		} catch (SQLException ex) {
-			throw new MobbedException(
-					"Could not create a NumericStreams object\n"
-							+ ex.getMessage());
-		}
-	}
-
-	/**
 	 * Gets the data definition UUID.
 	 * 
 	 * @return UUID of the data definition
@@ -246,7 +248,7 @@ public class NumericStreams {
 	public long getMaxPosition() throws MobbedException {
 		int maxPosition = 0;
 		String selectQuery = "SELECT MAX(NUMERIC_STREAM_RECORD_POSITION) FROM NUMERIC_STREAMS WHERE"
-				+ " NUMERIC_STREAM_DEF_UUID = ?";
+				+ " NUMERIC_STREAM_DATADEF_UUID = ?";
 		try {
 			PreparedStatement selectStmt = dbCon.prepareStatement(selectQuery);
 			selectStmt.setObject(1, datadefUuid, Types.OTHER);
@@ -365,8 +367,8 @@ public class NumericStreams {
 			// connect to the table
 			DataInputStream diStream = new DataInputStream(pin);
 			copyMgr.copyIn(
-					"COPY NUMERIC_STREAMS(NUMERIC_STREAM_DEF_UUID, "
-							+ "NUMERIC_STREAM_RECORD_POSITION, NUMERIC_STREAM_RECORD_TIME, NUMERIC_STREAM_DATA_VALUE) FROM STDIN WITH BINARY",
+					"COPY NUMERIC_STREAMS(NUMERIC_STREAM_DATADEF_UUID, "
+							+ "NUMERIC_STREAM_RECORD_POSITION, NUMERIC_STREAM_RECORD_TIME, NUMERIC_STREAM) FROM STDIN WITH BINARY",
 					diStream);
 			diStream.close();
 			pin.close();

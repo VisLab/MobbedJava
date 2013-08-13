@@ -19,8 +19,6 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
@@ -61,6 +59,10 @@ public class ManageDB {
 	 */
 	private static final String columnQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
 	/**
+	 * A hashmap that contains instances of ManageDB objects
+	 */
+	private static HashMap<ManageDB, String> dbMap;
+	/**
 	 * A query that retrieves the keys of a database table
 	 */
 	private static final String keyQuery = "SELECT pg_attribute.attname FROM pg_index, pg_class, pg_attribute"
@@ -69,10 +71,6 @@ public class ManageDB {
 			+ " pg_attribute.attrelid = pg_class.oid AND"
 			+ " pg_attribute.attnum = any(pg_index.indkey)"
 			+ " AND indisprimary";
-	/**
-	 * A hashmap that contains instances of ManageDB objects
-	 */
-	private static HashMap<ManageDB, String> dbMap;
 	/**
 	 * A query that retrieves the tables of a database
 	 */
@@ -112,38 +110,34 @@ public class ManageDB {
 	 * values to the key columns. To update rows, assign values to the key
 	 * columns that already exist in the database.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns in the database table
-	 * @param columnValues
-	 *            the values of the columns that are not double precision in the
-	 *            database table
-	 * @param doubleColumnNames
-	 *            the names of the columns that are double precision in the
-	 *            database table
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleColumns
+	 *            the names of the double database columns database table
 	 * @param doubleValues
-	 *            the values of the columns that are double precision in the
-	 *            database table
-	 * @return the keys of the rows that were inserted or updated
+	 *            the values of the double database columns
+	 * @return the keys of the database rows that were inserted and/or updated
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public String[] addRows(String tableName, String[] columnNames,
-			String[][] columnValues, String[] doubleColumnNames,
-			Double[][] doubleValues) throws MobbedException {
-		validateTableName(tableName);
-		validateColumnNames(columnNames);
-		int numRows = columnValues.length;
-		int numValues = columnValues[0].length;
+	public String[] addRows(String table, String[] columns, String[][] values,
+			String[] doubleColumns, Double[][] doubleValues)
+			throws MobbedException {
+		validateTableName(table);
+		validateColumns(columns);
+		int numRows = values.length;
+		int numValues = values[0].length;
 		int doubleIndex = 0;
 		Double[] currentDoubleValues;
 		String[] keyList = new String[numRows];
-		ArrayList<Integer> keyIndexes = findKeyIndexes(tableName, columnNames);
-		String insertQry = constructInsertQuery(tableName, columnNames);
+		ArrayList<Integer> keyIndexes = findKeyIndexes(table, columns);
+		String insertQry = constructInsertQuery(table, columns);
 		System.out.println(insertQry);
-		String updateQry = constructUpdateQuery(keyIndexes, tableName,
-				columnNames);
+		String updateQry = constructUpdateQuery(keyIndexes, table, columns);
 		try {
 			PreparedStatement insertStmt = connection
 					.prepareStatement(insertQry);
@@ -151,37 +145,35 @@ public class ManageDB {
 					.prepareStatement(updateQry);
 			for (int i = 0; i < numRows; i++) {
 				for (int j = 0; j < numValues; j++) {
-					if (!isEmpty(columnValues[i][j]))
-						validateColumnValue(columnNames[j], columnValues[i][j]);
+					if (!isEmpty(values[i][j]))
+						validateValues(columns[j], values[i][j]);
 					else {
 						if (!keyIndexes.contains(j)
-								&& !columnNames[j]
-										.equals("dataset_session_uuid"))
-							columnValues[i][j] = getDefaultValue(columnNames[j]);
+								&& !columns[j].equals("dataset_session_uuid"))
+							values[i][j] = getDefaultValue(columns[j]);
 					}
 				}
 				if (!isEmpty(doubleValues))
 					currentDoubleValues = doubleValues[doubleIndex++];
 				else
 					currentDoubleValues = null;
-				if (keysExist(keyIndexes, tableName, columnNames,
-						columnValues[i])) {
-					setUpdateStatementValues(keyIndexes, updateStmt,
-							columnNames, columnValues[i], currentDoubleValues);
+				if (keysExist(keyIndexes, table, columns, values[i])) {
+					setUpdateStatementValues(keyIndexes, updateStmt, columns,
+							values[i], currentDoubleValues);
 					if (verbose)
 						System.out.println(updateStmt);
 					updateStmt.addBatch();
 				} else {
-					columnValues[i] = generateKeys(keyIndexes, tableName,
-							columnNames, columnValues[i]);
-					setInsertStatementValues(insertStmt, columnNames,
-							columnValues[i], currentDoubleValues);
+					values[i] = generateKeys(keyIndexes, table, columns,
+							values[i]);
+					setInsertStatementValues(insertStmt, columns, values[i],
+							currentDoubleValues);
 					if (verbose)
 						System.out.println(insertStmt);
 					insertStmt.addBatch();
 
 				}
-				keyList[i] = addKeyValue(keyIndexes, columnValues[i]);
+				keyList[i] = addKeyValue(keyIndexes, values[i]);
 			}
 			insertStmt.executeBatch();
 			updateStmt.executeBatch();
@@ -210,15 +202,15 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public int checkDatasetVersion(boolean isUnique, String datasetNamespace,
-			String datasetName) throws MobbedException {
+	public int checkDatasetVersion(boolean isUnique, String namespace,
+			String name) throws MobbedException {
 		String query = "SELECT MAX(DATASET_VERSION) AS LATESTVERSION"
 				+ " FROM DATASETS WHERE DATASET_NAMESPACE = ? AND DATASET_NAME = ?";
 		int version;
 		try {
 			PreparedStatement selStmt = connection.prepareStatement(query);
-			selStmt.setString(1, datasetNamespace);
-			selStmt.setString(2, datasetName);
+			selStmt.setString(1, namespace);
+			selStmt.setString(2, name);
 			ResultSet rs = selStmt.executeQuery();
 			rs.next();
 			version = rs.getInt(1);
@@ -252,13 +244,13 @@ public class ManageDB {
 	/**
 	 * Closes a data cursor. The data cursor must be open prior to closing it.
 	 * 
-	 * @param cursorName
+	 * @param name
 	 *            the name of the data cursor
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void closeCursor(String cursorName) throws MobbedException {
-		String query = "CLOSE " + cursorName;
+	public void closeCursor(String name) throws MobbedException {
+		String query = "CLOSE " + name;
 		try {
 			Statement stmt = connection.createStatement();
 			stmt.execute(query);
@@ -283,127 +275,6 @@ public class ManageDB {
 		}
 	}
 
-	// /**
-	// * Retrieve inter-related items such as events from more complex
-	// scenarios.
-	// *
-	// * @param inTableName
-	// * the name of the database table
-	// * @param inColumnNames
-	// * the names of the columns
-	// * @param inColumnValues
-	// * the values of the columns
-	// * @param outTableName
-	// * the name of the database table
-	// * @param outColumnNames
-	// * the names of the columns
-	// * @param outColumnValues
-	// * the values of the columns
-	// * @param limit
-	// * the maximum number of rows to return
-	// * @param regExp
-	// * on if regular expressions are allowed, off if otherwise
-	// * @param lower
-	// * the lower limit
-	// * @param upper
-	// * the upper limit
-	// * @return the row retrieved from the search
-	// * @throws MobbedException
-	// * if an error occurs
-	// */
-	// public String[][] extractRows(String inTableName, String[] inColumnNames,
-	// String[][] inColumnValues, String outTableName,
-	// String[] outColumnNames, String[][] outColumnValues, double limit,
-	// String regExp, double lower, double upper) throws MobbedException {
-	// validateTableName(inTableName);
-	// validateTableName(outTableName);
-	// ResultSet rs;
-	// String qry = "SELECT * FROM extractRange(?,?,?,?) as (";
-	// String[] columns = getColumnNames(inTableName);
-	// for (int i = 0; i < columns.length; i++)
-	// qry += columns[i] + " " + typeMap.get(columns[i]) + ",";
-	// qry += "extracted uuid[]) ORDER BY EVENT_DATASET_UUID, EVENT_START_TIME";
-	// if (limit != Double.POSITIVE_INFINITY)
-	// qry += " LIMIT " + limit;
-	// String inQry = "SELECT * FROM " + inTableName;
-	// try {
-	// if (inColumnNames != null) {
-	// inQry += constructQualificationQuery(inTableName, regExp, null,
-	// null, inColumnNames, inColumnValues);
-	// PreparedStatement inStmt = connection.prepareStatement(inQry);
-	// setTableStatementValues(inStmt, 1, inColumnNames,
-	// inColumnValues);
-	// inQry = inStmt.toString();
-	// }
-	// String outQry = "SELECT * FROM " + inTableName;
-	// if (outColumnNames != null) {
-	// outQry += constructQualificationQuery(outTableName, regExp,
-	// null, null, outColumnNames, outColumnValues);
-	// PreparedStatement outStmt = connection.prepareStatement(outQry);
-	// setTableStatementValues(outStmt, 1, outColumnNames,
-	// outColumnValues);
-	// outQry = outStmt.toString();
-	// }
-	// PreparedStatement pstmt = connection.prepareStatement(qry,
-	// ResultSet.TYPE_SCROLL_INSENSITIVE,
-	// ResultSet.CONCUR_READ_ONLY);
-	// pstmt.setString(1, inQry);
-	// pstmt.setString(2, outQry);
-	// pstmt.setDouble(3, lower);
-	// pstmt.setDouble(4, upper);
-	// rs = pstmt.executeQuery();
-	// } catch (SQLException ex) {
-	// throw new MobbedException("Could not extract rows\n"
-	// + ex.getMessage());
-	// }
-	// String[][] rows = formatExtracted(populateArray(rs));
-	// return rows;
-	// }
-
-	/**
-	 * Retrieve unique inter-related items such as events from more complex
-	 * scenarios.
-	 * 
-	 * @param extractedRows
-	 *            the rows that were previously extracted
-	 * @param limit
-	 *            the maximum number of rows to return
-	 * @return the unique rows returned by the search
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	public String[][] extractUniqueRows(String[][] extractedRows, int limit)
-			throws MobbedException {
-		int extractedColumn = extractedRows[0].length - 1;
-		int numRows = extractedRows.length;
-		String[] extractedUuids;
-		ArrayList<String> alist = new ArrayList<String>();
-		ResultSet rs;
-		for (int i = 0; i < numRows; i++) {
-			extractedUuids = extractedRows[i][extractedColumn].replaceAll(
-					"[{}]", "").split(",");
-			for (int j = 0; j < extractedUuids.length; j++) {
-				if (!alist.contains(extractedUuids[j]))
-					alist.add("'" + extractedUuids[j] + "'");
-			}
-		}
-		String list = alist.toString().replaceAll("[\\[\\]]", "");
-		String qry = "SELECT * FROM EVENTS WHERE EVENT_UUID IN (" + list + ")";
-		if (limit > 0)
-			qry += " LIMIT " + limit;
-		try {
-			Statement stmt = connection.createStatement(
-					ResultSet.TYPE_SCROLL_INSENSITIVE,
-					ResultSet.CONCUR_READ_ONLY);
-			rs = stmt.executeQuery(qry);
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not extract unique rows\n"
-					+ ex.getMessage());
-		}
-		String[][] rows = populateArray(rs);
-		return rows;
-	}
-
 	/**
 	 * Gets the auto commit mode.
 	 * 
@@ -422,34 +293,34 @@ public class ManageDB {
 	/**
 	 * Gets the column names of a database table.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @return the columns of the table
 	 */
-	public String[] getColumnNames(String tableName) {
-		return columnMap.get(tableName.toLowerCase());
+	public String[] getColumnNames(String table) {
+		return columnMap.get(table.toLowerCase());
 	}
 
 	/**
 	 * Gets the type of a database column.
 	 * 
-	 * @param columnName
+	 * @param column
 	 *            the name of the database column
 	 * @return the type of the column
 	 */
-	public String getColumnType(String columnName) {
-		return typeMap.get(columnName.toLowerCase());
+	public String getColumnType(String column) {
+		return typeMap.get(column.toLowerCase());
 	}
 
 	/**
-	 * Gets all of the columns types of a database table.
+	 * Gets all of the columns types from a database table.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @return the types of the columns in the table
 	 */
-	public String[] getColumnTypes(String tableName) {
-		String[] columnNames = getColumnNames(tableName.toLowerCase());
+	public String[] getColumnTypes(String table) {
+		String[] columnNames = getColumnNames(table.toLowerCase());
 		int numColumns = columnNames.length;
 		String[] columnTypes = new String[numColumns];
 		for (int i = 0; i < numColumns; i++)
@@ -469,24 +340,24 @@ public class ManageDB {
 	/**
 	 * Gets the default value of a database column.
 	 * 
-	 * @param columnName
+	 * @param column
 	 *            the name of the database column
 	 * @return the default value of a column
 	 */
-	public String getDefaultValue(String columnName) {
-		return defaultValues.get(columnName.toLowerCase());
+	public String getDefaultValue(String column) {
+		return defaultValues.get(column.toLowerCase());
 	}
 
 	/**
 	 * Gets the columns that are double precision of a database table.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @return the double precision columns in the table
+	 * @return the double columns in the database table
 	 */
-	public String[] getDoubleColumns(String tableName) {
+	public String[] getDoubleColumns(String table) {
 		ArrayList<String> al = new ArrayList<String>();
-		String[] columns = columnMap.get(tableName.toLowerCase());
+		String[] columns = columnMap.get(table.toLowerCase());
 		int numColumns = columns.length;
 		for (int i = 0; i < numColumns; i++) {
 			if (typeMap.get(columns[i]).equalsIgnoreCase("double precision"))
@@ -499,12 +370,12 @@ public class ManageDB {
 	/**
 	 * Gets the keys of a database table.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @return the keys in the table
 	 */
-	public String[] getKeys(String tableName) {
-		return keyMap.get(tableName.toLowerCase());
+	public String[] getKeys(String table) {
+		return keyMap.get(table.toLowerCase());
 	}
 
 	/**
@@ -521,36 +392,41 @@ public class ManageDB {
 	/**
 	 * Retrieves rows from the database based on search criteria
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @param limit
 	 *            the maximum number of rows to retrieve
 	 * @param regExp
 	 * @param tags
-	 *            the tag search criteria
+	 *            the tags search criteria
 	 * @param attributes
-	 *            the attribute search criteria
-	 * @param columnNames
-	 *            the names of the database columns
-	 * @param columnValues
-	 *            the database column values
+	 *            the attributes search criteria
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleColumns
+	 *            the names of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
+	 * @param range
+	 *            the range to search by double database columns
 	 * @param cursorName
 	 *            the name of the data cursor
 	 * @return the rows found by the search criteria
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public String[][] retrieveRows(String tableName, double limit,
-			String regExp, String[][] tags, String[][] attributes,
-			String[] columns, String[][] values, String[] doubleColumns,
-			Double[][] doubleValues, double[] range, String cursorName)
-			throws MobbedException {
-		validateTableName(tableName);
-		validateColumnNames(columns);
-		validateColumnNames(doubleColumns);
+	public String[][] retrieveRows(String table, double limit, String regExp,
+			String[][] tags, String[][] attributes, String[] columns,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues,
+			double[] range, String cursorName) throws MobbedException {
+		validateTableName(table);
+		validateColumns(columns);
+		validateColumns(doubleColumns);
 		String[][] rows = null;
-		String qry = "SELECT * FROM " + tableName;
-		qry += constructQualificationQuery(tableName, regExp, tags, attributes,
+		String qry = "SELECT * FROM " + table;
+		qry += constructQualificationQuery(table, regExp, tags, attributes,
 				columns, values, doubleColumns, doubleValues, range);
 		if (isEmpty(cursorName) && limit != Double.POSITIVE_INFINITY)
 			qry += " LIMIT " + (int) limit;
@@ -615,17 +491,17 @@ public class ManageDB {
 	 * Adds elements to an array by index.
 	 * 
 	 * @param keyIndexes
-	 *            a list of the key indexes
-	 * @param array
-	 *            a array that contains the column names
+	 *            a list of the database key indexes
+	 * @param columns
+	 *            the names of the database columns
 	 * @return a array that contains the key columns
 	 */
-	private String[] addByIndex(ArrayList<Integer> keyIndexes, String[] array) {
+	private String[] addByIndex(ArrayList<Integer> keyIndexes, String[] columns) {
 		String[] newArray = new String[keyIndexes.size()];
 		int j = 0;
 		for (int i = 0; i < keyIndexes.size(); i++) {
 			if (keyIndexes.contains(i)) {
-				newArray[j] = array[i];
+				newArray[j] = columns[i];
 				j++;
 			}
 		}
@@ -636,146 +512,88 @@ public class ManageDB {
 	 * Adds a key value to a array.
 	 * 
 	 * @param keyIndexes
-	 *            a list of the key indexes
-	 * @param columnValues
-	 *            the values of the columns
+	 *            a list of the database key indexes
+	 * @param values
+	 *            the values of the database columns
 	 * @return a key value
 	 */
-	private String addKeyValue(ArrayList<Integer> keyIndexes,
-			String[] columnValues) {
+	private String addKeyValue(ArrayList<Integer> keyIndexes, String[] values) {
 		String keyValue = null;
 		if (keyIndexes.size() == 1)
-			keyValue = columnValues[keyIndexes.get(0)];
+			keyValue = values[keyIndexes.get(0)];
 		else {
-			String concatKeys = columnValues[keyIndexes.get(0)];
+			String concatKeys = values[keyIndexes.get(0)];
 			for (int i = 1; i < keyIndexes.size(); i++)
-				concatKeys += "," + columnValues[keyIndexes.get(i)];
+				concatKeys += "," + values[keyIndexes.get(i)];
 			keyValue = concatKeys;
 		}
 		return keyValue;
 	}
 
 	/**
+	 * Constructs a query for double database columns.
+	 * 
+	 * @param doubleColumns
+	 *            the name of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
+	 * @param range
+	 *            the range to search by double database columns
+	 * @return a query string
+	 */
+	private String constructDoubleQuery(String[] doubleColumns,
+			Double[][] doubleValues, double[] range) {
+		String query = "";
+		String columnName;
+		int numColumns = doubleColumns.length;
+		int numValues;
+		for (int i = 0; i < numColumns; i++) {
+			numValues = doubleValues[i].length;
+			columnName = doubleColumns[i];
+			query += columnName + " BETWEEN ?+" + range[0] + " AND " + "?+"
+					+ range[1];
+			for (int j = 1; j < numValues; j++)
+				query += " OR " + columnName + " BETWEEN ?+" + range[0]
+						+ " AND " + "?+" + range[1];
+			if (i != numColumns - 1)
+				query += " AND ";
+		}
+		return query;
+	}
+
+	/**
 	 * Constructs a insert query.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
+	 * @param columns
+	 *            the names of the database columns
 	 * @return a insert query string
 	 */
-	private String constructInsertQuery(String tableName, String[] columnNames) {
-		String qry = "INSERT INTO " + tableName;
-		qry += " (" + columnNames[0];
-		for (int i = 1; i < columnNames.length; i++)
-			qry += ", " + columnNames[i];
+	private String constructInsertQuery(String table, String[] columns) {
+		String qry = "INSERT INTO " + table;
+		qry += " (" + columns[0];
+		for (int i = 1; i < columns.length; i++)
+			qry += ", " + columns[i];
 		qry += ")";
 		qry += " VALUES (?";
-		for (int j = 1; j < columnNames.length; j++)
+		for (int j = 1; j < columns.length; j++)
 			qry += ", ?";
 		qry += ")";
 		return qry;
 	}
 
 	/**
-	 * Constructs a query based on search criteria.
-	 * 
-	 * @param tableName
-	 *            the name of the database table
-	 * @param regExp
-	 *            on if regular expressions are allowed, off if otherwise
-	 * @param tags
-	 *            the tag search criteria
-	 * @param attributes
-	 *            the attribute search criteria
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
-	 * @return a string query
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	private String constructQualificationQuery(String tableName, String regExp,
-			String[][] tags, String[][] attributes, String[] columns,
-			String[][] values, String[] doubleColumns, Double[][] doubleValues,
-			double[] range) throws MobbedException {
-		String qry = "";
-		String closer = "";
-		String[] keys = keyMap.get(tableName);
-		if (tags != null || attributes != null) {
-			qry = " WHERE " + keys[0] + " IN (";
-			closer = ")";
-		}
-		if (tags != null)
-			qry += constructTagAttributesQuery(regExp, "Tags", tags);
-		if (attributes != null) {
-			if (tags != null)
-				qry += " INTERSECT ";
-			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
-		}
-		if (!isEmpty(columns) || !isEmpty(doubleColumns)) {
-			if (tags != null || attributes != null)
-				qry += " INTERSECT SELECT " + keys[0] + " FROM " + tableName
-						+ " WHERE ";
-			else
-				qry += " WHERE ";
-			qry += constructTableQuery(regExp, tableName, columns, values,
-					doubleColumns, doubleValues, range);
-		}
-		qry += closer;
-		return qry;
-	}
-
-	/**
-	 * Constructs a select query.
-	 * 
-	 * @param keyIndexes
-	 *            a list of the key indexes
-	 * @param tableName
-	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
-	 * @return a select query string
-	 */
-	private String constructSelectQuery(ArrayList<Integer> keyIndexes,
-			String tableName, String[] columnNames) {
-		String[] keyColumns = addByIndex(keyIndexes, columnNames);
-		String qry = "SELECT * FROM " + tableName + " WHERE " + keyColumns[0]
-				+ " = ?";
-		for (int i = 1; i < keyColumns.length; i++) {
-			qry += " AND " + keyColumns[i] + " = ?";
-		}
-		return qry;
-	}
-
-	/**
-	 * Constructs a query associated with a table in the database.
+	 * Constructs a query for non-double database columns
 	 * 
 	 * @param regExp
 	 *            on if regular expressions are allowed, off if otherwise
-	 * @param tableName
-	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
 	 * @return a query string
 	 */
-	private String constructTableQuery(String regExp, String tableName,
-			String[] columns, String[][] values, String[] doubleColumns,
-			Double[][] doubleValues, double[] range) {
-		String query = "";
-		if (!isEmpty(columns))
-			query += constructNonDoubleQuery(regExp, columns, values);
-		if (!isEmpty(doubleColumns)) {
-			if (!isEmpty(columns))
-				query += " AND ";
-			query += constructDoubleQuery(doubleColumns, doubleValues, range);
-		}
-		return query;
-	}
-
 	private String constructNonDoubleQuery(String regExp, String[] columns,
 			String[][] values) {
 		String type;
@@ -806,23 +624,113 @@ public class ManageDB {
 		return query;
 	}
 
-	private String constructDoubleQuery(String[] doubleColumns,
-			Double[][] doubleValues, double[] range) {
-		String query = "";
-		String columnName;
-		int numColumns = doubleColumns.length;
-		int numValues;
-		for (int i = 0; i < numColumns; i++) {
-			numValues = doubleValues[i].length;
-			columnName = doubleColumns[i];
-			query += columnName + " BETWEEN ?+" + range[0] + " AND " + "?+"
-					+ range[1];
-			for (int j = 1; j < numValues; j++)
-				query += " OR " + columnName + " BETWEEN ?+" + range[0]
-						+ " AND " + "?+" + range[1];
-			if (i != numColumns - 1)
-				query += " AND ";
+	/**
+	 * Constructs a query based on search criteria.
+	 * 
+	 * @param table
+	 *            the name of the database table
+	 * @param regExp
+	 *            on if regular expressions are allowed, off if otherwise
+	 * @param tags
+	 *            the tag search criteria
+	 * @param attributes
+	 *            the attribute search criteria
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleColumns
+	 *            the names of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
+	 * @param range
+	 *            the range to search by double database columns
+	 * @return a string query
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	private String constructQualificationQuery(String table, String regExp,
+			String[][] tags, String[][] attributes, String[] columns,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues,
+			double[] range) throws MobbedException {
+		String qry = "";
+		String closer = "";
+		String[] keys = keyMap.get(table);
+		if (tags != null || attributes != null) {
+			qry = " WHERE " + keys[0] + " IN (";
+			closer = ")";
 		}
+		if (tags != null)
+			qry += constructTagAttributesQuery(regExp, "Tags", tags);
+		if (attributes != null) {
+			if (tags != null)
+				qry += " INTERSECT ";
+			qry += constructTagAttributesQuery(regExp, "Attributes", attributes);
+		}
+		if (!isEmpty(columns) || !isEmpty(doubleColumns)) {
+			if (tags != null || attributes != null)
+				qry += " INTERSECT SELECT " + keys[0] + " FROM " + table
+						+ " WHERE ";
+			else
+				qry += " WHERE ";
+			qry += constructTableQuery(regExp, columns, values, doubleColumns,
+					doubleValues, range);
+		}
+		qry += closer;
+		return qry;
+	}
+
+	/**
+	 * Constructs a select query.
+	 * 
+	 * @param keyIndexes
+	 *            a list of the database key indexes
+	 * @param table
+	 *            the name of the database table
+	 * @param columns
+	 *            the names of the database columns
+	 * @return a query string
+	 */
+	private String constructSelectQuery(ArrayList<Integer> keyIndexes,
+			String table, String[] columns) {
+		String[] keyColumns = addByIndex(keyIndexes, columns);
+		String qry = "SELECT * FROM " + table + " WHERE " + keyColumns[0]
+				+ " = ?";
+		for (int i = 1; i < keyColumns.length; i++) {
+			qry += " AND " + keyColumns[i] + " = ?";
+		}
+		return qry;
+	}
+
+	/**
+	 * Constructs a query associated with a table in the database.
+	 * 
+	 * @param regExp
+	 *            on if regular expressions are allowed, off if otherwise
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleColumns
+	 *            the names of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
+	 * @param range
+	 *            the range to search by double database columns
+	 * @return a query string
+	 */
+	private String constructTableQuery(String regExp, String[] columns,
+			String[][] values, String[] doubleColumns, Double[][] doubleValues,
+			double[] range) {
+		String query;
+		if (!isEmpty(columns) && isEmpty(doubleColumns))
+			query = constructNonDoubleQuery(regExp, columns, values);
+		else if (isEmpty(columns) && !isEmpty(doubleColumns))
+			query = constructDoubleQuery(doubleColumns, doubleValues, range);
+		else
+			query = constructNonDoubleQuery(regExp, columns, values) + " AND ("
+					+ constructDoubleQuery(doubleColumns, doubleValues, range)
+					+ " )";
 		return query;
 	}
 
@@ -875,18 +783,17 @@ public class ManageDB {
 	 * 
 	 * @param keyIndexes
 	 *            a list of the key indexes
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
+	 * @param columns
+	 *            the names of the database columns
 	 * @return a update query string
 	 */
 	private String constructUpdateQuery(ArrayList<Integer> keyIndexes,
-			String tableName, String[] columnNames) {
-		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
-		String[] keyColumns = addByIndex(keyIndexes, columnNames);
-		String qry = "UPDATE " + tableName + " SET " + nonKeyColumns[0]
-				+ " = ?";
+			String table, String[] columns) {
+		String[] nonKeyColumns = removeByIndex(keyIndexes, columns);
+		String[] keyColumns = addByIndex(keyIndexes, columns);
+		String qry = "UPDATE " + table + " SET " + nonKeyColumns[0] + " = ?";
 		for (int i = 1; i < nonKeyColumns.length; i++)
 			qry += " , " + nonKeyColumns[i] + " = ?";
 		qry += " WHERE " + keyColumns[0] + " = ?";
@@ -898,16 +805,16 @@ public class ManageDB {
 	/**
 	 * Creates a data cursor
 	 * 
-	 * @param cursorName
+	 * @param name
 	 *            the name of the data cursor
 	 * @param query
 	 *            the query the data cursor will be bounded to
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private void createDataCursor(String cursorName, String query)
+	private void createDataCursor(String name, String query)
 			throws MobbedException {
-		String cursorQuery = "DECLARE " + cursorName
+		String cursorQuery = "DECLARE " + name
 				+ " SCROLL CURSOR WITH HOLD FOR " + query;
 		try {
 			Statement stmt = connection.createStatement();
@@ -923,18 +830,18 @@ public class ManageDB {
 
 	/**
 	 * 
-	 * @param cursorName
+	 * @param name
 	 *            the name of the data cursor
 	 * @return true if the data cursor exists
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean dataCursorExists(String cursorName) throws MobbedException {
+	private boolean dataCursorExists(String name) throws MobbedException {
 		String query = "SELECT EXISTS (SELECT 1 FROM PG_CURSORS WHERE NAME = ?)";
 		boolean cursorExists;
 		try {
 			PreparedStatement pstmt = connection.prepareStatement(query);
-			pstmt.setString(1, cursorName);
+			pstmt.setString(1, name);
 			ResultSet rs = pstmt.executeQuery();
 			rs.next();
 			cursorExists = rs.getBoolean(1);
@@ -948,101 +855,79 @@ public class ManageDB {
 	/**
 	 * Finds the index of a particular column.
 	 * 
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnName
+	 * @param columns
+	 *            the names of the database columns
+	 * @param name
 	 *            the name of the database column that the index is searched for
-	 * @return the index of the column name
+	 * @return the index of the database column name
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private int findIndexOfColumn(String[] columnNames, String columnName)
+	private int findIndexOfColumn(String[] columns, String name)
 			throws MobbedException {
 		int index = 0;
 		boolean found = false;
-		int numColumns = columnNames.length;
+		int numColumns = columns.length;
 		for (int i = 0; i < numColumns; i++) {
-			if (columnNames[i].equalsIgnoreCase(columnName)) {
+			if (columns[i].equalsIgnoreCase(name)) {
 				index = i;
 				found = true;
 			}
 		}
 		if (!found)
 			throw new MobbedException("Could not find the index of the column "
-					+ columnName);
+					+ name);
 		return index;
 	}
 
 	/**
 	 * Finds the indexes that contain key columns.
 	 * 
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
+	 * @param columns
+	 *            the names of the database columns
 	 * @return the indexes of the key columns
 	 */
-	private ArrayList<Integer> findKeyIndexes(String tableName,
-			String[] columnNames) {
-		String[] keys = keyMap.get(tableName);
+	private ArrayList<Integer> findKeyIndexes(String table, String[] columns) {
+		String[] keys = keyMap.get(table);
 		ArrayList<Integer> keyIndexes = new ArrayList<Integer>();
-		for (int i = 0; i < columnNames.length; i++) {
+		for (int i = 0; i < columns.length; i++) {
 			for (int j = 0; j < keys.length; j++)
-				if (columnNames[i].equalsIgnoreCase(keys[j]))
+				if (columns[i].equalsIgnoreCase(keys[j]))
 					keyIndexes.add(i);
 		}
 		return keyIndexes;
 	}
-
-	// /**
-	// * Formats the extracted column.
-	// *
-	// * @param extracted
-	// * The array that contains the extracted column
-	// *
-	// * @return the array with a formatted extracted column
-	// */
-	// private String[][] formatExtracted(String[][] extracted) {
-	// int extractedCol = extracted[0].length - 1;
-	// for (int i = 0; i < extracted.length; i++) {
-	// Pattern uuidPattern = Pattern.compile("(?<=\\{)([^}]*)(?=\\})");
-	// Matcher uuidMatcher = uuidPattern
-	// .matcher(extracted[i][extractedCol]);
-	// uuidMatcher.find();
-	// extracted[i][extractedCol] = uuidMatcher.group();
-	// }
-	// return extracted;
-	// }
 
 	/**
 	 * Generates the keys for insertion.
 	 * 
 	 * @param keyIndexes
 	 *            a list of key indexes
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the database columns
+	 * @param values
+	 *            the values of the databse columns
 	 * @return keys for each row being inserted
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private String[] generateKeys(ArrayList<Integer> keyIndexes,
-			String tableName, String[] columnNames, String[] columnValues)
-			throws MobbedException {
-		if (tableName.equalsIgnoreCase("datasets")) {
-			int sessionIndex = findIndexOfColumn(columnNames,
+	private String[] generateKeys(ArrayList<Integer> keyIndexes, String table,
+			String[] columns, String[] values) throws MobbedException {
+		if (table.equalsIgnoreCase("datasets")) {
+			int sessionIndex = findIndexOfColumn(columns,
 					"dataset_session_uuid");
-			columnValues[sessionIndex] = UUID.randomUUID().toString();
+			values[sessionIndex] = UUID.randomUUID().toString();
 		}
 		int numKeys = keyIndexes.size();
 		for (int i = 0; i < numKeys; i++) {
-			if (isEmpty(columnValues[keyIndexes.get(i)]))
-				columnValues[keyIndexes.get(i)] = UUID.randomUUID().toString();
+			if (isEmpty(values[keyIndexes.get(i)]))
+				values[keyIndexes.get(i)] = UUID.randomUUID().toString();
 		}
-		return columnValues;
+		return values;
 	}
 
 	/**
@@ -1050,19 +935,19 @@ public class ManageDB {
 	 * 
 	 * @param columnStatement
 	 *            the prepared statement object used for the queries
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void initializeColumnHashMaps(PreparedStatement columnStatement,
-			String tableName) throws MobbedException {
+			String table) throws MobbedException {
 		ArrayList<String> columnNameList = new ArrayList<String>();
 		String columnDefault = null;
 		String columnName = null;
 		String columnType = null;
 		try {
-			columnStatement.setString(1, tableName);
+			columnStatement.setString(1, table);
 			ResultSet rs = columnStatement.executeQuery();
 			while (rs.next()) {
 				columnDefault = rs.getString(1);
@@ -1081,7 +966,7 @@ public class ManageDB {
 		}
 		String[] columnNames = columnNameList.toArray(new String[columnNameList
 				.size()]);
-		columnMap.put(tableName, columnNames);
+		columnMap.put(table, columnNames);
 	}
 
 	/**
@@ -1121,16 +1006,16 @@ public class ManageDB {
 	 * 
 	 * @param keyStatement
 	 *            the prepared statement object used for the queries
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void initializeKeyHashMap(PreparedStatement keyStatement,
-			String tableName) throws MobbedException {
+			String table) throws MobbedException {
 		ArrayList<String> keyColumnList = new ArrayList<String>();
 		try {
-			keyStatement.setString(1, tableName);
+			keyStatement.setString(1, table);
 			ResultSet rs = keyStatement.executeQuery();
 			while (rs.next())
 				keyColumnList.add(rs.getString(1));
@@ -1140,7 +1025,7 @@ public class ManageDB {
 		}
 		String[] keyColumns = keyColumnList.toArray(new String[keyColumnList
 				.size()]);
-		keyMap.put(tableName, keyColumns);
+		keyMap.put(table, keyColumns);
 	}
 
 	/**
@@ -1148,18 +1033,18 @@ public class ManageDB {
 	 * 
 	 * @param keyIndexes
 	 *            a list of key indexes
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param values
+	 *            the values of the database columns
 	 * @return true if the key columns are empty, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean keysEmpty(ArrayList<Integer> keyIndexes,
-			String[] columnValues) throws MobbedException {
+	private boolean keysEmpty(ArrayList<Integer> keyIndexes, String[] values)
+			throws MobbedException {
 		boolean empty = true;
 		int keyCount = 0;
 		for (int i = 0; i < keyIndexes.size(); i++) {
-			if (!isEmpty(columnValues[keyIndexes.get(i)]))
+			if (!isEmpty(values[keyIndexes.get(i)]))
 				keyCount++;
 		}
 		if (keyCount > 0 && keyIndexes.size() > keyCount)
@@ -1175,24 +1060,24 @@ public class ManageDB {
 	 * 
 	 * @param keyIndexes
 	 *            a list of key indexes
-	 * @param tableName
+	 * @param table
 	 *            the name of the database table
-	 * @param columnNames
-	 *            the column names of the table
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the database columns
+	 * @param values
+	 *            the values of the database columns
 	 * @return true if the keys exist in the database, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean keysExist(ArrayList<Integer> keyIndexes, String tableName,
-			String[] columnNames, String[] columnValues) throws MobbedException {
+	private boolean keysExist(ArrayList<Integer> keyIndexes, String table,
+			String[] columns, String[] values) throws MobbedException {
 		boolean exist = false;
-		if (!keysEmpty(keyIndexes, columnValues)) {
-			String[] keyColumns = addByIndex(keyIndexes, columnNames);
-			String[] keyValues = addByIndex(keyIndexes, columnValues);
-			String selectQuery = constructSelectQuery(keyIndexes, tableName,
-					columnNames);
+		if (!keysEmpty(keyIndexes, values)) {
+			String[] keyColumns = addByIndex(keyIndexes, columns);
+			String[] keyValues = addByIndex(keyIndexes, values);
+			String selectQuery = constructSelectQuery(keyIndexes, table,
+					columns);
 			try {
 				PreparedStatement pstmt = connection
 						.prepareStatement(selectQuery);
@@ -1212,13 +1097,13 @@ public class ManageDB {
 	/**
 	 * Looks up the jdbc sql types of a given column.
 	 * 
-	 * @param columnName
+	 * @param column
 	 *            the name of the database column
 	 * @return the jdbc sql type of the column
 	 */
-	private int lookupTargetType(Object columnName) {
+	private int lookupTargetType(Object column) {
 		// 1.6 doesn't support switch statement with string object
-		String type = typeMap.get(columnName);
+		String type = typeMap.get(column);
 		int targetType = Types.NULL;
 		if (type.equalsIgnoreCase("uuid")) {
 			targetType = Types.OTHER;
@@ -1243,17 +1128,16 @@ public class ManageDB {
 	/**
 	 * Fetches the next set of rows that a data cursor points to
 	 * 
-	 * @param cursorName
+	 * @param name
 	 *            the name of the data cursor
 	 * @param fetchSize
 	 *            the fetch size of the data cursor
 	 * @return a set of rows that the data cursor fetches
 	 * @throws MobbedException
 	 */
-	private String[][] next(String cursorName, int fetchSize)
-			throws MobbedException {
+	private String[][] next(String name, int fetchSize) throws MobbedException {
 		String[][] rows = null;
-		String query = "FETCH FORWARD " + fetchSize + " FROM " + cursorName;
+		String query = "FETCH FORWARD " + fetchSize + " FROM " + name;
 		try {
 			Statement stmt = connection.createStatement(
 					ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -1261,7 +1145,7 @@ public class ManageDB {
 			ResultSet rs = stmt.executeQuery(query);
 			rows = populateArray(rs);
 			if (isEmpty(rows))
-				closeCursor(cursorName);
+				closeCursor(name);
 			if (verbose)
 				System.out.println(query);
 		} catch (SQLException ex) {
@@ -1308,21 +1192,58 @@ public class ManageDB {
 	 * 
 	 * @param keyIndexes
 	 *            a list of the key indexes
-	 * @param array
-	 *            an array that contains the column names
+	 * @param columns
+	 *            the names of the database columns
 	 * @return an array that contains non key columns
 	 */
-	private String[] removeByIndex(ArrayList<Integer> keyIndexes, String[] array) {
-		// Used to get nonkey column names and values
-		String[] newArray = new String[array.length - keyIndexes.size()];
+	private String[] removeByIndex(ArrayList<Integer> keyIndexes,
+			String[] columns) {
+		String[] newArray = new String[columns.length - keyIndexes.size()];
 		int j = 0;
-		for (int i = 0; i < array.length; i++) {
+		for (int i = 0; i < columns.length; i++) {
 			if (!keyIndexes.contains(i)) {
-				newArray[j] = array[i];
+				newArray[j] = columns[i];
 				j++;
 			}
 		}
 		return newArray;
+	}
+
+	/**
+	 * * Sets the double values of a prepared statement object that retrieves
+	 * rows from a particular table in the database.
+	 * 
+	 * @param pstmt
+	 *            the prepared statement object used to do the query
+	 * @param valueCount
+	 *            the number of values that have already been set
+	 * @param doubleColumns
+	 *            the names of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
+	 * @return
+	 * @throws MobbedException
+	 */
+	private int setDoubleTableStatementValues(PreparedStatement pstmt,
+			int valueCount, String[] doubleColumns, Double[][] doubleValues)
+			throws MobbedException {
+		int numColumns = doubleColumns.length;
+		int numValues;
+		for (int i = 0; i < numColumns; i++) {
+			numValues = doubleValues[i].length;
+			for (int j = 0; j < numValues; j++) {
+				try {
+					pstmt.setDouble(valueCount, doubleValues[i][j]);
+					pstmt.setDouble(valueCount + 1, doubleValues[i][j]);
+				} catch (SQLException ex) {
+					throw new MobbedException("Could not set value in query\n"
+							+ ex.getMessage());
+				}
+				valueCount = valueCount + 2;
+			}
+		}
+		return valueCount;
+
 	}
 
 	/**
@@ -1331,22 +1252,24 @@ public class ManageDB {
 	 * 
 	 * @param pstmt
 	 *            the prepared statement object used to do the queries
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void setInsertStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues, Double[] doubleValues)
+			String[] columns, String[] values, Double[] doubleValues)
 			throws MobbedException {
-		int numColumns = columnNames.length;
+		int numColumns = columns.length;
 		int i = 0;
 		int j = 0;
 		try {
 			for (int k = 0; k < numColumns; k++) {
-				int targetType = lookupTargetType(columnNames[k]);
+				int targetType = lookupTargetType(columns[k]);
 				if (!isEmpty(doubleValues) && targetType == Types.DOUBLE) {
 					if (doubleValues[i] != null)
 						pstmt.setDouble(k + 1, doubleValues[i]);
@@ -1354,13 +1277,56 @@ public class ManageDB {
 						pstmt.setObject(k + 1, doubleValues[i]);
 					i++;
 				} else {
-					pstmt.setObject(k + 1, columnValues[j], targetType);
+					pstmt.setObject(k + 1, values[j], targetType);
 					j++;
 				}
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not set value\n" + ex.getMessage());
 		}
+	}
+
+	/**
+	 * Sets the non-double values of a prepared statement object that retrieves
+	 * rows from a particular table in the database.
+	 * 
+	 * @param pstmt
+	 *            the prepared statement object used to do the query
+	 * @param valueCount
+	 *            the number of values that have already been set
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @return the number of values that were set in the query in addition to
+	 *         the ones prior
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+
+	private int setNonDoubleTableStatementValues(PreparedStatement pstmt,
+			int valueCount, String[] columns, String[][] values)
+			throws MobbedException {
+		int numColumns = columns.length;
+		int numValues = 0;
+		int targetType = 0;
+		for (int i = 0; i < numColumns; i++) {
+			numValues = values[i].length;
+			for (int j = 0; j < numValues; j++) {
+				targetType = lookupTargetType(columns[i]);
+				// Case insensitive fix
+				if (targetType == Types.VARCHAR)
+					values[i][j] = values[i][j].toUpperCase();
+				try {
+					pstmt.setObject(valueCount, values[i][j], targetType);
+				} catch (SQLException ex) {
+					throw new MobbedException("Could not set value in query\n"
+							+ ex.getMessage());
+				}
+				valueCount++;
+			}
+		}
+		return valueCount;
 	}
 
 	/**
@@ -1375,10 +1341,14 @@ public class ManageDB {
 	 *            the values of the tags search criteria
 	 * @param attributes
 	 *            the values of the attributes search criteria
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the non-double database columns
+	 * @param values
+	 *            the values of the non-double database columns
+	 * @param doubleColumns
+	 *            the names of the double database columns
+	 * @param doubleValues
+	 *            the values of the double database columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1407,89 +1377,24 @@ public class ManageDB {
 	 * 
 	 * @param pstmt
 	 *            the prepared statement object used to do the query
-	 * @param columnNames
+	 * @param columns
 	 *            the names of the columns
-	 * @param columnValues
+	 * @param values
 	 *            the values of the columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void setSelectStatementValues(PreparedStatement pstmt,
-			String[] columnNames, String[] columnValues) throws MobbedException {
-		for (int i = 0; i < columnValues.length; i++) {
-			int targetType = lookupTargetType(columnNames[i]);
+			String[] columns, String[] values) throws MobbedException {
+		for (int i = 0; i < values.length; i++) {
+			int targetType = lookupTargetType(columns[i]);
 			try {
-				pstmt.setObject(i + 1, columnValues[i], targetType);
+				pstmt.setObject(i + 1, values[i], targetType);
 			} catch (SQLException ex) {
 				throw new MobbedException("Could not set value\n"
 						+ ex.getMessage());
 			}
 		}
-	}
-
-	/**
-	 * Sets the values of a prepared statement object that retrieves rows from a
-	 * particular table in the database.
-	 * 
-	 * @param pstmt
-	 *            the prepared statement object used to do the query
-	 * @param valueCount
-	 *            the number of values that have already been set
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
-	 * @return the number of values that were set in the query in addition to
-	 *         the ones prior
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-
-	private int setNonDoubleTableStatementValues(PreparedStatement pstmt,
-			int valueCount, String[] columnNames, String[][] columnValues)
-			throws MobbedException {
-		int numColumns = columnNames.length;
-		int numValues = 0;
-		int targetType = 0;
-		for (int i = 0; i < numColumns; i++) {
-			numValues = columnValues[i].length;
-			for (int j = 0; j < numValues; j++) {
-				targetType = lookupTargetType(columnNames[i]);
-				// Case insensitive fix
-				if (targetType == Types.VARCHAR)
-					columnValues[i][j] = columnValues[i][j].toUpperCase();
-				try {
-					pstmt.setObject(valueCount, columnValues[i][j], targetType);
-				} catch (SQLException ex) {
-					throw new MobbedException("Could not set value in query\n"
-							+ ex.getMessage());
-				}
-				valueCount++;
-			}
-		}
-		return valueCount;
-	}
-
-	private int setDoubleTableStatementValues(PreparedStatement pstmt,
-			int valueCount, String[] doubleColumns, Double[][] doubleValues)
-			throws MobbedException {
-		int numColumns = doubleColumns.length;
-		int numValues;
-		for (int i = 0; i < numColumns; i++) {
-			numValues = doubleValues[i].length;
-			for (int j = 0; j < numValues; j++) {
-				try {
-					pstmt.setDouble(valueCount, doubleValues[i][j]);
-					pstmt.setDouble(valueCount + 1, doubleValues[i][j]);
-				} catch (SQLException ex) {
-					throw new MobbedException("Could not set value in query\n"
-							+ ex.getMessage());
-				}
-				valueCount = valueCount + 2;
-			}
-		}
-		return valueCount;
-
 	}
 
 	/**
@@ -1533,23 +1438,22 @@ public class ManageDB {
 	 *            a list of the key indexes
 	 * @param pstmt
 	 *            the prepared statement object used to do the query
-	 * @param columnNames
-	 *            the names of the columns
-	 * @param columnValues
-	 *            the values of the columns
+	 * @param columns
+	 *            the names of the database columns
+	 * @param values
+	 *            the values of the non-double database columns
 	 * @param doubleValues
-	 *            the double precision values of the columns
+	 *            the values of the double database columns
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	private void setUpdateStatementValues(ArrayList<Integer> keyIndexes,
-			PreparedStatement pstmt, String[] columnNames,
-			String[] columnValues, Double[] doubleValues)
-			throws MobbedException {
-		String[] keyColumns = addByIndex(keyIndexes, columnNames);
-		String[] nonKeyColumns = removeByIndex(keyIndexes, columnNames);
-		String[] keyValues = addByIndex(keyIndexes, columnValues);
-		String[] nonKeyValues = removeByIndex(keyIndexes, columnValues);
+			PreparedStatement pstmt, String[] columns, String[] values,
+			Double[] doubleValues) throws MobbedException {
+		String[] keyColumns = addByIndex(keyIndexes, columns);
+		String[] nonKeyColumns = removeByIndex(keyIndexes, columns);
+		String[] keyValues = addByIndex(keyIndexes, values);
+		String[] nonKeyValues = removeByIndex(keyIndexes, values);
 		int i;
 		int k = 0;
 		int l = 0;
@@ -1579,20 +1483,19 @@ public class ManageDB {
 	/**
 	 * Validates the column names of a table in the database.
 	 * 
-	 * @param columnNames
-	 *            the names of the columns in a table
-	 * @return true if the column names are valid, throws an exception if
+	 * @param columns
+	 *            the names of the database columns
+	 * @return true if the database columns are valid, throws an exception if
 	 *         otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean validateColumnNames(String[] columnNames)
-			throws MobbedException {
-		if (!isEmpty(columnNames)) {
-			int numColumns = columnNames.length;
+	private boolean validateColumns(String[] columns) throws MobbedException {
+		if (!isEmpty(columns)) {
+			int numColumns = columns.length;
 			for (int i = 0; i < numColumns; i++) {
-				if (getColumnType(columnNames[i].toLowerCase()) == null)
-					throw new MobbedException("column " + columnNames[i]
+				if (getColumnType(columns[i].toLowerCase()) == null)
+					throw new MobbedException("column " + columns[i]
 							+ " is an invalid column type");
 			}
 		}
@@ -1600,49 +1503,49 @@ public class ManageDB {
 	}
 
 	/**
-	 * Validates a given column value.
+	 * Validates a database table.
 	 * 
-	 * @param columnName
-	 *            the name of the database column
-	 * @param columnValue
-	 *            the value of the database column
-	 * @return true if the column value is valid, false if otherwise
+	 * @param table
+	 *            the name of the database table
+	 * @return true if the databse table is valid, throws an exception if
+	 *         otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean validateColumnValue(String columnName, String columnValue)
-			throws MobbedException {
-		String type = typeMap.get(columnName.toLowerCase());
-		try {
-			if (type.equalsIgnoreCase("uuid"))
-				UUID.fromString(columnValue);
-			else if (type.equalsIgnoreCase("integer"))
-				Integer.parseInt(columnValue);
-			else if (type.equalsIgnoreCase("bigint"))
-				Long.parseLong(columnValue);
-			else if (type.equalsIgnoreCase("timestamp without time zone"))
-				Timestamp.valueOf(columnValue);
-		} catch (Exception ex) {
-			throw new MobbedException("Invalid type, column: " + columnName
-					+ " value: " + columnValue);
-		}
+	private boolean validateTableName(String table) throws MobbedException {
+		if (getColumnNames(table.toLowerCase()) == null)
+			throw new MobbedException("table " + table + " is an invalid table");
 		return true;
 	}
 
 	/**
-	 * Validates a table name in the database.
+	 * Validates a value of a database column.
 	 * 
-	 * @param tableName
-	 *            the name of the database table
-	 * @return true if the table is a valid database table, throws an exception
-	 *         if otherwise
+	 * @param column
+	 *            the name of the database column
+	 * @param value
+	 *            the value of the database column
+	 * @return true if the value of the database column is valid, false if
+	 *         otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean validateTableName(String tableName) throws MobbedException {
-		if (getColumnNames(tableName.toLowerCase()) == null)
-			throw new MobbedException("table " + tableName
-					+ " is an invalid table");
+	private boolean validateValues(String column, String value)
+			throws MobbedException {
+		String type = typeMap.get(column.toLowerCase());
+		try {
+			if (type.equalsIgnoreCase("uuid"))
+				UUID.fromString(value);
+			else if (type.equalsIgnoreCase("integer"))
+				Integer.parseInt(value);
+			else if (type.equalsIgnoreCase("bigint"))
+				Long.parseLong(value);
+			else if (type.equalsIgnoreCase("timestamp without time zone"))
+				Timestamp.valueOf(value);
+		} catch (Exception ex) {
+			throw new MobbedException("Invalid type, column: " + column
+					+ " value: " + value);
+		}
 		return true;
 	}
 
@@ -1842,6 +1745,36 @@ public class ManageDB {
 	}
 
 	/**
+	 * Checks if an array is empty.
+	 * 
+	 * @param o
+	 * @return true if the array is empty, false if otherwise
+	 */
+	public static boolean isEmpty(Object[] o) {
+		boolean empty = true;
+		if (o != null) {
+			if (o.length > 0)
+				empty = false;
+		}
+		return empty;
+	}
+
+	/**
+	 * Checks if an string is empty.
+	 * 
+	 * @param s
+	 * @return true if the string is empty, false if otherwise
+	 */
+	public static boolean isEmpty(String s) {
+		boolean empty = true;
+		if (s != null) {
+			if (s.length() > 0)
+				empty = false;
+		}
+		return empty;
+	}
+
+	/**
 	 * Loads the database credentials from a property file. The credentials will
 	 * be stored in a array.
 	 * 
@@ -2027,36 +1960,6 @@ public class ManageDB {
 							+ "\n" + ex.getMessage());
 		}
 		return dbCon;
-	}
-
-	/**
-	 * Checks if an array is empty.
-	 * 
-	 * @param o
-	 * @return true if the array is empty, false if otherwise
-	 */
-	public static boolean isEmpty(Object[] o) {
-		boolean empty = true;
-		if (o != null) {
-			if (o.length > 0)
-				empty = false;
-		}
-		return empty;
-	}
-
-	/**
-	 * Checks if an string is empty.
-	 * 
-	 * @param s
-	 * @return true if the string is empty, false if otherwise
-	 */
-	public static boolean isEmpty(String s) {
-		boolean empty = true;
-		if (s != null) {
-			if (s.length() > 0)
-				empty = false;
-		}
-		return empty;
 	}
 
 	/**
