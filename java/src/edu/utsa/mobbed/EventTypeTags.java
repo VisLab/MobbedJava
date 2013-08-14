@@ -3,6 +3,12 @@ package edu.utsa.mobbed;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Stores tags associated with event types
+ * 
+ * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
+ * 
+ */
 public class EventTypeTags {
 	/**
 	 * The UUID of the event type

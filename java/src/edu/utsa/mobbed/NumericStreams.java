@@ -444,7 +444,7 @@ public class NumericStreams {
 	public static int getArrayLength(Connection dbCon, String datadefUuid)
 			throws MobbedException {
 		int elementCount = 0;
-		String countQry = "SELECT array_length(numeric_stream_data_value, 1) from numeric_streams where NUMERIC_STREAM_DEF_UUID = ? LIMIT 1";
+		String countQry = "SELECT array_length(numeric_stream, 1) from numeric_streams where NUMERIC_STREAM_DATADEF_UUID = ? LIMIT 1";
 		try {
 			PreparedStatement pstmt = dbCon.prepareStatement(countQry);
 			pstmt.setObject(1, datadefUuid, Types.OTHER);

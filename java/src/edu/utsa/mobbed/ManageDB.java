@@ -22,8 +22,8 @@ import java.util.UUID;
 import org.postgresql.largeobject.LargeObjectManager;
 
 /**
- * A handler to a MOBBED database. This handler can be used to update, insert,
- * and query the database.
+ * Handler class for MOBBED database. This handler can be used to update,
+ * insert, and query the database.
  * 
  * @author Arif Hossain, Jeremy Cockfield, Kay Robbins
  * 
@@ -136,7 +136,6 @@ public class ManageDB {
 		String[] keyList = new String[numRows];
 		ArrayList<Integer> keyIndexes = findKeyIndexes(table, columns);
 		String insertQry = constructInsertQuery(table, columns);
-		System.out.println(insertQry);
 		String updateQry = constructUpdateQuery(keyIndexes, table, columns);
 		try {
 			PreparedStatement insertStmt = connection
@@ -420,7 +419,7 @@ public class ManageDB {
 	public String[][] retrieveRows(String table, double limit, String regExp,
 			String[][] tags, String[][] attributes, String[] columns,
 			String[][] values, String[] doubleColumns, Double[][] doubleValues,
-			double[] range, String cursorName) throws MobbedException {
+			double[][] range, String cursorName) throws MobbedException {
 		validateTableName(table);
 		validateColumns(columns);
 		validateColumns(doubleColumns);
@@ -442,7 +441,7 @@ public class ManageDB {
 				rows = next(cursorName, (int) limit);
 			} else {
 				if (verbose)
-					System.out.println(pstmt.toString());
+					System.out.println(pstmt);
 				rows = populateArray(pstmt.executeQuery());
 			}
 		} catch (SQLException ex) {
@@ -542,7 +541,7 @@ public class ManageDB {
 	 * @return a query string
 	 */
 	private String constructDoubleQuery(String[] doubleColumns,
-			Double[][] doubleValues, double[] range) {
+			Double[][] doubleValues, double[][] range) {
 		String query = "";
 		String columnName;
 		int numColumns = doubleColumns.length;
@@ -550,11 +549,11 @@ public class ManageDB {
 		for (int i = 0; i < numColumns; i++) {
 			numValues = doubleValues[i].length;
 			columnName = doubleColumns[i];
-			query += columnName + " BETWEEN ?+" + range[0] + " AND " + "?+"
-					+ range[1];
+			query += columnName + " BETWEEN ?+" + range[i][0] + " AND " + "?+"
+					+ range[i][1];
 			for (int j = 1; j < numValues; j++)
-				query += " OR " + columnName + " BETWEEN ?+" + range[0]
-						+ " AND " + "?+" + range[1];
+				query += " OR " + columnName + " BETWEEN ?+" + range[i][0]
+						+ " AND " + "?+" + range[i][1];
 			if (i != numColumns - 1)
 				query += " AND ";
 		}
@@ -652,7 +651,7 @@ public class ManageDB {
 	private String constructQualificationQuery(String table, String regExp,
 			String[][] tags, String[][] attributes, String[] columns,
 			String[][] values, String[] doubleColumns, Double[][] doubleValues,
-			double[] range) throws MobbedException {
+			double[][] range) throws MobbedException {
 		String qry = "";
 		String closer = "";
 		String[] keys = keyMap.get(table);
@@ -721,7 +720,7 @@ public class ManageDB {
 	 */
 	private String constructTableQuery(String regExp, String[] columns,
 			String[][] values, String[] doubleColumns, Double[][] doubleValues,
-			double[] range) {
+			double[][] range) {
 		String query;
 		if (!isEmpty(columns) && isEmpty(doubleColumns))
 			query = constructNonDoubleQuery(regExp, columns, values);
