@@ -55,9 +55,33 @@ public class ManageDB {
 	 */
 	private boolean verbose;
 	/**
+	 * The default contact uuid
+	 */
+	public static final String DEFAULT_CONTACT_UUID = "591df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * The default CSV modality uuid
+	 */
+	public static final String DEFAULT_CSV_MODALITY_UUID = "991df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * The default EEG modality uuid
+	 */
+	public static final String DEFAULT_EEG_MODALITY_UUID = "691df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * The default GENERIC modality uuid
+	 */
+	public static final String DEFAULT_GENERIC_MODALITY_UUID = "791df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * The default SIMPLE modality uuid
+	 */
+	public static final String DEFAULT_SIMPLE_MODALITY_UUID = "891df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
+	 * The uuid representing an entity with no parent
+	 */
+	public static final String NO_PARENT_UUID = "491df7dd-ce3e-47f8-bea5-6a632c6fcccb";
+	/**
 	 * A query that retrieves column metadata of a database table
 	 */
-	private static final String columnQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
+	private static final String COLUMN_QUERY = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
 	/**
 	 * A hashmap that contains instances of ManageDB objects
 	 */
@@ -65,7 +89,7 @@ public class ManageDB {
 	/**
 	 * A query that retrieves the keys of a database table
 	 */
-	private static final String keyQuery = "SELECT pg_attribute.attname FROM pg_index, pg_class, pg_attribute"
+	private static final String KEY_QUERY = "SELECT pg_attribute.attname FROM pg_index, pg_class, pg_attribute"
 			+ " WHERE pg_class.oid = ?::regclass AND"
 			+ " indrelid = pg_class.oid AND"
 			+ " pg_attribute.attrelid = pg_class.oid AND"
@@ -74,11 +98,11 @@ public class ManageDB {
 	/**
 	 * A query that retrieves the tables of a database
 	 */
-	private static final String tableQuery = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
+	private static final String TABLE_QUERY = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name";
 	/**
 	 * The name of the template database
 	 */
-	private static final String templateName = "template1";
+	private static final String TEMPLATE_DATABASE = "template1";
 
 	/**
 	 * Creates a ManageDB object.
@@ -179,7 +203,7 @@ public class ManageDB {
 		} catch (SQLException me) {
 			throw new MobbedException(
 					"Could not insert or update row(s) in the database\n"
-							+ me.getMessage());
+							+ me.getNextException().getMessage());
 		}
 		return keyList;
 	}
@@ -985,9 +1009,9 @@ public class ManageDB {
 		PreparedStatement keyStatement = null;
 		try {
 			Statement tableStatement = connection.createStatement();
-			columnStatement = connection.prepareCall(columnQuery);
-			keyStatement = connection.prepareCall(keyQuery);
-			rs = tableStatement.executeQuery(tableQuery);
+			columnStatement = connection.prepareCall(COLUMN_QUERY);
+			keyStatement = connection.prepareCall(KEY_QUERY);
+			rs = tableStatement.executeQuery(TABLE_QUERY);
 			while (rs.next()) {
 				initializeColumnHashMaps(columnStatement,
 						rs.getString("table_name"));
@@ -1589,6 +1613,8 @@ public class ManageDB {
 	 *             if an error occurs
 	 */
 	public static synchronized void closeAll() throws MobbedException {
+		if (dbMap == null)
+			return;
 		Set<ManageDB> keySet = dbMap.keySet();
 		ManageDB[] mds = keySet.toArray(new ManageDB[keySet.size()]);
 		int numKeys = mds.length;
@@ -1657,8 +1683,8 @@ public class ManageDB {
 		if (isEmpty(filename))
 			throw new MobbedException("The SQL file does not exist");
 		try {
-			Connection templateConnection = establishConnection(templateName,
-					hostname, username, password);
+			Connection templateConnection = establishConnection(
+					TEMPLATE_DATABASE, hostname, username, password);
 			createDatabase(templateConnection, dbname);
 			templateConnection.close();
 			Connection databaseConnection = establishConnection(dbname,
@@ -1702,8 +1728,8 @@ public class ManageDB {
 			deleteDatasetOids(databaseConnection);
 			deleteDataDefOids(databaseConnection);
 			databaseConnection.close();
-			Connection templateConnection = establishConnection(templateName,
-					hostname, username, password);
+			Connection templateConnection = establishConnection(
+					TEMPLATE_DATABASE, hostname, username, password);
 			dropDatabase(templateConnection, dbname);
 			templateConnection.close();
 		} catch (SQLException ex) {
