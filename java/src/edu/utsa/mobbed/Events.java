@@ -15,6 +15,11 @@ import java.util.UUID;
 public class Events {
 
 	/**
+	 * A hashmap that maps the event position to the event uuid
+	 */
+	private static HashMap<Long, UUID> eventMap;
+
+	/**
 	 * A Attributes object used to store attributes
 	 */
 	private Attributes atb;
@@ -57,6 +62,10 @@ public class Events {
 	 * A prepared statement object that inserts events into the database
 	 */
 	private PreparedStatement insertStmt;
+	/**
+	 * The original positions of the events that have been derived
+	 */
+	private long[] originalPositions;
 	/**
 	 * The positions of the events
 	 */
@@ -127,14 +136,14 @@ public class Events {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public HashMap<Long, UUID> addEvents() throws MobbedException {
-		HashMap<Long, UUID> eventMap = new HashMap<Long, UUID>();
-		eventUuids = new UUID[types.length];
+	public void addEvents(boolean original) throws MobbedException {
+		if (original)
+			initializeEventMap();
+		eventUuids = new UUID[positions.length];
 		try {
 			insertStmt = dbCon.prepareStatement(INSERT_QUERY);
-			for (int i = 0; i < types.length; i++) {
+			for (int i = 0; i < positions.length; i++) {
 				eventUuids[i] = UUID.randomUUID();
-				eventMap.put(positions[i], eventUuids[i]);
 				insertStmt.setObject(1, eventUuids[i], Types.OTHER);
 				insertStmt.setObject(2, datasetUuid, Types.OTHER);
 				insertStmt
@@ -144,44 +153,28 @@ public class Events {
 								Types.OTHER);
 				insertStmt.setDouble(4, startTimes[i]);
 				insertStmt.setDouble(5, endTimes[i]);
-				insertStmt.setObject(6,
-						UUID.fromString(ManageDB.NO_PARENT_UUID), Types.OTHER);
+				insertStmt.setObject(6, eventMap.get(originalPositions[i]),
+						Types.OTHER);
 				insertStmt.setLong(7, positions[i]);
 				insertStmt.setDouble(8, certainties[i]);
 				insertStmt.addBatch();
+				eventMap.put(positions[i], eventUuids[i]);
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add the event to the batch\n"
 					+ ex.getMessage());
 		}
-		return eventMap;
 	}
 
-	public void addEvents(HashMap<Long, UUID> originalEvents,
-			long[] originalPositions) throws MobbedException {
-		eventUuids = new UUID[types.length];
-		try {
-			insertStmt = dbCon.prepareStatement(INSERT_QUERY);
-			for (int i = 0; i < types.length; i++) {
-				eventUuids[i] = UUID.randomUUID();
-				insertStmt.setObject(1, eventUuids[i], Types.OTHER);
-				insertStmt.setObject(2, datasetUuid, Types.OTHER);
-				insertStmt
-						.setObject(
-								3,
-								eventTypeTagMap.get(types[i].toUpperCase()).eventTypeUuid,
-								Types.OTHER);
-				insertStmt.setDouble(4, startTimes[i]);
-				insertStmt.setDouble(5, endTimes[i]);
-				insertStmt.setObject(6,
-						originalEvents.get(originalPositions[i]), Types.OTHER);
-				insertStmt.setLong(7, positions[i]);
-				insertStmt.setDouble(8, certainties[i]);
-				insertStmt.addBatch();
-			}
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not add the event to the batch\n"
-					+ ex.getMessage());
+	/**
+	 * Initializes the eventMap
+	 */
+	public void initializeEventMap() {
+		eventMap = new HashMap<Long, UUID>();
+		int numPos = originalPositions.length;
+		for (int i = 0; i < numPos; i++) {
+			eventMap.put(originalPositions[i],
+					UUID.fromString(ManageDB.NO_PARENT_UUID));
 		}
 	}
 
@@ -195,8 +188,8 @@ public class Events {
 	 */
 	public String[] addNewTypes() throws MobbedException {
 		String[] eventTypeUuids = null;
-		eventTypeTagMap = EventTypes.addNewEventTypes(dbCon, existingEventTypeUuids,
-				uniqueTypes, eventTypeTags);
+		eventTypeTagMap = EventTypes.addNewEventTypes(dbCon,
+				existingEventTypeUuids, uniqueTypes, eventTypeTags);
 		eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
 		return eventTypeUuids;
 	}
@@ -228,12 +221,14 @@ public class Events {
 	 *             if an error occurs
 	 */
 	public void reset(String datasetUuid, double[] startTimes,
-			double[] endTimes, long[] positions, double[] certainties,
-			String uniqueTypes[], String[] types, String[] existingEventTypeUuids,
-			String[][] eventTypeTags) throws MobbedException {
+			double[] endTimes, long[] originalPositions, long[] positions,
+			double[] certainties, String uniqueTypes[], String[] types,
+			String[] existingEventTypeUuids, String[][] eventTypeTags)
+			throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.startTimes = startTimes;
 		this.endTimes = endTimes;
+		this.originalPositions = originalPositions;
 		this.positions = positions;
 		this.certainties = certainties;
 		this.uniqueTypes = uniqueTypes;
@@ -257,7 +252,7 @@ public class Events {
 			insertStmt.executeBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not save the events\n"
-					+ ex.getMessage());
+					+ ex.getNextException().getMessage());
 		}
 	}
 
