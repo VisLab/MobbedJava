@@ -58,6 +58,7 @@ public class TestEvents {
 				originalEventCertainties, originalUniqueEventTypes,
 				originalEventTypes, null, eventTypeTags);
 		existingEventTypeUuids = event.addNewTypes();
+		event.addEvents(true);
 	}
 
 	@Test
@@ -77,7 +78,6 @@ public class TestEvents {
 		String fieldName = "urevent";
 		Double[] numAttrValues = { 1.0, 2.0 };
 		String[] attrValues = { "1.0", "2.0" };
-		event.addEvents(true);
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
@@ -101,7 +101,7 @@ public class TestEvents {
 	public void testAddEventsDerieved() throws Exception {
 		System.out.println("Unit test for addEvents with derived events ");
 		System.out
-				.println("It should store 6 events. 4 original events, 2 original events");
+				.println("It should store 6 events. 4 original events, 2 derived events");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -112,7 +112,6 @@ public class TestEvents {
 		actual = rs.getInt(1);
 		System.out.println("--There should be no events in the database.");
 		assertEquals("There are events in the database", expected, actual);
-		event.addEvents(true);
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
@@ -143,7 +142,6 @@ public class TestEvents {
 		actual = rs.getInt(1);
 		System.out.println("--There should be no events in the database.");
 		assertEquals("There are events in the database", expected, actual);
-		event.addEvents(true);
 		event.save();
 		rs = stmt.executeQuery(query);
 		rs.next();
@@ -157,11 +155,11 @@ public class TestEvents {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
+			ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+		} catch (Exception e) {
 			tablePath = URLDecoder.decode(
 					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
 							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);

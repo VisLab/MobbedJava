@@ -15,14 +15,10 @@ import java.util.UUID;
 public class Events {
 
 	/**
-	 * A hashmap that maps the event position to the event uuid
-	 */
-	private static HashMap<Long, UUID> eventMap;
-
-	/**
 	 * A Attributes object used to store attributes
 	 */
 	private Attributes atb;
+
 	/**
 	 * The certainties of the events
 	 */
@@ -40,12 +36,13 @@ public class Events {
 	 */
 	private double[] endTimes;
 	/**
+	 * A hashmap that maps the event positions to the event uuids
+	 */
+	private HashMap<Long, UUID> eventMap;
+	/**
 	 * A EventTypeTagModel object used to store event types
 	 */
 	private HashMap<String, EventTypeTags> eventTypeTagMap;
-	/**
-	 * A query that inserts events into the database
-	 */
 	/**
 	 * Event type tags
 	 */
@@ -132,7 +129,9 @@ public class Events {
 	 * events should be stored prior to storing the events that are derived from
 	 * them.
 	 * 
-	 * @return the UUIDs of the events that were stored
+	 * @param original
+	 *            true if the events are original, false if the events are
+	 *            derived
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -158,23 +157,12 @@ public class Events {
 				insertStmt.setLong(7, positions[i]);
 				insertStmt.setDouble(8, certainties[i]);
 				insertStmt.addBatch();
-				eventMap.put(positions[i], eventUuids[i]);
+				if (original)
+					eventMap.put(positions[i], eventUuids[i]);
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add the event to the batch\n"
 					+ ex.getMessage());
-		}
-	}
-
-	/**
-	 * Initializes the eventMap
-	 */
-	public void initializeEventMap() {
-		eventMap = new HashMap<Long, UUID>();
-		int numPos = originalPositions.length;
-		for (int i = 0; i < numPos; i++) {
-			eventMap.put(originalPositions[i],
-					UUID.fromString(ManageDB.NO_PARENT_UUID));
 		}
 	}
 
@@ -195,6 +183,19 @@ public class Events {
 	}
 
 	/**
+	 * Initializes the eventMap field that maps the event positions to the event
+	 * uuids.
+	 */
+	public void initializeEventMap() {
+		eventMap = new HashMap<Long, UUID>();
+		int numPos = originalPositions.length;
+		for (int i = 0; i < numPos; i++) {
+			eventMap.put(originalPositions[i],
+					UUID.fromString(ManageDB.NO_PARENT_UUID));
+		}
+	}
+
+	/**
 	 * Sets class fields of a Events object.
 	 * 
 	 * @param datasetUuid
@@ -203,8 +204,8 @@ public class Events {
 	 *            the start times of the events
 	 * @param endTimes
 	 *            the end times of the events
-	 * @param eventParentUuids
-	 *            the uuids of the parent events
+	 * @param originalPositions
+	 *            the original positions of the events
 	 * @param positions
 	 *            the positions of the events
 	 * @param certainties

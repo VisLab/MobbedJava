@@ -55,11 +55,11 @@ public class TestEventTypes {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
+			ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+		} catch (Exception e) {
 			tablePath = URLDecoder.decode(
 					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
 							.getPath(), "UTF-8");
-			md = new ManageDB(name, hostname, user, password, verbose);
-		} catch (Exception e) {
 			ManageDB.createDatabase(name, hostname, user, password, tablePath,
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
