@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.net.URLDecoder;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.HashMap;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -26,14 +27,16 @@ public class TestEvents {
 	private String[][] derivedEventTags = { { "tag1", "tag2" },
 			{ "tag3", "tag4", "tag5" } };
 	private String[] derivedEventTypes = { "et1", "et3" };
+	private HashMap<String, String[]> derivedEventTypeTags = new HashMap<String, String[]>();
 	private long[] derivedOriginalPositions = { 2, 4 };
 	private long[] derivedPositions = { 1, 2 };
-	private String[][] eventTypeTags = null;
-	private String[] existingEventTypeUuids = null;
+	private String[] derivedUniqueEventTypes = { "et1", "et3" };
+	private String[] existingEventTypeUuids = {};
 	private double[] originalEventCertainties = { 1.0, 1.0, 1.0, 1.0 };
 	private double[] originalEventLatencies = { 111, 222, 333, 444 };
 	private String[][] originalEventTags = {};
 	private String[] originalEventTypes = { "et1", "et1", "et2", "et3" };
+	private HashMap<String, String[]> originalEventTypeTags = new HashMap<String, String[]>();
 	private String[] originalExistingEventTypeUuids = {};
 	private long[] originalPositions = { 1, 2, 3, 4 };
 	private String[] originalUniqueEventTypes = { "et1", "et2", "et3" };
@@ -58,12 +61,17 @@ public class TestEvents {
 
 	@Before
 	public void setupTest() throws Exception {
+		originalEventTypeTags.put(originalUniqueEventTypes[0], new String[0]);
+		originalEventTypeTags.put(originalUniqueEventTypes[1], new String[0]);
+		originalEventTypeTags.put(originalUniqueEventTypes[2], new String[0]);
+		derivedEventTypeTags.put(derivedUniqueEventTypes[0], new String[0]);
+		derivedEventTypeTags.put(derivedUniqueEventTypes[1], new String[0]);
 		event = new Events(md.getConnection());
 		event.reset(datasetUuids[0], originalEventLatencies,
 				originalEventLatencies, originalPositions, originalPositions,
 				originalEventCertainties, originalUniqueEventTypes,
 				originalEventTypes, originalExistingEventTypeUuids,
-				originalEventTags, eventTypeTags);
+				originalEventTags, originalEventTypeTags);
 		existingEventTypeUuids = event.addEvents(true);
 	}
 
@@ -87,9 +95,9 @@ public class TestEvents {
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
-				derivedPositions, derievedEventCertainties, derivedEventTypes,
-				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
-				eventTypeTags);
+				derivedPositions, derievedEventCertainties,
+				derivedUniqueEventTypes, derivedEventTypes,
+				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
 		event.addEvents(false);
 		event.addAttribute(fieldName, numAttrValues, attrValues);
 		event.save();
@@ -101,61 +109,6 @@ public class TestEvents {
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 
-	}
-
-	@Test
-	public void testAddEventTagsOriginal() throws Exception {
-		System.out.println("Unit test for addEvents with original events");
-		System.out.println("It should not store any event tags");
-		int expected;
-		int actual;
-		Statement stmt = md.getConnection().createStatement();
-		String query = "SELECT COUNT(*) FROM TAGS";
-		ResultSet rs = stmt.executeQuery(query);
-		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no event tags in the database.");
-		assertEquals("There are event tags in the database", expected, actual);
-		event.save();
-		rs = stmt.executeQuery(query);
-		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be 0 event tags in the database.");
-		assertEquals("There are no event tags in the database", expected,
-				actual);
-	}
-
-	@Test
-	public void testAddEventTagsDerieved() throws Exception {
-		System.out.println("Unit test for addEvents with derived events");
-		System.out.println("It should not store any event tags");
-		int expected;
-		int actual;
-		Statement stmt = md.getConnection().createStatement();
-		String query = "SELECT COUNT(*) FROM TAGS";
-		ResultSet rs = stmt.executeQuery(query);
-		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no event tags in the database.");
-		assertEquals("There are event tags in the database", expected, actual);
-		event.save();
-		event.reset(datasetUuids[0], derivedEventLatencies,
-				derivedEventLatencies, derivedOriginalPositions,
-				derivedPositions, derievedEventCertainties, derivedEventTypes,
-				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
-				eventTypeTags);
-		event.addEvents(false);
-		event.save();
-		rs = stmt.executeQuery(query);
-		rs.next();
-		expected = 5;
-		actual = rs.getInt(1);
-		System.out.println("--There should be 5 event tags in the database.");
-		assertEquals("There are no event tags in the database", expected,
-				actual);
 	}
 
 	@Test
@@ -176,9 +129,9 @@ public class TestEvents {
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
-				derivedPositions, derievedEventCertainties, derivedEventTypes,
-				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
-				eventTypeTags);
+				derivedPositions, derievedEventCertainties,
+				derivedUniqueEventTypes, derivedEventTypes,
+				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
 		event.addEvents(false);
 		event.save();
 		rs = stmt.executeQuery(query);
@@ -211,6 +164,61 @@ public class TestEvents {
 		System.out
 				.println("--There should be 4 original events in the database.");
 		assertEquals("There are no events in the database", expected, actual);
+	}
+
+	@Test
+	public void testAddEventTagsDerieved() throws Exception {
+		System.out.println("Unit test for addEvents with derived events");
+		System.out.println("It should not store any event tags");
+		int expected;
+		int actual;
+		Statement stmt = md.getConnection().createStatement();
+		String query = "SELECT COUNT(*) FROM TAGS";
+		ResultSet rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("--There should be no event tags in the database.");
+		assertEquals("There are event tags in the database", expected, actual);
+		event.save();
+		event.reset(datasetUuids[0], derivedEventLatencies,
+				derivedEventLatencies, derivedOriginalPositions,
+				derivedPositions, derievedEventCertainties,
+				derivedUniqueEventTypes, derivedEventTypes,
+				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
+		event.addEvents(false);
+		event.save();
+		rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 5;
+		actual = rs.getInt(1);
+		System.out.println("--There should be 5 event tags in the database.");
+		assertEquals("There are no event tags in the database", expected,
+				actual);
+	}
+
+	@Test
+	public void testAddEventTagsOriginal() throws Exception {
+		System.out.println("Unit test for addEvents with original events");
+		System.out.println("It should not store any event tags");
+		int expected;
+		int actual;
+		Statement stmt = md.getConnection().createStatement();
+		String query = "SELECT COUNT(*) FROM TAGS";
+		ResultSet rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("--There should be no event tags in the database.");
+		assertEquals("There are event tags in the database", expected, actual);
+		event.save();
+		rs = stmt.executeQuery(query);
+		rs.next();
+		expected = 0;
+		actual = rs.getInt(1);
+		System.out.println("--There should be 0 event tags in the database.");
+		assertEquals("There are no event tags in the database", expected,
+				actual);
 	}
 
 	@BeforeClass

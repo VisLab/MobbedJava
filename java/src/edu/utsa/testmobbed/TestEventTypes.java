@@ -24,7 +24,7 @@ import edu.utsa.mobbed.ManageDB;
  */
 public class TestEventTypes {
 	private static EventTypes etype;
-	private static String[] eventTypeUuids;
+	private static String[] eventTypeUuids = new String[2];
 	private static String hostname = "localhost";
 	private static ManageDB md;
 	private static String name = "eventtypedb";
@@ -39,10 +39,10 @@ public class TestEventTypes {
 		System.out
 				.println("It should retrieve event types from the database and put them in a hash map");
 		String[] uniqueTypes = {};
-		String[][] eventTypeTags = { {} };
+		HashMap<String, String[]> eventTypeTags = new HashMap<String, String[]>();
 		HashMap<String, EventTypeTags> eventTypeTagMap = EventTypes
-				.addNewEventTypes(md.getConnection(), eventTypeUuids,
-						uniqueTypes, eventTypeTags);
+				.addEventTypes(md.getConnection(), eventTypeUuids, uniqueTypes,
+						eventTypeTags);
 		System.out.println("--The event type map should contain etype1");
 		assertTrue("The event type map does not contain etype1",
 				eventTypeTagMap.containsKey("etype1".toUpperCase()));
@@ -65,7 +65,6 @@ public class TestEventTypes {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
 			md.setAutoCommit(true);
-			eventTypeUuids = new String[2];
 			etype = new EventTypes(md.getConnection());
 			etype.reset("etype1", "etype1 description");
 			etype.save();

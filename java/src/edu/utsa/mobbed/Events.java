@@ -54,7 +54,7 @@ public class Events {
 	/**
 	 * Event type tags
 	 */
-	private String[][] eventTypeTags;
+	private HashMap<String, String[]> eventTypeTags;
 	/**
 	 * The UUIDs of the events
 	 */
@@ -211,7 +211,7 @@ public class Events {
 			double[] endTimes, long[] originalPositions, long[] positions,
 			double[] certainties, String uniqueTypes[], String[] types,
 			String[] existingEventTypeUuids, String[][] eventTags,
-			String[][] eventTypeTags) throws MobbedException {
+			HashMap<String, String[]> eventTypeTags) throws MobbedException {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.startTimes = startTimes;
 		this.endTimes = endTimes;
@@ -281,10 +281,9 @@ public class Events {
 	 *             if an error occurs
 	 */
 	private String[] addNewTypes() throws MobbedException {
-		String[] eventTypeUuids = null;
-		eventTypeTagMap = EventTypes.addNewEventTypes(dbCon,
+		eventTypeTagMap = EventTypes.addEventTypes(dbCon,
 				existingEventTypeUuids, uniqueTypes, eventTypeTags);
-		eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
+		String[] eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
 		return eventTypeUuids;
 	}
 
