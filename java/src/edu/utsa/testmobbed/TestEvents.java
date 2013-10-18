@@ -64,8 +64,10 @@ public class TestEvents {
 		originalEventTypeTags.put(originalUniqueEventTypes[0], new String[0]);
 		originalEventTypeTags.put(originalUniqueEventTypes[1], new String[0]);
 		originalEventTypeTags.put(originalUniqueEventTypes[2], new String[0]);
-		derivedEventTypeTags.put(derivedUniqueEventTypes[0], new String[0]);
-		derivedEventTypeTags.put(derivedUniqueEventTypes[1], new String[0]);
+		String[] eventTypeOneTags = { "tag6", "tag7" };
+		String[] eventTypeTwoTags = { "tag8" };
+		derivedEventTypeTags.put(derivedUniqueEventTypes[0], eventTypeOneTags);
+		derivedEventTypeTags.put(derivedUniqueEventTypes[1], eventTypeTwoTags);
 		event = new Events(md.getConnection());
 		event.reset(datasetUuids[0], originalEventLatencies,
 				originalEventLatencies, originalPositions, originalPositions,
@@ -190,9 +192,9 @@ public class TestEvents {
 		event.save();
 		rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 5;
+		expected = 8;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 5 event tags in the database.");
+		System.out.println("--There should be 8 event tags in the database.");
 		assertEquals("There are no event tags in the database", expected,
 				actual);
 	}

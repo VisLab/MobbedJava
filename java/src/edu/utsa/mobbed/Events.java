@@ -253,11 +253,10 @@ public class Events {
 	 */
 	private void addEventTags() throws MobbedException {
 		int numEvents = eventTags.length;
-		int numTags = 0;
 		try {
 			tagstmt = dbCon.prepareStatement(TAG_INSERT_QUERY);
 			for (int i = 0; i < numEvents; i++) {
-				numTags = eventTags[i].length;
+				int numTags = eventTags[i].length;
 				for (int j = 0; j < numTags; j++) {
 					tagstmt.setString(1, eventTags[i][j]);
 					tagstmt.setObject(2, eventUuids[i], Types.OTHER);
