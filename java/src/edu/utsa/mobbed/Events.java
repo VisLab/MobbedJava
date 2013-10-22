@@ -46,7 +46,7 @@ public class Events {
 	/**
 	 * Event tags
 	 */
-	private String[][] eventTags;
+	private HashMap<Integer, String[]> eventTags;
 	/**
 	 * A EventTypeTagModel object used to store event types
 	 */
@@ -101,7 +101,7 @@ public class Events {
 	 * @param dbCon
 	 *            a connection to the database
 	 */
-	public Events(Connection dbCon) {
+	public Events(Connection dbCon) throws Exception {
 		this.dbCon = dbCon;
 		this.datasetUuid = null;
 		this.types = null;
@@ -110,6 +110,10 @@ public class Events {
 		this.endTimes = null;
 		this.certainties = null;
 		this.uniqueTypes = null;
+		atb = new Attributes(dbCon);
+		eventTypeTagMap = new HashMap<String, EventTypeTags>();
+		eventstmt = dbCon.prepareStatement(INSERT_EVENT_QUERY);
+		tagstmt = dbCon.prepareStatement(TAG_INSERT_QUERY);
 	}
 
 	/**
@@ -151,7 +155,6 @@ public class Events {
 			initializeEventMap();
 		eventUuids = new UUID[positions.length];
 		try {
-			eventstmt = dbCon.prepareStatement(INSERT_EVENT_QUERY);
 			for (int i = 0; i < positions.length; i++) {
 				eventUuids[i] = UUID.randomUUID();
 				eventstmt.setObject(1, eventUuids[i], Types.OTHER);
@@ -168,15 +171,14 @@ public class Events {
 				eventstmt.setLong(7, positions[i]);
 				eventstmt.setDouble(8, certainties[i]);
 				eventstmt.addBatch();
-				if (original)
-					eventMap.put(positions[i], eventUuids[i]);
+				eventMap.put(positions[i], eventUuids[i]);
 			}
 			addEventTags();
-			return eventTypeUuids;
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add the event to the batch\n"
 					+ ex.getMessage());
 		}
+		return eventTypeUuids;
 	}
 
 	/**
@@ -210,8 +212,9 @@ public class Events {
 	public void reset(String datasetUuid, double[] startTimes,
 			double[] endTimes, long[] originalPositions, long[] positions,
 			double[] certainties, String uniqueTypes[], String[] types,
-			String[] existingEventTypeUuids, String[][] eventTags,
-			HashMap<String, String[]> eventTypeTags) throws MobbedException {
+			String[] existingEventTypeUuids,
+			HashMap<Integer, String[]> eventTags,
+			HashMap<String, String[]> eventTypeTags) {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.startTimes = startTimes;
 		this.endTimes = endTimes;
@@ -223,8 +226,6 @@ public class Events {
 		this.existingEventTypeUuids = existingEventTypeUuids;
 		this.eventTags = eventTags;
 		this.eventTypeTags = eventTypeTags;
-		atb = new Attributes(dbCon);
-		eventTypeTagMap = new HashMap<String, EventTypeTags>();
 	}
 
 	/**
@@ -235,8 +236,8 @@ public class Events {
 	 *             if an error occurs
 	 */
 	public void save() throws MobbedException {
-		atb.save();
 		try {
+			atb.save();
 			eventstmt.executeBatch();
 			tagstmt.executeBatch();
 		} catch (SQLException ex) {
@@ -252,16 +253,17 @@ public class Events {
 	 *             if an error occurs
 	 */
 	private void addEventTags() throws MobbedException {
-		int numEvents = eventTags.length;
 		try {
-			tagstmt = dbCon.prepareStatement(TAG_INSERT_QUERY);
-			for (int i = 0; i < numEvents; i++) {
-				int numTags = eventTags[i].length;
-				for (int j = 0; j < numTags; j++) {
-					tagstmt.setString(1, eventTags[i][j]);
-					tagstmt.setObject(2, eventUuids[i], Types.OTHER);
-					tagstmt.setString(3, "event_types");
-					tagstmt.addBatch();
+			for (int i = 0; i < positions.length; i++) {
+				if (!ManageDB.isEmpty(eventTags.get(positions[i]))) {
+					String[] tags = eventTags.get(positions[i]);
+					int numTags = tags.length;
+					for (int j = 0; j < numTags; j++) {
+						tagstmt.setString(1, tags[j]);
+						tagstmt.setObject(2, eventUuids[i], Types.OTHER);
+						tagstmt.setString(3, "event_types");
+						tagstmt.addBatch();
+					}
 				}
 			}
 		} catch (SQLException ex) {
