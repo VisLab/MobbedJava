@@ -46,7 +46,7 @@ public class Events {
 	/**
 	 * Event tags
 	 */
-	private HashMap<Integer, String[]> eventTags;
+	private HashMap<Long, String[]> eventTags;
 	/**
 	 * A EventTypeTagModel object used to store event types
 	 */
@@ -212,8 +212,7 @@ public class Events {
 	public void reset(String datasetUuid, double[] startTimes,
 			double[] endTimes, long[] originalPositions, long[] positions,
 			double[] certainties, String uniqueTypes[], String[] types,
-			String[] existingEventTypeUuids,
-			HashMap<Integer, String[]> eventTags,
+			String[] existingEventTypeUuids, HashMap<Long, String[]> eventTags,
 			HashMap<String, String[]> eventTypeTags) {
 		this.datasetUuid = UUID.fromString(datasetUuid);
 		this.startTimes = startTimes;

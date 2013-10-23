@@ -24,19 +24,18 @@ import edu.utsa.mobbed.*;
 public class TestEvents {
 	private double[] derievedEventCertainties = { 1.0, 1.0 };
 	private double[] derivedEventLatencies = { 222, 444 };
-	private String[][] derivedEventTags = { { "tag1", "tag2" },
-			{ "tag3", "tag4", "tag5" } };
 	private String[] derivedEventTypes = { "et1", "et3" };
 	private HashMap<String, String[]> derivedEventTypeTags = new HashMap<String, String[]>();
+	private HashMap<Long, String[]> derivedEventTags = new HashMap<Long, String[]>();
 	private long[] derivedOriginalPositions = { 2, 4 };
 	private long[] derivedPositions = { 1, 2 };
 	private String[] derivedUniqueEventTypes = { "et1", "et3" };
 	private String[] existingEventTypeUuids = {};
 	private double[] originalEventCertainties = { 1.0, 1.0, 1.0, 1.0 };
 	private double[] originalEventLatencies = { 111, 222, 333, 444 };
-	private String[][] originalEventTags = {};
 	private String[] originalEventTypes = { "et1", "et1", "et2", "et3" };
 	private HashMap<String, String[]> originalEventTypeTags = new HashMap<String, String[]>();
+	private HashMap<Long, String[]> originalEventTags = new HashMap<Long, String[]>();
 	private String[] originalExistingEventTypeUuids = {};
 	private long[] originalPositions = { 1, 2, 3, 4 };
 	private String[] originalUniqueEventTypes = { "et1", "et2", "et3" };
@@ -59,15 +58,20 @@ public class TestEvents {
 		stmt.execute(query);
 	}
 
-	@Before
-	public void setupTest() throws Exception {
-		originalEventTypeTags.put(originalUniqueEventTypes[0], new String[0]);
-		originalEventTypeTags.put(originalUniqueEventTypes[1], new String[0]);
-		originalEventTypeTags.put(originalUniqueEventTypes[2], new String[0]);
+	public void populateTagHashMaps() {
 		String[] eventTypeOneTags = { "tag6", "tag7" };
 		String[] eventTypeTwoTags = { "tag8" };
 		derivedEventTypeTags.put(derivedUniqueEventTypes[0], eventTypeOneTags);
 		derivedEventTypeTags.put(derivedUniqueEventTypes[1], eventTypeTwoTags);
+		String[] eventOneTags = { "tag1", "tag2" };
+		String[] eventTwoTags = { "tag3", "tag4", "tag5" };
+		derivedEventTags.put((long) 1, eventOneTags);
+		derivedEventTags.put((long) 2, eventTwoTags);
+	}
+
+	@Before
+	public void setupTest() throws Exception {
+		populateTagHashMaps();
 		event = new Events(md.getConnection());
 		event.reset(datasetUuids[0], originalEventLatencies,
 				originalEventLatencies, originalPositions, originalPositions,
