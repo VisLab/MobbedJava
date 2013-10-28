@@ -18,15 +18,14 @@ public class Events {
 	 * A Attributes object used to store attributes
 	 */
 	private Attributes atb;
-
 	/**
-	 * The certainties of the events
+	 * The eventCertainties of the events
 	 */
-	private double[] certainties;
+	private double[] eventCertainties;
 	/**
 	 * The dataset UUID of the events
 	 */
-	private UUID datasetUuid;
+	private UUID eventDatasetUuid;
 	/**
 	 * A connection to the database
 	 */
@@ -34,9 +33,9 @@ public class Events {
 	/**
 	 * The end times of the events
 	 */
-	private double[] endTimes;
+	private double[] eventEndTimes;
 	/**
-	 * A hashmap that maps the event positions to the event uuids
+	 * A HashMap that maps the event eventPositions to the event uuids
 	 */
 	private HashMap<Long, UUID> eventMap;
 	/**
@@ -44,15 +43,15 @@ public class Events {
 	 */
 	private PreparedStatement eventstmt;
 	/**
-	 * Event tags
+	 * A HashMap that maps tags to events
 	 */
 	private HashMap<Long, String[]> eventTags;
 	/**
-	 * A EventTypeTagModel object used to store event types
+	 * A EventTypeTagModel object used to store event eventTypes
 	 */
 	private HashMap<String, EventTypeTags> eventTypeTagMap;
 	/**
-	 * Event type tags
+	 * A HashMap that maps tags to event types
 	 */
 	private HashMap<String, String[]> eventTypeTags;
 	/**
@@ -64,35 +63,42 @@ public class Events {
 	 */
 	private String[] existingEventTypeUuids;
 	/**
-	 * The original positions of the events that have been derived
+	 * The original eventPositions of the events that have been derived
 	 */
-	private long[] originalPositions;
+	private long[] originalEventPositions;
 	/**
-	 * The positions of the events
+	 * The eventPositions of the events
 	 */
-	private long[] positions;
+	private long[] eventPositions;
 	/**
 	 * The start times of the events
 	 */
-	private double[] startTimes;
+	private double[] eventStartTimes;
 	/**
 	 * A prepared statement object that inserts event tags into the database
 	 */
 	private PreparedStatement tagstmt;
 	/**
-	 * The types of the events
+	 * The descriptions of the event types
 	 */
-	private String[] types;
+	private String[] eventTypeDescriptions;
 	/**
-	 * The unique types of the events
+	 * The event types
 	 */
-	private String[] uniqueTypes;
+	private String[] eventTypes;
+	/**
+	 * The unique event types
+	 */
+	private String[] uniqueEventTypes;
 	/**
 	 * A query that inserts events into the database
 	 */
 	private static final String INSERT_EVENT_QUERY = "INSERT INTO EVENTS (EVENT_UUID, EVENT_DATASET_UUID, "
 			+ " EVENT_TYPE_UUID, EVENT_START_TIME,"
 			+ " EVENT_END_TIME, EVENT_PARENT_UUID, EVENT_POSITION, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+	/**
+	 * A query that inserts event tags into the database
+	 */
 	private static final String TAG_INSERT_QUERY = "INSERT INTO TAGS (TAG_NAME, TAG_ENTITY_UUID, TAG_ENTITY_CLASS) VALUES (?,?,?)";
 
 	/**
@@ -103,13 +109,13 @@ public class Events {
 	 */
 	public Events(Connection dbCon) throws Exception {
 		this.dbCon = dbCon;
-		this.datasetUuid = null;
-		this.types = null;
-		this.positions = null;
-		this.startTimes = null;
-		this.endTimes = null;
-		this.certainties = null;
-		this.uniqueTypes = null;
+		this.eventDatasetUuid = null;
+		this.eventTypes = null;
+		this.eventPositions = null;
+		this.eventStartTimes = null;
+		this.eventEndTimes = null;
+		this.eventCertainties = null;
+		this.uniqueEventTypes = null;
 		atb = new Attributes(dbCon);
 		eventTypeTagMap = new HashMap<String, EventTypeTags>();
 		eventstmt = dbCon.prepareStatement(INSERT_EVENT_QUERY);
@@ -117,7 +123,7 @@ public class Events {
 	}
 
 	/**
-	 * Add the attribute to a batch.
+	 * Add the event attributes to a batch.
 	 * 
 	 * @param path
 	 *            the path of the attribute
@@ -128,11 +134,11 @@ public class Events {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void addAttribute(String path, Double[] numericValues,
+	public void addEventAttributes(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
-		for (int i = 0; i < types.length; i++) {
-			atb.reset(UUID.randomUUID(), eventUuids[i], "events", datasetUuid,
-					path, numericValues[i], values[i]);
+		for (int i = 0; i < eventPositions.length; i++) {
+			atb.reset(UUID.randomUUID(), eventUuids[i], "events",
+					eventDatasetUuid, path, numericValues[i], values[i]);
 			atb.addToBatch();
 		}
 	}
@@ -145,33 +151,31 @@ public class Events {
 	 * @param original
 	 *            true if the events are original, false if the events are
 	 *            derived
-	 * @return the UUIDs of the event types
+	 * @return the UUIDs of the event eventTypes
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	public String[] addEvents(boolean original) throws MobbedException {
-		String[] eventTypeUuids = addNewTypes();
+		String[] eventTypeUuids = addEventTypes();
 		if (original)
 			initializeEventMap();
-		eventUuids = new UUID[positions.length];
+		eventUuids = new UUID[eventPositions.length];
 		try {
-			for (int i = 0; i < positions.length; i++) {
+			for (int i = 0; i < eventPositions.length; i++) {
 				eventUuids[i] = UUID.randomUUID();
 				eventstmt.setObject(1, eventUuids[i], Types.OTHER);
-				eventstmt.setObject(2, datasetUuid, Types.OTHER);
+				eventstmt.setObject(2, eventDatasetUuid, Types.OTHER);
 				eventstmt
-						.setObject(
-								3,
-								eventTypeTagMap.get(types[i].toUpperCase()).eventTypeUuid,
-								Types.OTHER);
-				eventstmt.setDouble(4, startTimes[i]);
-				eventstmt.setDouble(5, endTimes[i]);
-				eventstmt.setObject(6, eventMap.get(originalPositions[i]),
+						.setObject(3, eventTypeTagMap.get(eventTypes[i]
+								.toUpperCase()).eventTypeUuid, Types.OTHER);
+				eventstmt.setDouble(4, eventStartTimes[i]);
+				eventstmt.setDouble(5, eventEndTimes[i]);
+				eventstmt.setObject(6, eventMap.get(originalEventPositions[i]),
 						Types.OTHER);
-				eventstmt.setLong(7, positions[i]);
-				eventstmt.setDouble(8, certainties[i]);
+				eventstmt.setLong(7, eventPositions[i]);
+				eventstmt.setDouble(8, eventCertainties[i]);
 				eventstmt.addBatch();
-				eventMap.put(positions[i], eventUuids[i]);
+				eventMap.put(eventPositions[i], eventUuids[i]);
 			}
 			addEventTags();
 		} catch (SQLException ex) {
@@ -184,44 +188,47 @@ public class Events {
 	/**
 	 * Sets class fields of a Events object.
 	 * 
-	 * @param datasetUuid
+	 * @param eventDatasetUuid
 	 *            the UUID of the dataset associated with the events
-	 * @param startTimes
+	 * @param eventStartTimes
 	 *            the start times of the events
-	 * @param endTimes
+	 * @param eventEndTimes
 	 *            the end times of the events
-	 * @param originalPositions
-	 *            the original positions of the events
-	 * @param positions
-	 *            the positions of the events
-	 * @param certainties
-	 *            the certainties of the events
-	 * @param uniqueTypes
-	 *            the unique event types
-	 * @param types
-	 *            all of the event types
+	 * @param originalEventPositions
+	 *            the original eventPositions of the events
+	 * @param eventPositions
+	 *            the eventPositions of the events
+	 * @param eventCertainties
+	 *            the eventCertainties of the events
+	 * @param uniqueEventTypes
+	 *            the unique event eventTypes
+	 * @param eventTypes
+	 *            all of the event eventTypes
 	 * @param existingEventTypeUuids
-	 *            the UUIDs of the event types that will be reused
+	 *            the UUIDs of the event eventTypes that will be reused
 	 * @param eventTags
 	 *            the tags that are associated with the events
 	 * @param eventTypeTags
-	 *            the tags that are associated with the event types
+	 *            the tags that are associated with the event eventTypes
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void reset(String datasetUuid, double[] startTimes,
-			double[] endTimes, long[] originalPositions, long[] positions,
-			double[] certainties, String uniqueTypes[], String[] types,
-			String[] existingEventTypeUuids, HashMap<Long, String[]> eventTags,
+	public void reset(String eventDatasetUuid, double[] eventStartTimes,
+			double[] eventEndTimes, long[] originalEventPositions,
+			long[] eventPositions, double[] eventCertainties,
+			String[] eventTypeDescriptions, String uniqueEventTypes[],
+			String[] eventTypes, String[] existingEventTypeUuids,
+			HashMap<Long, String[]> eventTags,
 			HashMap<String, String[]> eventTypeTags) {
-		this.datasetUuid = UUID.fromString(datasetUuid);
-		this.startTimes = startTimes;
-		this.endTimes = endTimes;
-		this.originalPositions = originalPositions;
-		this.positions = positions;
-		this.certainties = certainties;
-		this.uniqueTypes = uniqueTypes;
-		this.types = types;
+		this.eventDatasetUuid = UUID.fromString(eventDatasetUuid);
+		this.eventStartTimes = eventStartTimes;
+		this.eventEndTimes = eventEndTimes;
+		this.originalEventPositions = originalEventPositions;
+		this.eventPositions = eventPositions;
+		this.eventCertainties = eventCertainties;
+		this.eventTypeDescriptions = eventTypeDescriptions;
+		this.uniqueEventTypes = uniqueEventTypes;
+		this.eventTypes = eventTypes;
 		this.existingEventTypeUuids = existingEventTypeUuids;
 		this.eventTags = eventTags;
 		this.eventTypeTags = eventTypeTags;
@@ -253,9 +260,9 @@ public class Events {
 	 */
 	private void addEventTags() throws MobbedException {
 		try {
-			for (int i = 0; i < positions.length; i++) {
-				if (!ManageDB.isEmpty(eventTags.get(positions[i]))) {
-					String[] tags = eventTags.get(positions[i]);
+			for (int i = 0; i < eventPositions.length; i++) {
+				if (!ManageDB.isEmpty(eventTags.get(eventPositions[i]))) {
+					String[] tags = eventTags.get(eventPositions[i]);
 					int numTags = tags.length;
 					for (int j = 0; j < numTags; j++) {
 						tagstmt.setString(1, tags[j]);
@@ -273,29 +280,31 @@ public class Events {
 	}
 
 	/**
-	 * Adds a new event type if it does not already exist. Event types should be
-	 * reused when storing datasets that have event types with the same meaning.
+	 * Adds a new event type if it does not already exist. Event eventTypes
+	 * should be reused when storing datasets that have event eventTypes with
+	 * the same meaning.
 	 * 
-	 * @return the UUIDs of the event types
+	 * @return the UUIDs of the event eventTypes
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private String[] addNewTypes() throws MobbedException {
+	private String[] addEventTypes() throws MobbedException {
 		eventTypeTagMap = EventTypes.addEventTypes(dbCon,
-				existingEventTypeUuids, uniqueTypes, eventTypeTags);
+				existingEventTypeUuids, eventTypeDescriptions,
+				uniqueEventTypes, eventTypeTags);
 		String[] eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
 		return eventTypeUuids;
 	}
 
 	/**
-	 * Initializes the eventMap field that maps the event positions to the event
-	 * uuids.
+	 * Initializes the eventMap field that maps the event eventPositions to the
+	 * event uuids.
 	 */
 	private void initializeEventMap() {
 		eventMap = new HashMap<Long, UUID>();
-		int numPos = originalPositions.length;
+		int numPos = originalEventPositions.length;
 		for (int i = 0; i < numPos; i++) {
-			eventMap.put(originalPositions[i],
+			eventMap.put(originalEventPositions[i],
 					UUID.fromString(ManageDB.NO_PARENT_UUID));
 		}
 	}

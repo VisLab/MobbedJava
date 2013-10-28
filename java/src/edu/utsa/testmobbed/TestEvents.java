@@ -24,21 +24,28 @@ import edu.utsa.mobbed.*;
 public class TestEvents {
 	private double[] derievedEventCertainties = { 1.0, 1.0 };
 	private double[] derivedEventLatencies = { 222, 444 };
-	private String[] derivedEventTypes = { "et1", "et3" };
-	private HashMap<String, String[]> derivedEventTypeTags = new HashMap<String, String[]>();
 	private HashMap<Long, String[]> derivedEventTags = new HashMap<Long, String[]>();
+	private String[] derivedEventTypeDescriptions = {
+			"event type 1 description", "event type 3 description" };
+	private String[] derivedEventTypes = { "eventType1", "eventType3" };
+	private HashMap<String, String[]> derivedEventTypeTags = new HashMap<String, String[]>();
 	private long[] derivedOriginalPositions = { 2, 4 };
 	private long[] derivedPositions = { 1, 2 };
-	private String[] derivedUniqueEventTypes = { "et1", "et3" };
+	private String[] derivedUniqueEventTypes = { "eventType1", "eventType3" };
 	private String[] existingEventTypeUuids = {};
 	private double[] originalEventCertainties = { 1.0, 1.0, 1.0, 1.0 };
 	private double[] originalEventLatencies = { 111, 222, 333, 444 };
-	private String[] originalEventTypes = { "et1", "et1", "et2", "et3" };
-	private HashMap<String, String[]> originalEventTypeTags = new HashMap<String, String[]>();
 	private HashMap<Long, String[]> originalEventTags = new HashMap<Long, String[]>();
+	private String[] originalEventTypeDescriptions = {
+			"event type 1 description", "event type 2 description",
+			"event type 3 description" };
+	private String[] originalEventTypes = { "eventType1", "eventType1",
+			"eventType2", "eventType3" };
+	private HashMap<String, String[]> originalEventTypeTags = new HashMap<String, String[]>();
 	private String[] originalExistingEventTypeUuids = {};
 	private long[] originalPositions = { 1, 2, 3, 4 };
-	private String[] originalUniqueEventTypes = { "et1", "et2", "et3" };
+	private String[] originalUniqueEventTypes = { "eventType1", "eventType2",
+			"eventType3" };
 	private static String[] datasetUuids;
 	private static Events event;
 	private static String hostname = "localhost";
@@ -75,9 +82,10 @@ public class TestEvents {
 		event = new Events(md.getConnection());
 		event.reset(datasetUuids[0], originalEventLatencies,
 				originalEventLatencies, originalPositions, originalPositions,
-				originalEventCertainties, originalUniqueEventTypes,
-				originalEventTypes, originalExistingEventTypeUuids,
-				originalEventTags, originalEventTypeTags);
+				originalEventCertainties, originalEventTypeDescriptions,
+				originalUniqueEventTypes, originalEventTypes,
+				originalExistingEventTypeUuids, originalEventTags,
+				originalEventTypeTags);
 		existingEventTypeUuids = event.addEvents(true);
 	}
 
@@ -102,10 +110,11 @@ public class TestEvents {
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
 				derivedPositions, derievedEventCertainties,
-				derivedUniqueEventTypes, derivedEventTypes,
-				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
+				derivedEventTypeDescriptions, derivedUniqueEventTypes,
+				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
+				derivedEventTypeTags);
 		event.addEvents(false);
-		event.addAttribute(fieldName, numAttrValues, attrValues);
+		event.addEventAttributes(fieldName, numAttrValues, attrValues);
 		event.save();
 		rs = stmt.executeQuery(query);
 		rs.next();
@@ -136,8 +145,9 @@ public class TestEvents {
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
 				derivedPositions, derievedEventCertainties,
-				derivedUniqueEventTypes, derivedEventTypes,
-				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
+				derivedEventTypeDescriptions, derivedUniqueEventTypes,
+				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
+				derivedEventTypeTags);
 		event.addEvents(false);
 		event.save();
 		rs = stmt.executeQuery(query);
@@ -190,8 +200,9 @@ public class TestEvents {
 		event.reset(datasetUuids[0], derivedEventLatencies,
 				derivedEventLatencies, derivedOriginalPositions,
 				derivedPositions, derievedEventCertainties,
-				derivedUniqueEventTypes, derivedEventTypes,
-				existingEventTypeUuids, derivedEventTags, derivedEventTypeTags);
+				derivedEventTypeDescriptions, derivedUniqueEventTypes,
+				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
+				derivedEventTypeTags);
 		event.addEvents(false);
 		event.save();
 		rs = stmt.executeQuery(query);

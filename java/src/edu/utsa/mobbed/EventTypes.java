@@ -117,7 +117,7 @@ public class EventTypes {
 	 *            a connection to the database
 	 * @param eventTypeUuids
 	 *            the existing event type uuids
-	 * @param uniqueTypes
+	 * @param uniqueEventTypes
 	 *            the names of the event types
 	 * @param eventTypeTags
 	 *            the tags associated with the event types
@@ -126,33 +126,36 @@ public class EventTypes {
 	 *             if an error occurs
 	 */
 	public static HashMap<String, EventTypeTags> addEventTypes(
-			Connection dbCon, String[] eventTypeUuids, String uniqueTypes[],
+			Connection dbCon, String[] eventTypeUuids,
+			String[] eventTypeDescriptions, String uniqueEventTypes[],
 			HashMap<String, String[]> eventTypeTags) throws MobbedException {
 		HashMap<String, EventTypeTags> eventTypeMap = new HashMap<String, EventTypeTags>();
 		if (!ManageDB.isEmpty(eventTypeUuids))
 			eventTypeMap = retrieveEventTypeMap(dbCon, eventTypeUuids);
-		for (int i = 0; i < uniqueTypes.length; i++) {
-			if (!eventTypeMap.containsKey(uniqueTypes[i].toUpperCase())) {
+		for (int i = 0; i < uniqueEventTypes.length; i++) {
+			if (!eventTypeMap.containsKey(uniqueEventTypes[i].toUpperCase())) {
 				EventTypes newEventType = new EventTypes(dbCon);
-				newEventType.reset(uniqueTypes[i], null);
+				newEventType.reset(uniqueEventTypes[i],
+						eventTypeDescriptions[i]);
 				newEventType.save();
 				HashMap<String, String> tagMap = new HashMap<String, String>();
-				if (!ManageDB.isEmpty(eventTypeTags.get(uniqueTypes[i])))
+				if (!ManageDB.isEmpty(eventTypeTags.get(uniqueEventTypes[i])))
 					tagMap = addAllTags(dbCon, newEventType.getEventTypeUuid(),
-							eventTypeTags.get(uniqueTypes[i]));
+							eventTypeTags.get(uniqueEventTypes[i]));
 				EventTypeTags etm = new EventTypeTags(
 						newEventType.getEventTypeUuid(), tagMap);
-				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
-			} else if (!ManageDB.isEmpty(eventTypeTags.get(uniqueTypes[i]))) {
+				eventTypeMap.put(uniqueEventTypes[i].toUpperCase(), etm);
+			} else if (!ManageDB
+					.isEmpty(eventTypeTags.get(uniqueEventTypes[i]))) {
 				HashMap<String, String> tagMap = addNewTags(dbCon, eventTypeMap
-						.get(uniqueTypes[i].toUpperCase()).getTags(),
-						eventTypeMap.get(uniqueTypes[i].toUpperCase())
+						.get(uniqueEventTypes[i].toUpperCase()).getTags(),
+						eventTypeMap.get(uniqueEventTypes[i].toUpperCase())
 								.getEventTypeUuid(),
-						eventTypeTags.get(uniqueTypes[i]));
+						eventTypeTags.get(uniqueEventTypes[i]));
 				EventTypeTags etm = new EventTypeTags(eventTypeMap.get(
-						uniqueTypes[i].toUpperCase()).getEventTypeUuid(),
+						uniqueEventTypes[i].toUpperCase()).getEventTypeUuid(),
 						tagMap);
-				eventTypeMap.put(uniqueTypes[i].toUpperCase(), etm);
+				eventTypeMap.put(uniqueEventTypes[i].toUpperCase(), etm);
 			}
 		}
 		return eventTypeMap;
@@ -349,37 +352,5 @@ public class EventTypes {
 		}
 		return eventTypeTagMap;
 	}
-
-	// /**
-	// * Updates a event type and adds any new tags that are associated with it.
-	// *
-	// * @param dbCon
-	// * a connection to the database
-	// * @param uniqueType
-	// * the names of the event types
-	// * @param eventTypeMap
-	// * a HashMap containing a mapping of the event types and the tags
-	// * @param eventTypeTags
-	// * the tags associated with the event types
-	// * @return
-	// * @throws MobbedException
-	// * if an error occurs
-	// */
-	// private static HashMap<String, EventTypeTags> updateEventType(
-	// Connection dbCon, String uniqueType,
-	// HashMap<String, EventTypeTags> eventTypeMap,
-	// HashMap<String, String[]> eventTypeTags) throws MobbedException {
-	// if (!ManageDB.isEmpty(eventTypeTags.get(uniqueType))) {
-	// UUID eventTypeUuid = eventTypeMap.get(uniqueType.toUpperCase())
-	// .getEventTypeUuid();
-	// HashMap<String, String> tagMap = eventTypeMap.get(
-	// uniqueType.toUpperCase()).getTags();
-	// tagMap = addNewTags(dbCon, tagMap, eventTypeUuid,
-	// eventTypeTags.get(uniqueType));
-	// EventTypeTags etm = new EventTypeTags(eventTypeUuid, tagMap);
-	// eventTypeMap.put(uniqueType.toUpperCase(), etm);
-	// }
-	// return eventTypeMap;
-	// }
 
 }

@@ -6,13 +6,11 @@ package edu.utsa.testmobbed;
 import static org.junit.Assert.*;
 
 import java.net.URLDecoder;
-import java.util.HashMap;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import edu.utsa.mobbed.EventTypeTags;
 import edu.utsa.mobbed.EventTypes;
 import edu.utsa.mobbed.ManageDB;
 
@@ -24,7 +22,6 @@ import edu.utsa.mobbed.ManageDB;
  */
 public class TestEventTypes {
 	private static EventTypes etype;
-	private static String[] eventTypeUuids = new String[2];
 	private static String hostname = "localhost";
 	private static ManageDB md;
 	private static String name = "eventtypedb";
@@ -34,22 +31,14 @@ public class TestEventTypes {
 	private static boolean verbose = false;
 
 	@Test
-	public void testRetrieveMap() throws Exception {
-		System.out.println("Unit test for retrieveMap");
-		System.out
-				.println("It should retrieve event types from the database and put them in a hash map");
-		String[] uniqueTypes = {};
-		HashMap<String, String[]> eventTypeTags = new HashMap<String, String[]>();
-		HashMap<String, EventTypeTags> eventTypeTagMap = EventTypes
-				.addEventTypes(md.getConnection(), eventTypeUuids, uniqueTypes,
-						eventTypeTags);
-		System.out.println("--The event type map should contain etype1");
-		assertTrue("The event type map does not contain etype1",
-				eventTypeTagMap.containsKey("etype1".toUpperCase()));
-		System.out
-				.println("--The event type map should return the uuid of etype1");
-		assertNotNull("The event type map does not return the uuid of etype1",
-				eventTypeTagMap.get("etype1".toUpperCase()).eventTypeUuid);
+	public void testConstructor() throws Exception {
+		etype = new EventTypes(md.getConnection());
+		etype.reset("eventType1", "event type 1 description");
+		etype.save();
+		assertNotNull(etype.getEventTypeUuid().toString());
+		etype.reset("eventType2", "event type 2 description");
+		etype.save();
+		assertNotNull(etype.getEventTypeUuid().toString());
 	}
 
 	@BeforeClass
@@ -65,13 +54,6 @@ public class TestEventTypes {
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
 			md.setAutoCommit(true);
-			etype = new EventTypes(md.getConnection());
-			etype.reset("etype1", "etype1 description");
-			etype.save();
-			eventTypeUuids[0] = etype.getEventTypeUuid().toString();
-			etype.reset("etype2", "etype2 description");
-			etype.save();
-			eventTypeUuids[1] = etype.getEventTypeUuid().toString();
 		}
 	}
 
