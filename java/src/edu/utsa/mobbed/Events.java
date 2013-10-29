@@ -134,7 +134,7 @@ public class Events {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public void addEventAttributes(String path, Double[] numericValues,
+	public void addAttribute(String path, Double[] numericValues,
 			String[] values) throws MobbedException {
 		for (int i = 0; i < eventPositions.length; i++) {
 			atb.reset(UUID.randomUUID(), eventUuids[i], "events",

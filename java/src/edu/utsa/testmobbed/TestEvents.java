@@ -114,7 +114,7 @@ public class TestEvents {
 				derivedEventTypes, existingEventTypeUuids, derivedEventTags,
 				derivedEventTypeTags);
 		event.addEvents(false);
-		event.addEventAttributes(fieldName, numAttrValues, attrValues);
+		event.addAttribute(fieldName, numAttrValues, attrValues);
 		event.save();
 		rs = stmt.executeQuery(query);
 		rs.next();
