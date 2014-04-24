@@ -17,6 +17,8 @@ import java.util.UUID;
  */
 public class EventTypes {
 
+	private static HashMap<String, UUID> tagMap;
+
 	/**
 	 * A connection to the database
 	 */
@@ -128,7 +130,9 @@ public class EventTypes {
 	public static HashMap<String, EventTypeTags> addEventTypes(
 			Connection dbCon, String[] eventTypeUuids,
 			String[] eventTypeDescriptions, String uniqueEventTypes[],
-			HashMap<String, String[]> eventTypeTags) throws MobbedException {
+			HashMap<String, String[]> eventTypeTags,
+			HashMap<String, UUID> originalTagMap) throws MobbedException {
+		tagMap = originalTagMap;
 		HashMap<String, EventTypeTags> eventTypeMap = new HashMap<String, EventTypeTags>();
 		if (!ManageDB.isEmpty(eventTypeUuids))
 			eventTypeMap = retrieveEventTypeMap(dbCon, eventTypeUuids);
@@ -138,23 +142,25 @@ public class EventTypes {
 				newEventType.reset(uniqueEventTypes[i],
 						eventTypeDescriptions[i]);
 				newEventType.save();
-				HashMap<String, String> tagMap = new HashMap<String, String>();
+				HashMap<String, UUID> eventTypeTagMap = new HashMap<String, UUID>();
 				if (!ManageDB.isEmpty(eventTypeTags.get(uniqueEventTypes[i])))
-					tagMap = addAllTags(dbCon, newEventType.getEventTypeUuid(),
+					eventTypeTagMap = addAllTags(dbCon,
+							newEventType.getEventTypeUuid(),
 							eventTypeTags.get(uniqueEventTypes[i]));
 				EventTypeTags etm = new EventTypeTags(
-						newEventType.getEventTypeUuid(), tagMap);
+						newEventType.getEventTypeUuid(), eventTypeTagMap);
 				eventTypeMap.put(uniqueEventTypes[i].toUpperCase(), etm);
 			} else if (!ManageDB
 					.isEmpty(eventTypeTags.get(uniqueEventTypes[i]))) {
-				HashMap<String, String> tagMap = addNewTags(dbCon, eventTypeMap
-						.get(uniqueEventTypes[i].toUpperCase()).getTags(),
+				HashMap<String, UUID> eventTypeTagMap = addEventTypeTags(dbCon,
+						eventTypeMap.get(uniqueEventTypes[i].toUpperCase())
+								.getTags(),
 						eventTypeMap.get(uniqueEventTypes[i].toUpperCase())
 								.getEventTypeUuid(),
 						eventTypeTags.get(uniqueEventTypes[i]));
 				EventTypeTags etm = new EventTypeTags(eventTypeMap.get(
 						uniqueEventTypes[i].toUpperCase()).getEventTypeUuid(),
-						tagMap);
+						eventTypeTagMap);
 				eventTypeMap.put(uniqueEventTypes[i].toUpperCase(), etm);
 			}
 		}
@@ -193,60 +199,49 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static HashMap<String, String> addAllTags(Connection dbCon,
+	private static HashMap<String, UUID> addAllTags(Connection dbCon,
 			UUID eventTypeUuid, String[] eventTypeTags) throws MobbedException {
-		String query = "INSERT INTO TAGS (TAG_NAME, TAG_ENTITY_UUID, TAG_ENTITY_CLASS) VALUES (?,?,?)";
-		HashMap<String, String> eventTypeTagMap = new HashMap<String, String>();
+		String tagQry = "INSERT INTO TAGS (TAG_UUID, TAG_NAMES) VALUES (?,?)";
+		String tagEntityQry = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
+		HashMap<String, UUID> eventTypeTagMap = new HashMap<String, UUID>();
 		try {
-			PreparedStatement pStmt = dbCon.prepareStatement(query);
+			PreparedStatement tagSmt = dbCon.prepareStatement(tagQry);
+			PreparedStatement tagEntitySmt = dbCon
+					.prepareStatement(tagEntityQry);
 			for (int i = 0; i < eventTypeTags.length; i++) {
-				pStmt.setString(1, eventTypeTags[i]);
-				pStmt.setObject(2, eventTypeUuid, Types.OTHER);
-				pStmt.setString(3, "event_types");
-				pStmt.addBatch();
-				eventTypeTagMap.put(eventTypeTags[i].toUpperCase(), null);
+				if (!tagMap.containsKey(eventTypeTags[i].toUpperCase())) {
+					UUID tagUuid = UUID.randomUUID();
+					tagSmt.setObject(1, tagUuid, Types.OTHER);
+					tagSmt.setString(2, eventTypeTags[i]);
+					tagMap.put(eventTypeTags[i].toUpperCase(), tagUuid);
+					eventTypeTagMap
+							.put(eventTypeTags[i].toUpperCase(), tagUuid);
+				}
+				tagEntitySmt.setObject(1, eventTypeUuid, Types.OTHER);
+				tagEntitySmt
+						.setObject(2,
+								tagMap.get(eventTypeTags[i].toUpperCase()),
+								Types.OTHER);
+				tagEntitySmt.setString(3, "event_types");
+				tagSmt.addBatch();
+				tagEntitySmt.addBatch();
 			}
-			pStmt.executeBatch();
+			tagSmt.executeBatch();
+			tagEntitySmt.executeBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not add new tags to the database\n"
 							+ ex.getMessage());
 		}
-		return eventTypeTagMap;
+		return tagMap;
 	}
-
-	// /**
-	// * Adds a new event type and any new tags that are associated with it.
-	// *
-	// * @param dbCon
-	// * a connection to the database
-	// * @param uniqueType
-	// * the names of the event types
-	// * @param eventTypeMap
-	// * a HashMap containing a mapping of the event types and the tags
-	// * @param eventTypeTags
-	// * the tags associated with the event types
-	// * @return
-	// * @throws MobbedException
-	// * if an error occurs
-	// */
-	// private static HashMap<String, EventTypeTags> addEventType(
-	// Connection dbCon, UUID eventTypeUuid, String uniqueType,
-	// HashMap<String, EventTypeTags> eventTypeMap,
-	// HashMap<String, String[]> eventTypeTags) throws MobbedException {
-	// HashMap<String, String> tagMap = addAllTags(dbCon, eventTypeUuid,
-	// eventTypeTags.get(uniqueType));
-	// EventTypeTags etm = new EventTypeTags(eventTypeUuid, tagMap);
-	// eventTypeMap.put(uniqueType.toUpperCase(), etm);
-	// return eventTypeMap;
-	// }
 
 	/**
 	 * Adds the new tags to the database
 	 * 
 	 * @param dbCon
 	 *            a connection to the database
-	 * @param tagMap
+	 * @param typeTagMap
 	 *            a HashMap containing the old tags
 	 * @param eventTypeUuid
 	 *            the event type UUID
@@ -256,23 +251,36 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static HashMap<String, String> addNewTags(Connection dbCon,
-			HashMap<String, String> tagMap, UUID eventTypeUuid,
+	private static HashMap<String, UUID> addEventTypeTags(Connection dbCon,
+			HashMap<String, UUID> typeTagMap, UUID eventTypeUuid,
 			String[] eventTypeTags) throws MobbedException {
-		String query = "INSERT INTO TAGS (TAG_NAME, TAG_ENTITY_UUID, TAG_ENTITY_CLASS) VALUES (?,?,?)";
+		String tagQry = "INSERT INTO TAGS (TAG_UUID, TAG_NAME) VALUES (?,?)";
+		String tagEntityQry = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID,TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
 		int numElements = eventTypeTags.length;
 		try {
-			PreparedStatement pStmt = dbCon.prepareStatement(query);
+			PreparedStatement tagSmt = dbCon.prepareStatement(tagQry);
+			PreparedStatement tagEntitySmt = dbCon
+					.prepareStatement(tagEntityQry);
 			for (int i = 0; i < numElements; i++) {
-				if (!tagMap.containsKey(eventTypeTags[i].toUpperCase())) {
-					pStmt.setString(1, eventTypeTags[i]);
-					pStmt.setObject(2, eventTypeUuid, Types.OTHER);
-					pStmt.setString(3, "event_types");
-					pStmt.addBatch();
-					tagMap.put(eventTypeTags[i].toUpperCase(), null);
+				if (!typeTagMap.containsKey(eventTypeTags[i].toUpperCase())) {
+					if (!tagMap.containsKey(eventTypeTags[i].toUpperCase())) {
+						UUID tagUuid = UUID.randomUUID();
+						tagSmt.setObject(1, tagUuid, Types.OTHER);
+						tagSmt.setString(2, eventTypeTags[i]);
+						tagMap.put(eventTypeTags[i].toUpperCase(), tagUuid);
+						typeTagMap.put(eventTypeTags[i].toUpperCase(), tagUuid);
+						tagSmt.addBatch();
+					}
+					tagEntitySmt.setObject(1, eventTypeUuid, Types.OTHER);
+					tagEntitySmt.setObject(2,
+							tagMap.get(eventTypeTags[i].toUpperCase()),
+							Types.OTHER);
+					tagEntitySmt.setString(3, "event_types");
+					tagEntitySmt.addBatch();
 				}
 			}
-			pStmt.executeBatch();
+			tagSmt.executeBatch();
+			tagEntitySmt.executeBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not add new tags to the database\n"
@@ -309,7 +317,7 @@ public class EventTypes {
 			while (rs.next()) {
 				String eventType = rs.getString(1).toUpperCase();
 				UUID eventTypeUuid = UUID.fromString(rs.getString(2));
-				HashMap<String, String> eventTypeTags = retrieveEventTypeTags(
+				HashMap<String, UUID> eventTypeTags = retrieveEventTypeTags(
 						dbCon, eventTypeUuid);
 				EventTypeTags ett = new EventTypeTags(eventTypeUuid,
 						eventTypeTags);
@@ -334,16 +342,17 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static HashMap<String, String> retrieveEventTypeTags(
+	private static HashMap<String, UUID> retrieveEventTypeTags(
 			Connection dbCon, UUID eventTypeUuid) throws MobbedException {
-		HashMap<String, String> eventTypeTagMap = new HashMap<String, String>();
-		String query = "SELECT TAG_NAME FROM TAGS WHERE TAG_ENTITY_UUID = ?";
+		HashMap<String, UUID> eventTypeTagMap = new HashMap<String, UUID>();
+		String query = "SELECT TAGS.TAG_NAME, TAGS.TAG_UUID FROM TAGS INNER JOIN TAG_ENTITIES ON TAGS.TAG_UUID = TAG_ENTITIES.TAG_ENTITY_TAG_UUID WHERE TAG_ENTITY_UUID = ?";
 		try {
 			PreparedStatement pStmt = dbCon.prepareStatement(query);
 			pStmt.setObject(1, eventTypeUuid, Types.OTHER);
 			ResultSet rs = pStmt.executeQuery();
 			while (rs.next()) {
-				eventTypeTagMap.put(rs.getString(1).toUpperCase(), null);
+				eventTypeTagMap.put(rs.getString(1).toUpperCase(),
+						UUID.fromString(rs.getString(2)));
 			}
 		} catch (SQLException ex) {
 			throw new MobbedException(

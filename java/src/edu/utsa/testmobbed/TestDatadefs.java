@@ -75,7 +75,7 @@ public class TestDatadefs {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
-			ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+			ManageDB.dropDatabase(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			tablePath = URLDecoder.decode(
 					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
@@ -90,7 +90,7 @@ public class TestDatadefs {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+		md.closeConnection();
+		ManageDB.dropDatabase(name, hostname, user, password, verbose);
 	}
 }

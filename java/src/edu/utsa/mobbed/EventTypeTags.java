@@ -17,7 +17,7 @@ public class EventTypeTags {
 	/**
 	 * A hashmap containing the tags associated with the event type
 	 */
-	public HashMap<String, String> tags;
+	public HashMap<String, UUID> tags;
 
 	/**
 	 * Creates a EventTypeTags object.
@@ -27,7 +27,7 @@ public class EventTypeTags {
 	 * @param tags
 	 *            a hashmap containing the tags associated with the event type
 	 */
-	public EventTypeTags(UUID eventTypeUuid, HashMap<String, String> tags) {
+	public EventTypeTags(UUID eventTypeUuid, HashMap<String, UUID> tags) {
 		this.eventTypeUuid = eventTypeUuid;
 		this.tags = tags;
 	}
@@ -46,7 +46,7 @@ public class EventTypeTags {
 	 * 
 	 * @return a hashmap containing the tags
 	 */
-	public HashMap<String, String> getTags() {
+	public HashMap<String, UUID> getTags() {
 		return tags;
 	}
 

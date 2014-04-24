@@ -59,10 +59,14 @@ public class TestEvents {
 	@After
 	public void cleanup() throws Exception {
 		Statement stmt = md.getConnection().createStatement();
-		String query = "DELETE FROM EVENTS";
-		stmt.execute(query);
-		query = "DELETE FROM TAGS";
-		stmt.execute(query);
+		String qry = "DELETE FROM EVENTS";
+		stmt.execute(qry);
+		qry = "DELETE FROM TAG_ENTITIES";
+		stmt.execute(qry);
+		qry = "DELETE FROM TAG_GROUPS";
+		stmt.execute(qry);
+		qry = "DELETE FROM TAGS";
+		stmt.execute(qry);
 	}
 
 	public void populateTagHashMaps() {
@@ -241,7 +245,7 @@ public class TestEvents {
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
-			ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+			ManageDB.dropDatabase(name, hostname, user, password, verbose);
 		} catch (Exception e) {
 			tablePath = URLDecoder.decode(
 					Class.class.getResource("/edu/utsa/testmobbed/mobbed.sql")
@@ -260,8 +264,8 @@ public class TestEvents {
 
 	@AfterClass
 	public static void teardown() throws Exception {
-		md.close();
-		ManageDB.deleteDatabase(name, hostname, user, password, verbose);
+		md.closeConnection();
+		ManageDB.dropDatabase(name, hostname, user, password, verbose);
 	}
 
 }
