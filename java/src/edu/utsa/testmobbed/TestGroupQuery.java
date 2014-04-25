@@ -43,8 +43,8 @@ public class TestGroupQuery {
 				attributes, columns, values, doubleColumns, doubleValues,
 				range, cursorName);
 		System.out
-				.println("----It should retrieve one event that has an attribute value 1\n");
-		assertEquals(1, rows.length);
+				.println("--It should retrieve one event that has an attribute value 1\n");
+		assertEquals("1 event is not returned", 1, rows.length);
 	}
 
 	@Test
@@ -59,7 +59,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have an attribute value that starts with Attribute\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve one event that has the tag /Context/Indoors\n");
-		assertEquals(1, rows.length);
+		assertEquals("1 event is not returned", 1, rows.length);
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve one event that has the tags /Context/Running and /State/Awake\n");
-		assertEquals(1, rows.length);
+		assertEquals("1 event is not returned", 1, rows.length);
 	}
 
 	@Test
@@ -104,7 +104,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have the tags /Context/Running or /State/Awake\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have tags that start with /Context/\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@Test
@@ -134,7 +134,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve one event that has tags that start with /Context/ and /State/\n");
-		assertEquals(1, rows.length);
+		assertEquals("1 event is not returned", 1, rows.length);
 	}
 
 	@Test
@@ -149,7 +149,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have tags that start with /Context/ or /State/\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@Test
@@ -164,7 +164,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have a tag that contains the word Context\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@Test
@@ -179,7 +179,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve one event that has tags that contains the words Context and Awake\n");
-		assertEquals(1, rows.length);
+		assertEquals("1 event is not returned", 1, rows.length);
 	}
 
 	@Test
@@ -194,7 +194,7 @@ public class TestGroupQuery {
 				range, cursorName);
 		System.out
 				.println("--It should retrieve two events that have tags that contains the words Running or Indoors\n");
-		assertEquals(2, rows.length);
+		assertEquals("2 events are not returned", 2, rows.length);
 	}
 
 	@BeforeClass

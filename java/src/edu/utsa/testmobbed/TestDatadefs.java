@@ -33,7 +33,6 @@ public class TestDatadefs {
 	@Test
 	public void testStoreNumericValue() throws Exception {
 		System.out.println("Unit test for storeNumericValue");
-		System.out.println("It should store a numeric value data definition");
 		String datadefValues[][] = { { null, "NUMERIC_VALUE", null, null,
 				"NUMERIC_VALUE DATADEF" } };
 		String[] doubleColumns = { "datadef_sampling_rate" };
@@ -47,7 +46,7 @@ public class TestDatadefs {
 		Object actual = Datadefs.retrieveNumericValue(md.getConnection(),
 				datadefUuids[0]);
 		System.out
-				.println("--It should retrieve a numeric value data definition that is equal");
+				.println("--It should retrieve a numeric value data definition that is equal\n");
 		assertTrue("Data definition returned in not equal",
 				Arrays.equals(expected, (Object[]) actual));
 	}
@@ -55,7 +54,6 @@ public class TestDatadefs {
 	@Test
 	public void testStoreXMLValue() throws Exception {
 		System.out.println("Unit test for storeXMLValue");
-		System.out.println("It should store a xml value data definition");
 		String datadefValues[][] = { { null, "XML_VALUE", null, null,
 				"NUMERIC_VALUE DATADEF" } };
 		String[] doubleColumns = { "datadef_sampling_rate" };
@@ -68,7 +66,7 @@ public class TestDatadefs {
 		String actual = Datadefs.retrieveXMLValue(md.getConnection(),
 				datadefUuids[0]);
 		System.out
-				.println("--It should retrieve a xml value data definition that is equal");
+				.println("--It should retrieve a xml value data definition that is equal\n");
 		assertEquals("Data definition returned in not equal", expected, actual);
 	}
 

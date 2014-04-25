@@ -40,7 +40,6 @@ public class TestElements {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAttribute");
-		System.out.println("It should store 2 element attributes");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -49,7 +48,7 @@ public class TestElements {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("--There should be no attributes in the database.");
+		System.out.println("--There should be no attributes in the database");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "X";
 		Double[] numAttrValues = { 0.123, 0.456 };
@@ -61,7 +60,7 @@ public class TestElements {
 		rs.next();
 		expected = 2;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 2 attributes in the database.");
+		System.out.println("--There should be 2 attributes in the database\n");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 	}
@@ -69,8 +68,6 @@ public class TestElements {
 	@Test
 	public void testAddElements() throws Exception {
 		System.out.println("Unit test for addElements");
-		System.out
-				.println("It should store 3 elements. 1 group element, 2 children.");
 		int expected;
 		int actual;
 		Statement stmt = md.getConnection().createStatement();
@@ -79,7 +76,7 @@ public class TestElements {
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("--There should be no elements in the database.");
+		System.out.println("--There should be no elements in the database");
 		assertEquals("There are elements in the database", expected, actual);
 		element.addElements();
 		element.save();
@@ -87,8 +84,22 @@ public class TestElements {
 		rs.next();
 		expected = 3;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 3 elements in the database.");
+		System.out.println("--There should be 3 elements in the database\n");
 		assertEquals("There are no elements in the database", expected, actual);
+	}
+
+	public static void intializeValues() throws Exception {
+		String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
+				null, null, null, "ELEMENT DATASET", null, null, null } };
+		String[] datasetUuids = md.addRows("datasets",
+				md.getColumnNames("datasets"), datasetValues, null, null);
+		String[] elementLabels = { "channel 1", "channel 2" };
+		String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
+		long[] elementPositions = { 1, 2 };
+		element = new Elements(md.getConnection());
+		element.reset(datasetUuids[0], "EEG CAP", elementLabels,
+				elementDescriptions, elementPositions);
+		md.commitTransaction();
 	}
 
 	@BeforeClass
@@ -103,19 +114,9 @@ public class TestElements {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
+			intializeValues();
 			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "ELEMENT_DATASET",
-					null, null, null, "ELEMENT DATASET", null, null, null } };
-			String[] datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-			String[] elementLabels = { "channel 1", "channel 2" };
-			String[] elementDescriptions = { "EEG channel: 1", "EEG channel: 2" };
-			long[] elementPositions = { 1, 2 };
-			element = new Elements(md.getConnection());
-			element.reset(datasetUuids[0], "EEG CAP", elementLabels,
-					elementDescriptions, elementPositions);
 		}
-
 	}
 
 	@AfterClass

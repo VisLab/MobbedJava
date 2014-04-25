@@ -54,8 +54,10 @@ public class TestManageDB {
 		String[] expected = { tagEntityColumnValues[0][0] + ","
 				+ tagEntityColumnValues[0][1] };
 		System.out
-				.println("--It should return a comma separated composite primary key for the given table tags\n");
-		assertArrayEquals(expected, actual);
+				.println("--It should return a comma separated composite primary key for the given table tag_entities\n");
+		assertArrayEquals(
+				"The composite key for the tag_entities table is not returned",
+				expected, actual);
 	}
 
 	@Test(expected = MobbedException.class)
@@ -116,7 +118,9 @@ public class TestManageDB {
 		String[] expected = columns.toArray(new String[columns.size()]);
 		System.out
 				.println("--It should return the expected column names for the given table datasets\n");
-		assertArrayEquals(expected, actual);
+		assertArrayEquals(
+				"The columns from the datasets table are not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -136,7 +140,9 @@ public class TestManageDB {
 		String expected = types.get(columnName);
 		System.out
 				.println("--It should return the expected column type for the given column dataset_namespace\n");
-		assertEquals(expected, actual);
+		assertEquals(
+				"The column type from the dataset_namespace column is not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -155,7 +161,9 @@ public class TestManageDB {
 		String[] expected = types.toArray(new String[types.size()]);
 		System.out
 				.println("--It should return the expected column types for the given table datasets\n");
-		assertArrayEquals(expected, actual);
+		assertArrayEquals(
+				"The column types from the datasets table are not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -180,7 +188,9 @@ public class TestManageDB {
 		String expected = defaults.get(columnName);
 		System.out
 				.println("--It should return the expected default value for the given column dataset_namespace\n");
-		assertEquals(expected, actual);
+		assertEquals(
+				"The default value for the column dataset_namespace is not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -199,7 +209,9 @@ public class TestManageDB {
 		String[] actual = md.getDoubleColumns(tableName);
 		System.out
 				.println("--It should return the expected double columns for the given table attributes\n");
-		assertArrayEquals(expected, actual);
+		assertArrayEquals(
+				"The double columns from the attributes table are not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -224,7 +236,8 @@ public class TestManageDB {
 		String[] expected = keys.toArray(new String[keys.size()]);
 		System.out
 				.println("--It should return the expected keys for the given table datasets\n");
-		assertArrayEquals(expected, actual);
+		assertArrayEquals("The keys from the datasets table are not returned",
+				expected, actual);
 	}
 
 	@Test
@@ -242,7 +255,8 @@ public class TestManageDB {
 		String[] expected = tables.toArray(new String[tables.size()]);
 		System.out
 				.println("--It should return all of the tables in the database\n");
-		assertArrayEquals(expected, actual);
+		assertArrayEquals("All tables in the database are not returned",
+				expected, actual);
 	}
 
 	@BeforeClass

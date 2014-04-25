@@ -80,6 +80,10 @@ public class ManageDB {
 	 */
 	public static final String NO_PARENT_UUID = "491df7dd-ce3e-47f8-bea5-6a632c6fcccb";
 	/**
+	 * A HashMap that contains tag names and tag uuids
+	 */
+	public static HashMap<String, UUID> tagMap;
+	/**
 	 * A query that retrieves column metadata of a database table
 	 */
 	private static final String colQuery = "SELECT column_default, column_name, data_type from information_schema.columns where table_schema = 'public' AND table_name = ?";
@@ -409,6 +413,15 @@ public class ManageDB {
 	}
 
 	/**
+	 * Returns a HashMap with all tags in the database
+	 * 
+	 * @return
+	 */
+	public HashMap<String, UUID> getTagMap() {
+		return tagMap;
+	}
+
+	/**
 	 * Rollback the current transaction. Auto commit mode needs to be set to
 	 * false to create a transaction.
 	 * 
@@ -587,7 +600,8 @@ public class ManageDB {
 			String regex, String match, String[][] tags, String[][] atts,
 			String[] cols, String[][] vals, String[] dcols, double[][] dvals,
 			double[][] range, String cursorName) throws MobbedException {
-		String qry = "SELECT * FROM " + table.toUpperCase();
+		String qry = "SELECT " + table.toUpperCase() + ".* FROM "
+				+ table.toUpperCase();
 		qry = concatStrs(qry, GroupQuery.constructGroupQuery(con, table,
 				keyMap.get(table)[0], "TAGS", match, tags));
 		qry = concatStrs(qry, GroupQuery.constructGroupQuery(con, table,
@@ -595,6 +609,7 @@ public class ManageDB {
 		qry = concatStrs(qry, EntityQuery.constructQuery(this, regex, cols,
 				vals, dcols, dvals, range));
 		qry = concatStrs(qry, concatLimit(cursorName, limit));
+		System.out.println(qry);
 		return qry;
 	}
 
@@ -874,6 +889,7 @@ public class ManageDB {
 		PreparedStatement colSmt = null;
 		PreparedStatement keySmt = null;
 		try {
+			tagMap = InitializeTagMap(con);
 			Statement tableSmt = con.createStatement();
 			colSmt = con.prepareCall(colQuery);
 			keySmt = con.prepareCall(keyQuery);
@@ -1452,6 +1468,29 @@ public class ManageDB {
 	}
 
 	/**
+	 * Initializes the tagMap field that maps tag names to tag uuids.
+	 * 
+	 * @throws MobbedException
+	 */
+	public static HashMap<String, UUID> InitializeTagMap(Connection con)
+			throws MobbedException {
+		String tagQry = "SELECT TAG_NAME, TAG_UUID FROM TAGS";
+		HashMap<String, UUID> tagMap = new HashMap<String, UUID>();
+		try {
+			Statement smt = con.createStatement();
+			ResultSet rs = smt.executeQuery(tagQry);
+			while (rs.next()) {
+				tagMap.put(rs.getString(1).toUpperCase(),
+						UUID.fromString(rs.getString(2)));
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException("Could not retrieve tags\n"
+					+ ex.getMessage());
+		}
+		return tagMap;
+	}
+
+	/**
 	 * Checks if an array is empty.
 	 * 
 	 * @param obj
@@ -1541,6 +1580,43 @@ public class ManageDB {
 					+ ex.getMessage());
 		}
 
+	}
+
+	/**
+	 * Stores tags in a database. Duplicates will be ignored.
+	 * 
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	public static HashMap<String, UUID> storeTags(Connection con,
+			HashMap<String, UUID> tagMap, String entityType, UUID entityUuid,
+			String[] tags) throws MobbedException {
+		String TAG_ENTITY_QRY = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
+		String TAG_QRY = "INSERT INTO TAGS (TAG_UUID, TAG_NAME) VALUES (?,?)";
+		try {
+			PreparedStatement tagstmt = con.prepareStatement(TAG_QRY);
+			PreparedStatement tagEntitystmt = con
+					.prepareStatement(TAG_ENTITY_QRY);
+			for (int j = 0; j < tags.length; j++) {
+				if (!tagMap.containsKey(tags[j].toUpperCase())) {
+					UUID tagUuid = UUID.randomUUID();
+					tagstmt.setObject(1, tagUuid, Types.OTHER);
+					tagstmt.setString(2, tags[j]);
+					tagstmt.execute();
+					tagMap.put(tags[j].toUpperCase(), tagUuid);
+				}
+				tagEntitystmt.setObject(1, entityUuid, Types.OTHER);
+				tagEntitystmt.setObject(2, tagMap.get(tags[j].toUpperCase()),
+						Types.OTHER);
+				tagEntitystmt.setString(3, entityType);
+				tagEntitystmt.execute();
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not add the event tags to the batch\n"
+							+ ex.getMessage());
+		}
+		return tagMap;
 	}
 
 	/**

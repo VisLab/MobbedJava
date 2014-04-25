@@ -17,12 +17,11 @@ import java.util.UUID;
  */
 public class EventTypes {
 
-	private static HashMap<String, UUID> tagMap;
-
 	/**
 	 * A connection to the database
 	 */
 	private Connection dbCon;
+
 	/**
 	 * A HashMap that contains existing event types
 	 */
@@ -39,6 +38,7 @@ public class EventTypes {
 	 * The UUID of the event type
 	 */
 	private UUID eventTypeUuid;
+	private static HashMap<String, UUID> tagMap;
 
 	/**
 	 * Creates a EventTypes object.
@@ -189,7 +189,7 @@ public class EventTypes {
 	/**
 	 * Adds all of the tags to the database
 	 * 
-	 * @param dbCon
+	 * @param con
 	 *            a connection to the database
 	 * @param eventTypeUuid
 	 *            the event type UUID
@@ -199,14 +199,14 @@ public class EventTypes {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static HashMap<String, UUID> addAllTags(Connection dbCon,
+	private static HashMap<String, UUID> addAllTags(Connection con,
 			UUID eventTypeUuid, String[] eventTypeTags) throws MobbedException {
 		String tagQry = "INSERT INTO TAGS (TAG_UUID, TAG_NAMES) VALUES (?,?)";
 		String tagEntityQry = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
 		HashMap<String, UUID> eventTypeTagMap = new HashMap<String, UUID>();
 		try {
-			PreparedStatement tagSmt = dbCon.prepareStatement(tagQry);
-			PreparedStatement tagEntitySmt = dbCon
+			PreparedStatement tagSmt = con.prepareStatement(tagQry);
+			PreparedStatement tagEntitySmt = con
 					.prepareStatement(tagEntityQry);
 			for (int i = 0; i < eventTypeTags.length; i++) {
 				if (!tagMap.containsKey(eventTypeTags[i].toUpperCase())) {

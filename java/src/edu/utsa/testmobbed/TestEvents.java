@@ -96,16 +96,13 @@ public class TestEvents {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAttribute");
-		System.out.println("It should store 2 event attributes");
-		int expected;
-		int actual;
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM ATTRIBUTES";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no attributes in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no attributes in the database");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "urevent";
 		Double[] numAttrValues = { 1.0, 2.0 };
@@ -124,7 +121,7 @@ public class TestEvents {
 		rs.next();
 		expected = 2;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 2 attributes in the database.");
+		System.out.println("--There should be 2 attributes in the database\n");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 
@@ -133,17 +130,13 @@ public class TestEvents {
 	@Test
 	public void testAddEventsDerieved() throws Exception {
 		System.out.println("Unit test for addEvents with derived events.");
-		System.out
-				.println("It should store 6 events. 4 original events, 2 derived events");
-		int expected;
-		int actual;
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM EVENTS";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no events in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no events in the database");
 		assertEquals("There are events in the database", expected, actual);
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
@@ -158,23 +151,20 @@ public class TestEvents {
 		rs.next();
 		expected = 6;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 6 events in the database.");
+		System.out.println("--There should be 6 events in the database\n");
 		assertEquals("There are no events in the database", expected, actual);
 	}
 
 	@Test
 	public void testAddEventsOriginal() throws Exception {
-		System.out.println("Unit test for addEvents with original events.");
-		System.out.println("It should store 4 original events.");
-		int expected;
-		int actual;
+		System.out.println("Unit test for addEvents with original events");
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM EVENTS";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no events in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no events in the database");
 		assertEquals("There are events in the database", expected, actual);
 		event.save();
 		rs = stmt.executeQuery(query);
@@ -182,23 +172,20 @@ public class TestEvents {
 		expected = 4;
 		actual = rs.getInt(1);
 		System.out
-				.println("--There should be 4 original events in the database.");
+				.println("--There should be 4 original events in the database\n");
 		assertEquals("There are no events in the database", expected, actual);
 	}
 
 	@Test
 	public void testAddEventTagsDerieved() throws Exception {
 		System.out.println("Unit test for addEvents with derived events");
-		System.out.println("It should not store any event tags");
-		int expected;
-		int actual;
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM TAGS";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no event tags in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no event tags in the database");
 		assertEquals("There are event tags in the database", expected, actual);
 		event.save();
 		event.reset(datasetUuids[0], derivedEventLatencies,
@@ -213,7 +200,7 @@ public class TestEvents {
 		rs.next();
 		expected = 8;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 8 event tags in the database.");
+		System.out.println("--There should be 8 event tags in the database\n");
 		assertEquals("There are no event tags in the database", expected,
 				actual);
 	}
@@ -221,25 +208,30 @@ public class TestEvents {
 	@Test
 	public void testAddEventTagsOriginal() throws Exception {
 		System.out.println("Unit test for addEvents with original events");
-		System.out.println("It should not store any event tags");
-		int expected;
-		int actual;
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM TAGS";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no event tags in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no event tags in the database");
 		assertEquals("There are event tags in the database", expected, actual);
 		event.save();
 		rs = stmt.executeQuery(query);
 		rs.next();
 		expected = 0;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 0 event tags in the database.");
+		System.out.println("--There should be 0 event tags in the database\n");
 		assertEquals("There are no event tags in the database", expected,
 				actual);
+	}
+
+	public static void initializeValues() throws Exception {
+		String datasetValues[][] = { { null, null, null, "EVENT_DATASET", null,
+				null, null, "EVENT DATASET", null, null, null } };
+		datasetUuids = md.addRows("datasets", md.getColumnNames("datasets"),
+				datasetValues, null, null);
+		md.commitTransaction();
 	}
 
 	@BeforeClass
@@ -254,11 +246,9 @@ public class TestEvents {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
+			initializeValues();
 			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null, "EVENT_DATASET",
-					null, null, null, "EVENT DATASET", null, null, null } };
-			datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
+
 		}
 	}
 

@@ -29,7 +29,7 @@ public class Events {
 	/**
 	 * A connection to the database
 	 */
-	private Connection dbCon;
+	private Connection con;
 	/**
 	 * The end times of the events
 	 */
@@ -75,17 +75,9 @@ public class Events {
 	 */
 	private double[] startTimes;
 	/**
-	 * A prepared statement object that inserts tags into the database
-	 */
-	private PreparedStatement tagEntitystmt;
-	/**
 	 * A HashMap that contains tag uuids and tags
 	 */
 	private HashMap<String, UUID> tagMap;
-	/**
-	 * A prepared statement object that inserts tags into the database
-	 */
-	private PreparedStatement tagstmt;
 	/**
 	 * The descriptions of the event types
 	 */
@@ -104,14 +96,6 @@ public class Events {
 	private static final String EVENT_QRY = "INSERT INTO EVENTS (EVENT_UUID, EVENT_DATASET_UUID, "
 			+ " EVENT_TYPE_UUID, EVENT_START_TIME,"
 			+ " EVENT_END_TIME, EVENT_PARENT_UUID, EVENT_POSITION, EVENT_CERTAINTY) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-	/**
-	 * A query that inserts tag entities into the database
-	 */
-	private static final String TAG_ENTITY_QRY = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
-	/**
-	 * A query that inserts tags into the database
-	 */
-	private static final String TAG_QRY = "INSERT INTO TAGS (TAG_UUID, TAG_NAME) VALUES (?,?)";
 
 	/**
 	 * Creates a Events object.
@@ -120,7 +104,7 @@ public class Events {
 	 *            a connection to the database
 	 */
 	public Events(Connection con) throws Exception {
-		this.dbCon = con;
+		this.con = con;
 		this.datasetUuid = null;
 		this.types = null;
 		this.positions = null;
@@ -132,9 +116,7 @@ public class Events {
 		eventTypeTagMap = new HashMap<String, EventTypeTags>();
 		tagMap = new HashMap<String, UUID>();
 		eventstmt = con.prepareStatement(EVENT_QRY);
-		tagstmt = con.prepareStatement(TAG_QRY);
-		tagEntitystmt = con.prepareStatement(TAG_ENTITY_QRY);
-		InitializeTagMap();
+		tagMap = ManageDB.InitializeTagMap(con);
 	}
 
 	/**
@@ -193,8 +175,13 @@ public class Events {
 				eventstmt.setDouble(8, certainties[i]);
 				eventstmt.addBatch();
 				eventMap.put(positions[i], eventUuids[i]);
+				if (!ManageDB.isEmpty(eventTags.get(positions[i]))) {
+					String[] tags = eventTags.get(positions[i]);
+					tagMap = ManageDB.storeTags(con, tagMap, "events",
+							eventUuids[i], tags);
+				}
 			}
-			addEventTags();
+			// addEventTags();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not add the event to the batch\n"
 					+ ex.getMessage());
@@ -262,46 +249,9 @@ public class Events {
 		try {
 			atb.save();
 			eventstmt.executeBatch();
-			tagstmt.executeBatch();
-			tagEntitystmt.executeBatch();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not save the events\n"
 					+ ex.getNextException().getMessage());
-		}
-	}
-
-	/**
-	 * Adds the event tags to the batch.
-	 * 
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	private void addEventTags() throws MobbedException {
-		try {
-			for (int i = 0; i < positions.length; i++) {
-				if (!ManageDB.isEmpty(eventTags.get(positions[i]))) {
-					String[] tags = eventTags.get(positions[i]);
-					int numTags = tags.length;
-					for (int j = 0; j < numTags; j++) {
-						if (!tagMap.containsKey(tags[j].toUpperCase())) {
-							UUID tagUuid = UUID.randomUUID();
-							tagstmt.setObject(1, tagUuid, Types.OTHER);
-							tagstmt.setString(2, tags[j]);
-							tagstmt.addBatch();
-							tagMap.put(tags[j].toUpperCase(), tagUuid);
-						}
-						tagEntitystmt.setObject(1, eventUuids[i], Types.OTHER);
-						tagEntitystmt.setObject(2,
-								tagMap.get(tags[j].toUpperCase()), Types.OTHER);
-						tagEntitystmt.setString(3, "events");
-						tagEntitystmt.addBatch();
-					}
-				}
-			}
-		} catch (SQLException ex) {
-			throw new MobbedException(
-					"Could not add the event tags to the batch\n"
-							+ ex.getMessage());
 		}
 	}
 
@@ -315,9 +265,8 @@ public class Events {
 	 *             if an error occurs
 	 */
 	private String[] addEventTypes() throws MobbedException {
-		eventTypeTagMap = EventTypes.addEventTypes(dbCon,
-				existingEventTypeUuids, typeDescriptions, uniqueEventTypes,
-				eventTypeTags, tagMap);
+		eventTypeTagMap = EventTypes.addEventTypes(con, existingEventTypeUuids,
+				typeDescriptions, uniqueEventTypes, eventTypeTags, tagMap);
 		String[] eventTypeUuids = EventTypes.getStringValues(eventTypeTagMap);
 		return eventTypeUuids;
 	}
@@ -333,27 +282,6 @@ public class Events {
 			eventMap.put(originalPositions[i],
 					UUID.fromString(ManageDB.NO_PARENT_UUID));
 		}
-	}
-
-	/**
-	 * Initializes the tagMap field that maps tag names to tag uuids.
-	 * 
-	 * @throws MobbedException
-	 */
-	private void InitializeTagMap() throws MobbedException {
-		String qry = "SELECT TAG_NAME, TAG_UUID FROM TAGS";
-		try {
-			Statement smt = dbCon.createStatement();
-			ResultSet rs = smt.executeQuery(qry);
-			while (rs.next()) {
-				tagMap.put(rs.getString(1).toUpperCase(),
-						UUID.fromString(rs.getString(2)));
-			}
-		} catch (SQLException ex) {
-			throw new MobbedException("Could not retrieve tags\n"
-					+ ex.getMessage());
-		}
-
 	}
 
 }

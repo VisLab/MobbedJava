@@ -34,16 +34,13 @@ public class TestMetadata {
 	@Test
 	public void testAddAttribute() throws Exception {
 		System.out.println("Unit test for addAtrribute");
-		System.out.println("It should store a metadata attribute");
-		int expected;
-		int actual;
 		Statement stmt = md.getConnection().createStatement();
 		String query = "SELECT COUNT(*) FROM ATTRIBUTES";
 		ResultSet rs = stmt.executeQuery(query);
 		rs.next();
-		expected = 0;
-		actual = rs.getInt(1);
-		System.out.println("--There should be no attributes in the database.");
+		int expected = 0;
+		int actual = rs.getInt(1);
+		System.out.println("--There should be no attributes in the database");
 		assertEquals("There are attributes in the database", expected, actual);
 		String fieldName = "X";
 		Double[] numAttrValues = { 0.123 };
@@ -54,7 +51,7 @@ public class TestMetadata {
 		rs.next();
 		expected = 1;
 		actual = rs.getInt(1);
-		System.out.println("--There should be 1 attributes in the database.");
+		System.out.println("--There should be 1 attributes in the database\n");
 		assertEquals("There are no attributes in the database", expected,
 				actual);
 	}
@@ -63,6 +60,16 @@ public class TestMetadata {
 	public static void closeConnection() throws Exception {
 		md.closeConnection();
 		ManageDB.dropDatabase(name, hostname, user, password, verbose);
+	}
+
+	public static void initializeValues() throws Exception {
+		String datasetValues[][] = { { null, null, null, "METADATA_DATASET",
+				null, null, null, "METADATA_DATASET", null, null, null } };
+		String[] datasetUuids = md.addRows("datasets",
+				md.getColumnNames("datasets"), datasetValues, null, null);
+		metadata = new Metadata(md.getConnection());
+		metadata.reset(datasetUuids[0]);
+		md.commitTransaction();
 	}
 
 	@BeforeClass
@@ -77,15 +84,8 @@ public class TestMetadata {
 					verbose);
 			md = new ManageDB(name, hostname, user, password, verbose);
 		} finally {
+			initializeValues();
 			md.setAutoCommit(true);
-			String datasetValues[][] = { { null, null, null,
-					"METADATA_DATASET", null, null, null, "METADATA_DATASET",
-					null, null, null } };
-			String[] datasetUuids = md.addRows("datasets",
-					md.getColumnNames("datasets"), datasetValues, null, null);
-			metadata = new Metadata(md.getConnection());
-			metadata.reset(datasetUuids[0]);
 		}
-
 	}
 }

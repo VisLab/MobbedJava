@@ -171,6 +171,16 @@ public class TestEntityQuery {
 		assertEquals(2, rows.length);
 	}
 
+	public static void initializeValues() throws Exception {
+		TestEntityQueryHelper.insertContacts(md.getConnection());
+		datasetUuids = TestEntityQueryHelper.insertDatasets(md.getConnection());
+		elementUuids = TestEntityQueryHelper.insertElements(md.getConnection());
+		TestEntityQueryHelper.insertEvents(md.getConnection());
+		datasetOids = TestEntityQueryHelper.insertDatasetOids(
+				md.getConnection(), datasetUuids);
+		md.commitTransaction();
+	}
+
 	@BeforeClass
 	public static void setup() throws Exception {
 		try {
@@ -182,17 +192,10 @@ public class TestEntityQuery {
 			ManageDB.createDatabase(database, host, user, password, sqlFile,
 					verbose);
 			md = new ManageDB(database, host, user, password, verbose);
-			TestEntityQueryHelper.insertContacts(md.getConnection());
-			datasetUuids = TestEntityQueryHelper.insertDatasets(md
-					.getConnection());
-			elementUuids = TestEntityQueryHelper.insertElements(md
-					.getConnection());
-			TestEntityQueryHelper.insertEvents(md.getConnection());
-			datasetOids = TestEntityQueryHelper.insertDatasetOids(
-					md.getConnection(), datasetUuids);
-			md.commitTransaction();
+		} finally {
+			initializeValues();
+			md.setAutoCommit(true);
 		}
-		md.setAutoCommit(true);
 	}
 
 	@AfterClass
