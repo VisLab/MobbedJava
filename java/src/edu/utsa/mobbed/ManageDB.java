@@ -200,10 +200,10 @@ public class ManageDB {
 			}
 			insertStmt.executeBatch();
 			updateStmt.executeBatch();
-		} catch (SQLException me) {
+		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not insert or update row(s) in the database\n"
-							+ me.getMessage());
+							+ ex.getNextException().getMessage());
 		}
 		return keyList;
 	}
@@ -539,12 +539,11 @@ public class ManageDB {
 		return keyValue;
 	}
 
-	private String concatLimit(String name, double limit) {
-		String query = "";
+	private String concatLimit(String qry, String name, double limit) {
 		if (isEmpty(name) && limit != Double.POSITIVE_INFINITY) {
-			query += " LIMIT " + (int) limit;
+			qry = concatStrs(qry, "LIMIT" + (int) limit);
 		}
-		return query;
+		return qry;
 	}
 
 	/**
@@ -608,7 +607,7 @@ public class ManageDB {
 				keyMap.get(table)[0], "ATTRIBUTES", regex, atts));
 		qry = concatStrs(qry, EntityQuery.constructQuery(this, regex, cols,
 				vals, dcols, dvals, range));
-		qry = concatStrs(qry, concatLimit(cursorName, limit));
+		qry = concatLimit(qry, cursorName, limit);
 		System.out.println(qry);
 		return qry;
 	}
@@ -662,15 +661,15 @@ public class ManageDB {
 	/**
 	 * Creates a data cursor
 	 * 
-	 * @param name
+	 * @param cursor
 	 *            the name of the data cursor
 	 * @param qry
 	 *            the query the data cursor will be bounded to
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private void createCursor(String name, String qry) throws MobbedException {
-		qry = "DECLARE " + name + " SCROLL CURSOR WITH HOLD FOR " + qry;
+	private void createCursor(String cursor, String qry) throws MobbedException {
+		qry = "DECLARE " + cursor + " SCROLL CURSOR WITH HOLD FOR " + qry;
 		try {
 			Statement smt = con.createStatement();
 			smt.execute(qry);
@@ -685,18 +684,18 @@ public class ManageDB {
 
 	/**
 	 * 
-	 * @param name
+	 * @param cursor
 	 *            the name of the cursor
 	 * @return true if the cursor exists, false if otherwise
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private boolean cursorExists(String name) throws MobbedException {
+	private boolean cursorExists(String cursor) throws MobbedException {
 		boolean cursorExists = false;
 		String qry = "SELECT EXISTS (SELECT 1 FROM PG_CURSORS WHERE NAME = ?)";
 		try {
 			PreparedStatement smt = con.prepareStatement(qry);
-			smt.setString(1, name);
+			smt.setString(1, cursor);
 			ResultSet rs = smt.executeQuery();
 			rs.next();
 			cursorExists = rs.getBoolean(1);
@@ -710,7 +709,7 @@ public class ManageDB {
 	/**
 	 * Fetches the next set of rows that a data cursor points to
 	 * 
-	 * @param name
+	 * @param cursor
 	 *            the name of the cursor
 	 * @param size
 	 *            the fetch size of the cursor
@@ -718,13 +717,12 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private String[][] fetchFromCursor(String name, int size)
+	private String[][] fetchFromCursor(String cursor, int size)
 			throws MobbedException {
-		String[][] rows = {};
-		String qry = "FETCH FORWARD " + size + " FROM " + name;
-		rows = putRowsInArray(qry);
+		String qry = "FETCH FORWARD " + size + " FROM " + cursor;
+		String[][] rows = putRowsInArray(qry);
 		if (isEmpty(rows))
-			closeCursor(name);
+			closeCursor(cursor);
 		return rows;
 	}
 
@@ -1061,7 +1059,7 @@ public class ManageDB {
 	 * 
 	 * @param qry
 	 *            the search query
-	 * @param name
+	 * @param cursor
 	 *            the name of the database cursor
 	 * @param limit
 	 *            the row limit of the database query
@@ -1069,14 +1067,14 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private String[][] returnSearchRows(String qry, String name, int limit)
+	private String[][] returnSearchRows(String qry, String cursor, int limit)
 			throws MobbedException {
 		String[][] rows = {};
 		try {
-			if (!isEmpty(name) && limit != Double.POSITIVE_INFINITY) {
-				if (!cursorExists(name))
-					createCursor(name, qry);
-				rows = fetchFromCursor(name, limit);
+			if (!isEmpty(cursor) && limit != Double.POSITIVE_INFINITY) {
+				if (!cursorExists(cursor))
+					createCursor(cursor, qry);
+				rows = fetchFromCursor(cursor, limit);
 			} else {
 				rows = putRowsInArray(qry);
 			}

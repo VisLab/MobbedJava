@@ -39,7 +39,7 @@ public class TestEntityQueryHelper {
 							.getPath(), "UTF-8");
 			for (int i = 0; i < numDatasets; i++) {
 				datasetOids[i] = Datadefs.storeBlob(dbCon, filename,
-						datasetUuids[i].toString(), true);
+						datasetUuids[i].toString(), false);
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();

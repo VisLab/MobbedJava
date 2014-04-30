@@ -44,9 +44,9 @@ public class Datadefs {
 			String entityUuid, boolean additional) throws MobbedException {
 		String query;
 		if (additional)
-			query = "SELECT DATASET_OID FROM DATASETS WHERE DATASET_UUID = ? AND DATASET_OID IS NOT NULL LIMIT 1";
-		else
 			query = "SELECT DATADEF_OID FROM DATADEFS WHERE DATADEF_UUID = ? AND DATADEF_OID IS NOT NULL LIMIT 1";
+		else
+			query = "SELECT DATASET_OID FROM DATASETS WHERE DATASET_UUID = ? AND DATASET_OID IS NOT NULL LIMIT 1";
 		try {
 			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
 					.getLargeObjectAPI();
@@ -171,9 +171,9 @@ public class Datadefs {
 			obj.close();
 			fis.close();
 			if (additional)
-				createDatasetOid(dbCon, entityUuid, oid);
-			else
 				createdatadefOid(dbCon, entityUuid, oid);
+			else
+				createDatasetOid(dbCon, entityUuid, oid);
 		} catch (Exception ex) {
 			throw new MobbedException("Could not save the blob\n"
 					+ ex.getMessage());
