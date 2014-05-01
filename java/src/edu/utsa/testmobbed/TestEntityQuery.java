@@ -16,7 +16,7 @@ public class TestEntityQuery {
 	private String[] cols = {};
 	private String cursor = null;
 	private String[] dcols = {};
-	private double[][] dvals = {};
+	private Double[][] dvals = {};
 	private double limit = Double.POSITIVE_INFINITY;
 	private String match = null;
 	private double[][] ranges = {};
@@ -24,7 +24,7 @@ public class TestEntityQuery {
 	private String table = null;
 	private String[][] tags = {};
 	private String[][] vals = {};
-	private static String database = "testentitydb";
+	private static String database = "entitydb";
 	private static long[] datasetOids = {};
 	private static UUID[] datasetUuids = {};
 	private static UUID[] elementUuids = {};
@@ -42,7 +42,7 @@ public class TestEntityQuery {
 		regex = "off";
 		match = "exact";
 		dcols = new String[] { "event_start_time" };
-		dvals = new double[][] { { 1 } };
+		dvals = new Double[][] { { (double) 1 } };
 		ranges = new double[][] { { -2.220446049250313E-16,
 				2.220446049250313E-16 } };
 		String[][] rows = md.searchRows(table, limit, regex, match, tags, atts,
@@ -50,7 +50,7 @@ public class TestEntityQuery {
 		System.out
 				.println("--It should retrieve one event that happens 1 second after the start of the dataset");
 		assertEquals(1, rows.length);
-		dvals = new double[][] { { 1, 2 } };
+		dvals = new Double[][] { { (double) 1, (double) 2 } };
 		rows = md.searchRows(table, limit, regex, match, tags, atts, cols,
 				vals, dcols, dvals, ranges, cursor);
 		System.out

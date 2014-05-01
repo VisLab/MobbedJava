@@ -23,13 +23,13 @@ public class Events {
 	 */
 	private double[] certainties;
 	/**
-	 * The dataset UUID of the events
-	 */
-	private UUID datasetUuid;
-	/**
 	 * A connection to the database
 	 */
 	private Connection con;
+	/**
+	 * The dataset UUID of the events
+	 */
+	private UUID datasetUuid;
 	/**
 	 * The end times of the events
 	 */

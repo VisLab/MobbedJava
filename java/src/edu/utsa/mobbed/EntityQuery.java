@@ -16,17 +16,20 @@ public class EntityQuery {
 			Types.OTHER, Types.BIGINT };
 
 	public static String constructQuery(ManageDB md, String regex,
-			String[] cols, String[][] vals, String[] dcols, double[][] dvals,
+			String[] cols, String[][] vals, String[] dcols, Double[][] dvals,
 			double[][] ranges) throws MobbedException {
 		String qry = new String();
+		boolean colEmpty = true;
 		if (!ManageDB.isEmpty(cols) || !ManageDB.isEmpty(dcols))
 			qry = ManageDB.concatStrs(qry, "WHERE");
-		if (!ManageDB.isEmpty(cols))
+		if (!ManageDB.isEmpty(cols)) {
 			qry = ManageDB
 					.concatStrs(qry, addConditions(md, regex, cols, vals));
+			colEmpty = false;
+		}
 		if (!ManageDB.isEmpty(dcols))
 			qry = ManageDB.concatStrs(qry,
-					addDoubleConditions(md, dcols, dvals, ranges));
+					addDoubleConditions(md, colEmpty, dcols, dvals, ranges));
 		return qry;
 	}
 
@@ -47,21 +50,22 @@ public class EntityQuery {
 	}
 
 	private static String addDoubleCondition(ManageDB md, String qry,
-			String dcol, double[] dvals, double[] ranges) {
+			String dcol, Double[] dvals, double[] ranges) {
 		String cond = new String();
 		cond = assignConditionValues(md.getConnection(),
 				buildDoubleCondition(dcol, dvals), dvals, ranges);
 		return ManageDB.concatStrs(qry, cond);
 	}
 
-	private static String addDoubleConditions(ManageDB md, String[] dcols,
-			double[][] dvals, double[][] ranges) {
+	private static String addDoubleConditions(ManageDB md, boolean colEmpty,
+			String[] dcols, Double[][] dvals, double[][] ranges) {
 		String qry = new String();
 		for (int i = 0; i < dcols.length; i++) {
 			qry = ManageDB.concatStrs(qry, "AND");
 			qry = addDoubleCondition(md, qry, dcols[i], dvals[i], ranges[i]);
 		}
-		qry = qry.replaceFirst("AND ", "");
+		if (colEmpty)
+			qry = qry.replaceFirst("AND ", "");
 		return qry;
 	}
 
@@ -86,7 +90,7 @@ public class EntityQuery {
 	}
 
 	private static String assignConditionValues(Connection con, String cond,
-			double[] dvals, double[] range) {
+			Double[] dvals, double[] range) {
 		try {
 			PreparedStatement smt = con.prepareStatement(cond);
 			int i = 1;
@@ -116,7 +120,7 @@ public class EntityQuery {
 		return cond;
 	}
 
-	private static String buildDoubleCondition(String dcol, double[] dvals) {
+	private static String buildDoubleCondition(String dcol, Double[] dvals) {
 		String cond = new String();
 		for (int i = 0; i < dvals.length; i++) {
 			cond = ManageDB.concatStrs(cond, dcol + " BETWEEN ? AND ?");

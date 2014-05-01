@@ -56,12 +56,6 @@ public class TestMetadata {
 				actual);
 	}
 
-	@AfterClass
-	public static void closeConnection() throws Exception {
-		md.closeConnection();
-		ManageDB.dropDatabase(name, hostname, user, password, verbose);
-	}
-
 	public static void initializeValues() throws Exception {
 		String datasetValues[][] = { { null, null, null, "METADATA_DATASET",
 				null, null, null, "METADATA_DATASET", null, null, null } };
@@ -87,5 +81,11 @@ public class TestMetadata {
 			initializeValues();
 			md.setAutoCommit(true);
 		}
+	}
+
+	@AfterClass
+	public static void teardown() throws Exception {
+		md.closeConnection();
+		ManageDB.dropDatabase(name, hostname, user, password, verbose);
 	}
 }

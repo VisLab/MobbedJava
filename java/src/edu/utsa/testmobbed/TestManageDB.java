@@ -29,7 +29,7 @@ import edu.utsa.mobbed.MobbedException;
 public class TestManageDB {
 	private static String hostname = "localhost";
 	private static ManageDB md;
-	private static String name = "testmanagedb";
+	private static String name = "managedb";
 	private static String password = "admin";
 	private static String tablePath;
 	private static String user = "postgres";

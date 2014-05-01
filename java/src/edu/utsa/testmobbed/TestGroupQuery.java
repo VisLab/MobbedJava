@@ -15,7 +15,7 @@ public class TestGroupQuery {
 	private String[] columns = {};
 	private String cursorName = null;
 	private String[] doubleColumns = {};
-	private double[][] doubleValues = {};
+	private Double[][] doubleValues = {};
 	private double limit = Double.POSITIVE_INFINITY;
 	private double[][] range = {};
 	private String regex = null;
@@ -25,7 +25,7 @@ public class TestGroupQuery {
 	private String[][] values = {};
 	private static String hostname = "localhost";
 	private static ManageDB md;
-	private static String name = "testgroupdb";
+	private static String name = "groupdb";
 	private static String password = "admin";
 	private static String tablePath;
 	private static String user = "postgres";

@@ -34,7 +34,7 @@ public class ManageDB {
 	/**
 	 * A HashMap that contains the column names of each database table
 	 */
-	private HashMap<String, String[]> colMap;
+	private HashMap<String, String[]> colMap = new HashMap<String, String[]>();
 	/**
 	 * A connection to the database
 	 */
@@ -42,19 +42,19 @@ public class ManageDB {
 	/**
 	 * A HashMap that contains the default column values of each database table
 	 */
-	private HashMap<String, String> defaultVals;
+	private HashMap<String, String> defaultVals = new HashMap<String, String>();
 	/**
 	 * A HashMap that contains the keys of each database table
 	 */
-	private HashMap<String, String[]> keyMap;
+	private HashMap<String, String[]> keyMap = new HashMap<String, String[]>();
 	/**
 	 * A HashMap that contains the column types of each database table
 	 */
-	private HashMap<String, String> typeMap;
+	private HashMap<String, String> typeMap = new HashMap<String, String>();
 	/**
 	 * prints informative messages if true
 	 */
-	private boolean verbose;
+	private boolean verbose = true;
 	/**
 	 * The default contact uuid
 	 */
@@ -82,7 +82,7 @@ public class ManageDB {
 	/**
 	 * A HashMap that contains tag names and tag uuids
 	 */
-	public static HashMap<String, UUID> tagMap;
+	public static HashMap<String, UUID> tagMap = new HashMap<String, UUID>();
 	/**
 	 * A query that retrieves column metadata of a database table
 	 */
@@ -90,7 +90,7 @@ public class ManageDB {
 	/**
 	 * A HashMap that contains instances of ManageDB objects
 	 */
-	private static HashMap<ManageDB, String> dbMap;
+	private static HashMap<ManageDB, String> dbMap = new HashMap<ManageDB, String>();
 	/**
 	 * A query that retrieves the keys of a database table
 	 */
@@ -130,7 +130,7 @@ public class ManageDB {
 		con = establishConnection(name, hostname, username, password);
 		this.verbose = verbose;
 		setAutoCommit(false);
-		initializeHashMaps();
+		populateHashMaps();
 		addManageDB(this);
 	}
 
@@ -471,7 +471,7 @@ public class ManageDB {
 	 */
 	public String[][] searchRows(String table, double limit, String regex,
 			String match, String[][] tags, String[][] atts, String[] cols,
-			String[][] vals, String[] dcols, double[][] dvals,
+			String[][] vals, String[] dcols, Double[][] dvals,
 			double[][] range, String cursor) throws MobbedException {
 		validateTableAndColumns(table, cols, dcols);
 		String searchQuery = constructSearchQuery(table, limit, regex, match,
@@ -541,7 +541,7 @@ public class ManageDB {
 
 	private String concatLimit(String qry, String name, double limit) {
 		if (isEmpty(name) && limit != Double.POSITIVE_INFINITY) {
-			qry = concatStrs(qry, "LIMIT" + (int) limit);
+			qry = concatStrs(qry, "LIMIT " + (int) limit);
 		}
 		return qry;
 	}
@@ -597,7 +597,7 @@ public class ManageDB {
 	 */
 	private String constructSearchQuery(String table, double limit,
 			String regex, String match, String[][] tags, String[][] atts,
-			String[] cols, String[][] vals, String[] dcols, double[][] dvals,
+			String[] cols, String[][] vals, String[] dcols, Double[][] dvals,
 			double[][] range, String cursorName) throws MobbedException {
 		String qry = "SELECT " + table.toUpperCase() + ".* FROM "
 				+ table.toUpperCase();
@@ -872,38 +872,6 @@ public class ManageDB {
 	}
 
 	/**
-	 * Initializes the hashmaps. The hashmaps contain metadata about columns and
-	 * the keys from each table.
-	 * 
-	 * @throws MobbedException
-	 *             if an error occurs
-	 */
-	private void initializeHashMaps() throws MobbedException {
-		colMap = new HashMap<String, String[]>();
-		typeMap = new HashMap<String, String>();
-		defaultVals = new HashMap<String, String>();
-		keyMap = new HashMap<String, String[]>();
-		ResultSet rs = null;
-		PreparedStatement colSmt = null;
-		PreparedStatement keySmt = null;
-		try {
-			tagMap = InitializeTagMap(con);
-			Statement tableSmt = con.createStatement();
-			colSmt = con.prepareCall(colQuery);
-			keySmt = con.prepareCall(keyQuery);
-			rs = tableSmt.executeQuery(tableQuery);
-			while (rs.next()) {
-				initializeColumnHashMaps(colSmt, rs.getString("table_name"));
-				initializeKeyHashMap(keySmt, rs.getString("table_name"));
-			}
-		} catch (SQLException ex) {
-			throw new MobbedException(
-					"Could not initialize statement objects\n"
-							+ ex.getMessage());
-		}
-	}
-
-	/**
 	 * Initializes a HashMap that contains the keys of each table.
 	 * 
 	 * @param keyStatement
@@ -993,6 +961,34 @@ public class ManageDB {
 			}
 		}
 		return exist;
+	}
+
+	/**
+	 * Populates the HashMaps. The HashMaps contain metadata about columns and
+	 * the keys from each table.
+	 * 
+	 * @throws MobbedException
+	 *             if an error occurs
+	 */
+	private void populateHashMaps() throws MobbedException {
+		ResultSet rs = null;
+		PreparedStatement colSmt = null;
+		PreparedStatement keySmt = null;
+		try {
+			tagMap = InitializeTagMap(con);
+			Statement tableSmt = con.createStatement();
+			colSmt = con.prepareCall(colQuery);
+			keySmt = con.prepareCall(keyQuery);
+			rs = tableSmt.executeQuery(tableQuery);
+			while (rs.next()) {
+				initializeColumnHashMaps(colSmt, rs.getString("table_name"));
+				initializeKeyHashMap(keySmt, rs.getString("table_name"));
+			}
+		} catch (SQLException ex) {
+			throw new MobbedException(
+					"Could not initialize statement objects\n"
+							+ ex.getMessage());
+		}
 	}
 
 	/**
@@ -1336,7 +1332,6 @@ public class ManageDB {
 		for (int i = 0; i < numKeys; i++) {
 			mds[i].closeConnection();
 		}
-		dbMap = null;
 	}
 
 	/**
@@ -1358,7 +1353,7 @@ public class ManageDB {
 	 * Creates and populates a database. The database must not already exist to
 	 * create it. The database will be created from a valid SQL file.
 	 * 
-	 * @param name
+	 * @param database
 	 *            the name of the database
 	 * @param hostname
 	 *            the host name of the database
@@ -1373,7 +1368,7 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public static void createDatabase(String name, String hostname,
+	public static void createDatabase(String database, String hostname,
 			String username, String password, String filename, boolean verbose)
 			throws MobbedException {
 		if (isEmpty(filename))
@@ -1381,14 +1376,14 @@ public class ManageDB {
 		try {
 			Connection templateCon = establishConnection(templateDatabase,
 					hostname, username, password);
-			createDatabase(templateCon, name);
+			createDatabase(templateCon, database);
 			templateCon.close();
-			Connection databaseCon = establishConnection(name, hostname,
+			Connection databaseCon = establishConnection(database, hostname,
 					username, password);
 			createTables(databaseCon, filename);
 			databaseCon.close();
 			if (verbose)
-				System.out.println("Database " + name + " created");
+				System.out.println("Database " + database + " created");
 		} catch (SQLException ex) {
 			throw new MobbedException(
 					"Could not create and populate the database\n"
@@ -1401,7 +1396,7 @@ public class ManageDB {
 	 * must already exist to delete it. There must be no active connections to
 	 * delete the database.
 	 * 
-	 * @param dbname
+	 * @param database
 	 *            the name of the database
 	 * @param hostname
 	 *            the host name of the database
@@ -1414,11 +1409,11 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public static void dropDatabase(String dbname, String hostname,
+	public static void dropDatabase(String database, String hostname,
 			String username, String password, boolean verbose)
 			throws MobbedException {
 		try {
-			Connection databaseCon = establishConnection(dbname, hostname,
+			Connection databaseCon = establishConnection(database, hostname,
 					username, password);
 			checkOpenConnections(databaseCon);
 			deleteDatasetOids(databaseCon);
@@ -1426,14 +1421,14 @@ public class ManageDB {
 			databaseCon.close();
 			Connection templateCon = establishConnection(templateDatabase,
 					hostname, username, password);
-			dropDatabase(templateCon, dbname);
+			dropDatabase(templateCon, database);
 			templateCon.close();
 		} catch (SQLException ex) {
 			throw new MobbedException("Could not delete the database\n"
 					+ ex.getMessage());
 		}
 		if (verbose)
-			System.out.println("Database " + dbname + " dropped");
+			System.out.println("Database " + database + " dropped");
 	}
 
 	/**
@@ -1468,7 +1463,11 @@ public class ManageDB {
 	/**
 	 * Initializes the tagMap field that maps tag names to tag uuids.
 	 * 
+	 * @param con
+	 *            a connection to the database
+	 * @return a HashMap that contains the tags in the database
 	 * @throws MobbedException
+	 *             if an error occurs
 	 */
 	public static HashMap<String, UUID> InitializeTagMap(Connection con)
 			throws MobbedException {
@@ -1492,6 +1491,7 @@ public class ManageDB {
 	 * Checks if an array is empty.
 	 * 
 	 * @param obj
+	 *            the array that is checked to be empty
 	 * @return true if the array is empty, false if otherwise
 	 */
 	public static boolean isEmpty(Object[] obj) {
@@ -1507,6 +1507,7 @@ public class ManageDB {
 	 * Checks if an string is empty.
 	 * 
 	 * @param str
+	 *            the string that is checked to be empty
 	 * @return true if the string is empty, false if otherwise
 	 */
 	public static boolean isEmpty(String str) {
@@ -1552,7 +1553,7 @@ public class ManageDB {
 	 * 
 	 * @param filename
 	 *            the filename of the property file
-	 * @param dbname
+	 * @param database
 	 *            the name of the database
 	 * @param hostname
 	 *            the host name of the database
@@ -1563,12 +1564,12 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	public static void storeCredentials(String filename, String dbname,
+	public static void storeCredentials(String filename, String database,
 			String hostname, String username, String password)
 			throws MobbedException {
 		Properties props = new Properties();
 		try {
-			props.setProperty("dbname", dbname);
+			props.setProperty("dbname", database);
 			props.setProperty("hostname", hostname);
 			props.setProperty("username", username);
 			props.setProperty("password", password);
@@ -1583,18 +1584,29 @@ public class ManageDB {
 	/**
 	 * Stores tags in a database. Duplicates will be ignored.
 	 * 
+	 * @param con
+	 *            a connection to the database
+	 * @param tagMap
+	 *            a HashMap that contains the tags from the database
+	 * @param entityType
+	 *            the type of entity associated with the tags
+	 * @param entityUuid
+	 *            the entity uuid
+	 * @param tags
+	 *            the tags associated with the entity
+	 * @return an updated HashMap of the tags from the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
 	public static HashMap<String, UUID> storeTags(Connection con,
 			HashMap<String, UUID> tagMap, String entityType, UUID entityUuid,
 			String[] tags) throws MobbedException {
-		String TAG_ENTITY_QRY = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
-		String TAG_QRY = "INSERT INTO TAGS (TAG_UUID, TAG_NAME) VALUES (?,?)";
+		String tagEntityQry = "INSERT INTO TAG_ENTITIES (TAG_ENTITY_UUID, TAG_ENTITY_TAG_UUID,TAG_ENTITY_CLASS) VALUES (?,?,?)";
+		String tagQry = "INSERT INTO TAGS (TAG_UUID, TAG_NAME) VALUES (?,?)";
 		try {
-			PreparedStatement tagstmt = con.prepareStatement(TAG_QRY);
+			PreparedStatement tagstmt = con.prepareStatement(tagQry);
 			PreparedStatement tagEntitystmt = con
-					.prepareStatement(TAG_ENTITY_QRY);
+					.prepareStatement(tagEntityQry);
 			for (int j = 0; j < tags.length; j++) {
 				if (!tagMap.containsKey(tags[j].toUpperCase())) {
 					UUID tagUuid = UUID.randomUUID();
@@ -1624,9 +1636,6 @@ public class ManageDB {
 	 *            the ManageDB object
 	 */
 	private static synchronized void addManageDB(ManageDB obj) {
-		if (dbMap == null) {
-			dbMap = new HashMap<ManageDB, String>();
-		}
 		dbMap.put(obj, null);
 	}
 
@@ -1636,14 +1645,14 @@ public class ManageDB {
 	 * 
 	 * @param con
 	 *            the connection to the database
-	 * @param name
+	 * @param database
 	 *            the name of the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static void createDatabase(Connection con, String name)
+	private static void createDatabase(Connection con, String database)
 			throws MobbedException {
-		String sql = "CREATE DATABASE " + name;
+		String sql = concatStrs("CREATE DATABASE", database);
 		try {
 			PreparedStatement smt = con.prepareStatement(sql);
 			smt.execute();
@@ -1655,8 +1664,8 @@ public class ManageDB {
 						"Could not close the database connection\n"
 								+ ex2.getMessage());
 			}
-			throw new MobbedException("Could not create the database " + name
-					+ "\n" + ex1.getMessage());
+			throw new MobbedException("Could not create the database "
+					+ database + "\n" + ex1.getMessage());
 		}
 	}
 
@@ -1666,7 +1675,7 @@ public class ManageDB {
 	 * @param con
 	 *            a connection to the database
 	 * @param sqlFile
-	 *            the name of the SQL file
+	 *            the name of the SQL file used to create the database tables
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
@@ -1695,25 +1704,25 @@ public class ManageDB {
 	/**
 	 * Deletes the objects associated with the oids in the datadefs table.
 	 * 
-	 * @param dbCon
+	 * @param con
 	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static void deleteDataDefOids(Connection dbCon)
+	private static void deleteDataDefOids(Connection con)
 			throws MobbedException {
 		try {
-			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
-					.getLargeObjectAPI();
 			String qry = "SELECT DATADEF_OID FROM DATADEFS WHERE DATADEF_OID IS NOT NULL";
-			Statement smt = dbCon.createStatement();
+			LargeObjectManager lobj = ((org.postgresql.PGConnection) con)
+					.getLargeObjectAPI();
+			Statement smt = con.createStatement();
 			ResultSet rs = smt.executeQuery(qry);
 			while (rs.next()) {
 				lobj.unlink(rs.getLong(1));
 			}
 		} catch (SQLException ex1) {
 			try {
-				dbCon.close();
+				con.close();
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
@@ -1728,24 +1737,24 @@ public class ManageDB {
 	/**
 	 * Deletes the objects associated with the oids in the datasets table.
 	 * 
-	 * @param dbCon
+	 * @param con
 	 *            a connection to the database
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static void deleteDatasetOids(Connection dbCon)
+	private static void deleteDatasetOids(Connection con)
 			throws MobbedException {
 		try {
-			LargeObjectManager lobj = ((org.postgresql.PGConnection) dbCon)
-					.getLargeObjectAPI();
 			String qry = "SELECT DATASET_OID FROM DATASETS WHERE DATASET_OID IS NOT NULL";
-			Statement smt = dbCon.createStatement();
+			LargeObjectManager lobj = ((org.postgresql.PGConnection) con)
+					.getLargeObjectAPI();
+			Statement smt = con.createStatement();
 			ResultSet rs = smt.executeQuery(qry);
 			while (rs.next())
 				lobj.unlink(rs.getLong(1));
 		} catch (SQLException ex1) {
 			try {
-				dbCon.close();
+				con.close();
 			} catch (SQLException ex2) {
 				throw new MobbedException(
 						"Could not close the database connection\n"
@@ -1762,15 +1771,15 @@ public class ManageDB {
 	 * be no active connections to drop the database.
 	 * 
 	 * @param con
-	 *            connection to a different database
-	 * @param name
-	 *            the name of the database
+	 *            connection to a database used to drop a separate database
+	 * @param database
+	 *            the name of the database to drop
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static void dropDatabase(Connection con, String name)
+	private static void dropDatabase(Connection con, String database)
 			throws MobbedException {
-		String sql = "DROP DATABASE IF EXISTS " + name;
+		String sql = "DROP DATABASE IF EXISTS " + database;
 		try {
 			Statement smt = con.createStatement();
 			smt.execute(sql);
@@ -1781,7 +1790,7 @@ public class ManageDB {
 				throw new MobbedException("Could not close the connection\n"
 						+ ex2.getMessage());
 			}
-			throw new MobbedException("Could not drop the database" + name
+			throw new MobbedException("Could not drop the database" + database
 					+ "\n" + ex1.getMessage());
 		}
 	}
@@ -1790,7 +1799,7 @@ public class ManageDB {
 	 * Establishes a connection to a database. The database must exist and allow
 	 * connections for a connection to be established.
 	 * 
-	 * @param name
+	 * @param database
 	 *            the name of the database
 	 * @param hostname
 	 *            the host name of the database
@@ -1802,10 +1811,11 @@ public class ManageDB {
 	 * @throws MobbedException
 	 *             if an error occurs
 	 */
-	private static Connection establishConnection(String name, String hostname,
-			String username, String password) throws MobbedException {
+	private static Connection establishConnection(String database,
+			String hostname, String username, String password)
+			throws MobbedException {
 		Connection con = null;
-		String url = "jdbc:postgresql://" + hostname + "/" + name;
+		String url = "jdbc:postgresql://" + hostname + "/" + database;
 		try {
 			Class.forName("org.postgresql.Driver");
 		} catch (ClassNotFoundException ex) {
@@ -1815,7 +1825,7 @@ public class ManageDB {
 			con = DriverManager.getConnection(url, username, password);
 		} catch (SQLException ex) {
 			throw new MobbedException(
-					"Could not establish a connection to database " + name
+					"Could not establish a connection to database " + database
 							+ "\n" + ex.getMessage());
 		}
 		return con;
@@ -1829,9 +1839,6 @@ public class ManageDB {
 	 */
 	private static synchronized void removeManageDB(ManageDB md) {
 		dbMap.remove(md);
-		if (dbMap.isEmpty()) {
-			dbMap = null;
-		}
 	}
 
 }
