@@ -60,13 +60,17 @@ public class EntityQuery {
 	private static String addDoubleConditions(ManageDB md, boolean colEmpty,
 			String[] dcols, Double[][] dvals, double[][] ranges) {
 		String qry = new String();
+		if (!colEmpty)
+			qry = "AND";
+		String subQry = "(";
 		for (int i = 0; i < dcols.length; i++) {
-			qry = ManageDB.concatStrs(qry, "AND");
-			qry = addDoubleCondition(md, qry, dcols[i], dvals[i], ranges[i]);
+			subQry = ManageDB.concatStrs(subQry, "AND");
+			subQry = addDoubleCondition(md, subQry, dcols[i], dvals[i],
+					ranges[i]);
 		}
-		if (colEmpty)
-			qry = qry.replaceFirst("AND ", "");
-		return qry;
+		subQry = subQry.replaceFirst("AND ", "");
+		subQry += ")";
+		return ManageDB.concatStrs(qry, subQry);
 	}
 
 	private static String addOtherCondition(ManageDB md, String qry,
