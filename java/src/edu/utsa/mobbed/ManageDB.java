@@ -539,8 +539,19 @@ public class ManageDB {
 		return keyValue;
 	}
 
-	private String concatLimit(String qry, String name, double limit) {
-		if (isEmpty(name) && limit != Double.POSITIVE_INFINITY) {
+	/**
+	 * Concatenates a limit to the query
+	 * 
+	 * @param qry
+	 *            the query
+	 * @param cursor
+	 *            the name of the cursor
+	 * @param limit
+	 *            the query limit
+	 * @return the query with the limit
+	 */
+	private String concatLimit(String qry, String cursor, double limit) {
+		if (isEmpty(cursor) && limit != Double.POSITIVE_INFINITY) {
 			qry = concatStrs(qry, "LIMIT " + (int) limit);
 		}
 		return qry;
@@ -608,7 +619,6 @@ public class ManageDB {
 		qry = concatStrs(qry, EntityQuery.constructQuery(this, regex, cols,
 				vals, dcols, dvals, range));
 		qry = concatLimit(qry, cursorName, limit);
-		System.out.println(qry);
 		return qry;
 	}
 
